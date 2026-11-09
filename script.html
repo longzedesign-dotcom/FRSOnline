@@ -96,6 +96,63 @@
       }
     },
 
+    haptic(ms = 12) {
+      try {
+        if ('vibrate' in navigator && typeof navigator.vibrate === 'function') {
+          navigator.vibrate(ms);
+        }
+      } catch (err) {}
+    },
+
+    selectFilterChip(status) {
+      this.haptic(10);
+      document.querySelectorAll('.mobile-chip').forEach((btn) => {
+        btn.classList.toggle('active', btn.getAttribute('data-status') === status);
+      });
+      const filterSelect = document.getElementById('requestStatusFilter');
+      if (filterSelect) {
+        filterSelect.value = status;
+        this.applyRequestFilters();
+      }
+    },
+
+    async handleMobilePhotoInput(input) {
+      this.haptic(15);
+      const result = await this.processPhotoInput(input, 'photoInfo', 'photoPreview');
+      this.photoBase64 = result || '';
+    },
+
+    openPhotoViewer(src, caption) {
+      this.haptic(10);
+      const modal = document.getElementById('photoViewerModal');
+      const img = document.getElementById('photoViewerImg');
+      const cap = document.getElementById('photoViewerCaption');
+      if (!modal || !img) return;
+      img.src = src;
+      if (cap) cap.textContent = caption || '';
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    },
+
+    closePhotoViewer() {
+      this.haptic(8);
+      const modal = document.getElementById('photoViewerModal');
+      const img = document.getElementById('photoViewerImg');
+      if (modal) modal.classList.add('hidden');
+      if (img) img.src = '';
+      if (!document.getElementById('requestModal') || document.getElementById('requestModal').classList.contains('hidden')) {
+        document.body.style.overflow = '';
+      }
+    },
+
+    updateQueueBadge() {
+      const badge = document.getElementById('mobileQueueBadge');
+      if (!badge) return;
+      const activeRows = (this.requestRows || []).filter((r) => ['CLOSED', 'CANCELLED'].indexOf(String(r.STATUS_CODE || '')) === -1);
+      const count = activeRows.length;
+      badge.textContent = count > 99 ? '99+' : count;
+      badge.classList.toggle('hidden', count === 0);
+    },
 
     initTheme() {
       let theme = 'light';
@@ -1128,6 +1185,7 @@
 
           this.requestRows = Array.isArray(res.data) ? res.data : [];
           this.requestsLoaded = true;
+          this.updateQueueBadge();
           this.applyRequestFilters();
           this.lastLoaded.myRequests = Date.now();
           return this.requestRows;
@@ -1368,6 +1426,7 @@
     },
 
     showTab(name, refresh = true) {
+      this.haptic(12);
       const tabs = ['dashboard', 'newRequest', 'myRequests', 'reports', 'data', 'settings', 'profile', 'registrations'];
       tabs.forEach((tab) => {
         const panel = document.getElementById(tab + 'Tab');
@@ -1787,6 +1846,8 @@
     resetRequestForm() {
       const form = document.getElementById('requestForm');
       if (form) form.reset();
+      const cameraInput = document.getElementById('PHOTO_CAMERA_FILE');
+      if (cameraInput) cameraInput.value = '';
       const phoneInput = document.getElementById('PHONE');
       if (phoneInput) phoneInput.value = '';
       this.clearThaiPhoneError('PHONE');
@@ -1909,6 +1970,9 @@
     applyRequestFilters() {
       const search = String(document.getElementById('requestSearch').value || '').trim().toLowerCase();
       const status = document.getElementById('requestStatusFilter').value;
+      document.querySelectorAll('.mobile-chip').forEach((btn) => {
+        btn.classList.toggle('active', btn.getAttribute('data-status') === (status || ''));
+      });
       const filtered = this.requestRows.filter((row) => {
         if (status && String(row.STATUS_CODE) !== String(status)) return false;
         if (!search) return true;
@@ -2069,28 +2133,32 @@
       document.getElementById('requestModalSubtitle').textContent = (row.STATUS_NAME_TH || row.STATUS_CODE || '') +
         (row.ASSIGNED_TO_NAME ? ' | ' + row.ASSIGNED_TO_NAME : '');
 
+      const phoneValue = row.PHONE
+        ? (this.escapeHtml(row.PHONE) + ' <a href="tel:' + encodeURIComponent(row.PHONE) + '" class="mobile-call-action">' + this.iconSvg('phone') + '<span>โทรออก</span></a>')
+        : '-';
+
       const fields = [
-        ['ผู้แจ้ง', row.REQUESTER_NAME],
-        ['เบอร์โทร', row.PHONE],
-        ['ฝ่าย/แผนก', [row.DIVISION, row.DEPARTMENT].filter(Boolean).join(' / ')],
-        ['วันที่แจ้ง', this.formatDateText(row.REQUEST_DATE)],
-        ['ระบบ/อุปกรณ์', row.SYSTEM_NAME_TH],
-        ['สถานที่', row.LOCATION_FULL],
-        ['ความเร่งด่วน', row.PRIORITY_NAME_TH + (row.SLA_HOURS ? ' (SLA ' + row.SLA_HOURS + ' ชม.)' : '')],
-        ['ผู้รับผิดชอบ', row.ASSIGNED_TO_NAME || 'ยังไม่ได้มอบหมาย'],
-        ['เริ่มดำเนินการ', this.formatDateText(row.FIX_START_DATE)],
-        ['เสร็จสิ้น', this.formatDateText(row.FIX_DONE_DATE)],
-        ['ระยะเวลาดำเนินงาน', row.DURATION_HOURS !== '' && row.DURATION_HOURS !== null ? row.DURATION_HOURS + ' ชั่วโมง' : '-'],
-        ['ผล SLA', row.SLA_RESULT || '-'],
-        ['รายละเอียดปัญหา', row.PROBLEM_DETAIL],
-        ['วิธีแก้ไข/ผลดำเนินงาน', row.SOLUTION_DETAIL || '-'],
-        ['ค่าใช้จ่าย', this.formatMoney(row.COST)],
-        ['หมายเหตุ', row.REMARK || '-']
+        ['ผู้แจ้ง', row.REQUESTER_NAME, false],
+        ['เบอร์โทร', phoneValue, true],
+        ['ฝ่าย/แผนก', [row.DIVISION, row.DEPARTMENT].filter(Boolean).join(' / '), false],
+        ['วันที่แจ้ง', this.formatDateText(row.REQUEST_DATE), false],
+        ['ระบบ/อุปกรณ์', row.SYSTEM_NAME_TH, false],
+        ['สถานที่', row.LOCATION_FULL, false],
+        ['ความเร่งด่วน', row.PRIORITY_NAME_TH + (row.SLA_HOURS ? ' (SLA ' + row.SLA_HOURS + ' ชม.)' : ''), false],
+        ['ผู้รับผิดชอบ', row.ASSIGNED_TO_NAME || 'ยังไม่ได้มอบหมาย', false],
+        ['เริ่มดำเนินการ', this.formatDateText(row.FIX_START_DATE), false],
+        ['เสร็จสิ้น', this.formatDateText(row.FIX_DONE_DATE), false],
+        ['ระยะเวลาดำเนินงาน', row.DURATION_HOURS !== '' && row.DURATION_HOURS !== null ? row.DURATION_HOURS + ' ชั่วโมง' : '-', false],
+        ['ผล SLA', row.SLA_RESULT || '-', false],
+        ['รายละเอียดปัญหา', row.PROBLEM_DETAIL, false],
+        ['วิธีแก้ไข/ผลดำเนินงาน', row.SOLUTION_DETAIL || '-', false],
+        ['ค่าใช้จ่าย', this.formatMoney(row.COST), false],
+        ['หมายเหตุ', row.REMARK || '-', false]
       ];
 
       let html = this.renderProgressOverview(row) + '<div class="detail-card"><div class="detail-grid">' + fields.map((field) =>
         '<div class="detail-item"><span class="detail-label">' + this.escapeHtml(field[0]) + '</span>' +
-        '<div class="detail-value">' + this.escapeHtml(field[1] === undefined || field[1] === null || field[1] === '' ? '-' : field[1]) + '</div></div>'
+        '<div class="detail-value">' + (field[2] ? field[1] : this.escapeHtml(field[1] === undefined || field[1] === null || field[1] === '' ? '-' : field[1])) + '</div></div>'
       ).join('') + '</div>';
 
       const photos = [
@@ -2099,9 +2167,13 @@
         ['รูปหลังดำเนินการ', row.PHOTO_AFTER_FIX_URL]
       ].filter((item) => item[1]);
       if (photos.length) {
-        html += '<div class="photo-links">' + photos.map((item) =>
-          '<a class="photo-link" href="' + this.escapeAttr(this.safeUrl(item[1])) + '" target="_blank" rel="noopener noreferrer">' + this.escapeHtml(item[0]) + '</a>'
-        ).join('') + '</div>';
+        html += '<div class="mobile-gallery-wrap">' + photos.map((item) => {
+          const safe = this.safeUrl(item[1]);
+          return '<div class="mobile-gallery-card" onclick="App.openPhotoViewer(\'' + this.escapeAttr(safe) + '\', \'' + this.escapeAttr(item[0]) + '\')">' +
+            '<img src="' + this.escapeAttr(safe) + '" alt="' + this.escapeAttr(item[0]) + '" loading="lazy">' +
+            '<span class="gallery-badge">' + this.escapeHtml(item[0]) + '</span>' +
+          '</div>';
+        }).join('') + '</div>';
       }
       html += '</div>';
       document.getElementById('requestDetailContent').innerHTML = html;

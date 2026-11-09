@@ -3,9 +3,13 @@
 <head>
   <base target="_top">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#2563eb">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FRS Online">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#1d4ed8">
+  <meta name="format-detection" content="telephone=no">
   <meta name="referrer" content="same-origin">
   <title><?= appName ?></title>
   <?!= include('style'); ?>
@@ -54,6 +58,9 @@
         <symbol id="frs-icon-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
         <symbol id="frs-icon-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.6 2.6 0 1 1 4.7 1.6c-.9.8-2.3 1.2-2.3 2.9"/><path d="M12 17h.01"/></symbol>
         <symbol id="frs-icon-alert" viewBox="0 0 24 24"><path d="M10.3 2.9 1.8 17a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 2.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></symbol>
+        <symbol id="frs-icon-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+        <symbol id="frs-icon-camera" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></symbol>
+        <symbol id="frs-icon-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
       </defs>
     </svg>
 
@@ -391,14 +398,52 @@
               </div>
               <div class="field-help">กรอกหมายเลขโทรศัพท์ไทย ระบบจะจัดรูปแบบและบันทึกเป็น +66 อัตโนมัติ</div>
               <div id="PHONEError" class="field-error" role="alert"></div></div>
-            <div class="form-group"><label for="PHOTO_FILE">แนบรูปภาพ</label><input id="PHOTO_FILE" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"><div class="field-help">รองรับ JPG, PNG, WEBP และย่อรูปอัตโนมัติก่อนส่ง</div><div id="photoInfo" class="field-help"></div><div id="photoPreview" class="photo-preview hidden"></div></div>
+            <div class="form-group">
+              <label for="PHOTO_FILE">แนบรูปภาพหน้างาน</label>
+              <div class="mobile-photo-actions">
+                <label class="mobile-photo-btn mobile-photo-camera" for="PHOTO_CAMERA_FILE">
+                  <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-camera"></use></svg>
+                  <span>ถ่ายรูปทันที</span>
+                  <input id="PHOTO_CAMERA_FILE" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onchange="App.handleMobilePhotoInput(this)">
+                </label>
+                <label class="mobile-photo-btn mobile-photo-gallery" for="PHOTO_FILE">
+                  <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-image"></use></svg>
+                  <span>เลือกจากเครื่อง</span>
+                  <input id="PHOTO_FILE" type="file" accept="image/jpeg,image/png,image/webp" onchange="App.handleMobilePhotoInput(this)">
+                </label>
+              </div>
+              <div class="field-help">รองรับ JPG, PNG, WEBP ย่อและปรับขนาดอัตโนมัติก่อนส่ง</div>
+              <div id="photoInfo" class="field-help"></div>
+              <div id="photoPreview" class="photo-preview hidden"></div>
+            </div>
             <div class="form-group"><label for="REMARK">หมายเหตุ</label><textarea id="REMARK" rows="2" maxlength="1000"></textarea></div>
             <button id="requestSubmitButton" type="submit" class="btn btn-primary btn-full" data-default-label="ส่งแจ้งซ่อม">ส่งแจ้งซ่อม</button>
           </form>
         </div>
 
         <div id="myRequestsTab" class="tab-panel hidden">
-          <div class="section-header-row"><div id="requestListTitle" class="section-title frs-title-with-icon"><svg class="frs-ui-icon frs-title-icon" aria-hidden="true"><use href="#frs-icon-briefcase"></use></svg><span>รายการแจ้งซ่อม</span></div><button type="button" class="btn btn-light btn-small frs-button-with-icon" onclick="App.loadRequests()"><svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-refresh"></use></svg><span>รีเฟรช</span></button></div>
+          <div class="section-header-row">
+            <div id="requestListTitle" class="section-title frs-title-with-icon">
+              <svg class="frs-ui-icon frs-title-icon" aria-hidden="true"><use href="#frs-icon-briefcase"></use></svg>
+              <span>รายการแจ้งซ่อม</span>
+            </div>
+            <button type="button" class="btn btn-light btn-small frs-button-with-icon" onclick="App.loadRequests()">
+              <svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-refresh"></use></svg>
+              <span>รีเฟรช</span>
+            </button>
+          </div>
+          <div class="mobile-filter-chips-scroll" role="region" aria-label="ตัวกรองสถานะด่วน">
+            <div class="mobile-filter-chips">
+              <button type="button" class="mobile-chip active" data-status="" onclick="App.selectFilterChip('')">ทั้งหมด</button>
+              <button type="button" class="mobile-chip" data-status="NEW" onclick="App.selectFilterChip('NEW')">รอรับเรื่อง</button>
+              <button type="button" class="mobile-chip" data-status="RECEIVED" onclick="App.selectFilterChip('RECEIVED')">รับเรื่องแล้ว</button>
+              <button type="button" class="mobile-chip" data-status="ASSIGNED" onclick="App.selectFilterChip('ASSIGNED')">มอบหมาย</button>
+              <button type="button" class="mobile-chip" data-status="IN_PROGRESS" onclick="App.selectFilterChip('IN_PROGRESS')">กำลังดำเนินการ</button>
+              <button type="button" class="mobile-chip" data-status="WAITING_PART" onclick="App.selectFilterChip('WAITING_PART')">รออะไหล่</button>
+              <button type="button" class="mobile-chip" data-status="DONE" onclick="App.selectFilterChip('DONE')">เสร็จสิ้น</button>
+              <button type="button" class="mobile-chip" data-status="CLOSED" onclick="App.selectFilterChip('CLOSED')">ปิดงาน</button>
+            </div>
+          </div>
           <div class="filter-bar"><input id="requestSearch" type="search" placeholder="ค้นหาเลขแจ้งซ่อม ปัญหา หรือสถานที่" inputmode="search" oninput="App.applyRequestFilters()"><select id="requestStatusFilter" onchange="App.applyRequestFilters()"><option value="">ทุกสถานะ</option></select></div>
           <div id="myRequestList" class="list"></div>
         </div>
@@ -456,7 +501,10 @@
             <span>หน้าหลัก</span>
           </button>
           <button id="mobileNavMyRequests" class="frs-mobile-nav-item" type="button" data-mobile-tab="myRequests" onclick="App.showTab('myRequests')" aria-label="คิวงาน">
-            <span class="frs-mobile-nav-icon" aria-hidden="true"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-briefcase"></use></svg></span>
+            <span class="frs-mobile-nav-icon" aria-hidden="true">
+              <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-briefcase"></use></svg>
+              <span id="mobileQueueBadge" class="mobile-nav-badge hidden">0</span>
+            </span>
             <span id="mobileNavMyRequestsLabel">คิวงาน</span>
           </button>
           <button id="mobileNavNewRequest" class="frs-mobile-nav-item frs-mobile-nav-primary" type="button" data-mobile-tab="newRequest" onclick="App.showTab('newRequest')" aria-label="แจ้งซ่อมใหม่">
@@ -478,6 +526,7 @@
     <div id="requestPreviewModal" class="modal request-preview-modal hidden" role="dialog" aria-modal="true" aria-labelledby="requestPreviewTitle">
       <div class="modal-backdrop" onclick="App.resolveRequestPreview(false)"></div>
       <div class="modal-panel request-preview-panel">
+        <div class="mobile-bottom-sheet-handle" aria-hidden="true"></div>
         <div class="modal-header"><div><div id="requestPreviewTitle" class="modal-title">ตรวจสอบก่อนส่งแจ้งซ่อม</div><div class="modal-subtitle">ข้อมูลจะถูกบันทึกเมื่อกด “ยืนยันส่งแจ้งซ่อม”</div></div><button type="button" class="modal-close" onclick="App.resolveRequestPreview(false)" aria-label="กลับไปแก้ไข"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-x"></use></svg></button></div>
         <div class="modal-body">
           <div class="request-preview-grid">
@@ -497,8 +546,21 @@
     <div id="requestModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="requestModalTitle">
       <div class="modal-backdrop" onclick="App.closeRequestModal()"></div>
       <div class="modal-panel">
+        <div class="mobile-bottom-sheet-handle" aria-hidden="true"></div>
         <div class="modal-header"><div><div id="requestModalTitle" class="modal-title">รายละเอียดงาน</div><div id="requestModalSubtitle" class="modal-subtitle"></div></div><button type="button" class="modal-close" onclick="App.closeRequestModal()" aria-label="ปิด"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-x"></use></svg></button></div>
         <div class="modal-body"><div id="requestDetailContent"></div><div id="workflowActions"></div><div class="section-title mt">ประวัติการดำเนินงาน</div><div id="statusTimeline" class="timeline"></div></div>
+      </div>
+    </div>
+
+    <!-- Mobile Full Image Viewer Modal -->
+    <div id="photoViewerModal" class="modal photo-viewer-modal hidden" role="dialog" aria-modal="true" aria-label="ดูรูปภาพขนาดเต็ม">
+      <div class="modal-backdrop" onclick="App.closePhotoViewer()"></div>
+      <div class="photo-viewer-panel">
+        <button type="button" class="photo-viewer-close" onclick="App.closePhotoViewer()" aria-label="ปิดรูปภาพ">
+          <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-x"></use></svg>
+        </button>
+        <img id="photoViewerImg" class="photo-viewer-img" src="" alt="รูปภาพขนาดเต็ม">
+        <div id="photoViewerCaption" class="photo-viewer-caption"></div>
       </div>
     </div>
 
