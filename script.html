@@ -1,0 +1,2572 @@
+<script>
+  const App = {
+    sessionKey: 'FRS_SESSION_TOKEN',
+    token: sessionStorage.getItem('FRS_SESSION_TOKEN') || '',
+    currentUser: null,
+    master: null,
+    requestRows: [],
+    currentDetail: null,
+    photoBase64: '',
+    repairPhotos: { before: '', after: '' },
+    loadingCount: 0,
+    toastTimer: null,
+    messageQueue: [],
+    messageActive: null,
+    messagePreviousFocus: null,
+    publicRegistrationData: null,
+    publicRegistrationPromise: null,
+    socialRegistrationContext: null,
+    oauthResult: null,
+    identities: [],
+    registrationRows: [],
+    socialAuthWindow: null,
+    permissions: null,
+    requestsLoaded: false,
+    requestLoadPromise: null,
+    actionLocks: Object.create(null),
+    pendingRequestClientId: '',
+    requestPreviewResolver: null,
+    selectFilterTimers: Object.create(null),
+    cacheTtlMs: 30000,
+    currentDashboard: null,
+    focusRequestId: '',
+    themeKey: 'FRS_THEME',
+    lastLoaded: { dashboard: 0, myRequests: 0, profile: 0, registrations: 0 },
+
+    async init() {
+      this.initTheme();
+      this.bindWorkspaceShortcuts();
+      this.bindGlobalErrorFeedback();
+      this.bindOAuthCallbackMessage();
+      this.consumeOAuthStorage();
+      this.bindPhotoInput();
+      this.bindSystemPriority();
+      this.bindSearchableSelectFilters();
+      this.bindPasswordVisibility();
+      this.bindThaiPhoneInputs();
+      document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        const box = document.getElementById('messageBox');
+        if (box && !box.classList.contains('hidden')) {
+          this.resolveMessageBox(false);
+          return;
+        }
+        const preview = document.getElementById('requestPreviewModal');
+        if (preview && !preview.classList.contains('hidden')) {
+          this.resolveRequestPreview(false);
+          return;
+        }
+        this.closeRequestModal();
+      });
+
+      if (!this.token) {
+        await this.ensurePublicRegistrationData().catch((err) => {
+          console.warn('PUBLIC_REGISTRATION_DATA', err);
+        });
+        this.showLogin();
+        if (this.socialRegistrationContext && this.oauthResult && this.oauthResult.action === 'REGISTRATION_REQUIRED') {
+          this.showSocialRegistrationPanel();
+        }
+        this.showOAuthNotice();
+        return;
+      }
+
+      // Phase 2: ตรวจ Session พร้อมโหลด Master + Dashboard ใน Apps Script execution เดียว
+      this.showLoading(true);
+      try {
+        const res = await this.serverCall((runner) => runner.apiBootstrap(this.token));
+        if (!res || !res.ok) {
+          this.handleExpiredSession(res && res.message);
+          return;
+        }
+
+        this.applyBootstrapData(res.data);
+        this.showMain();
+        const targetTab = (this.oauthResult && this.oauthResult.returnTab) || sessionStorage.getItem('FRS_POST_LOGIN_TAB') || '';
+        sessionStorage.removeItem('FRS_POST_LOGIN_TAB');
+        if (targetTab && ['dashboard', 'newRequest', 'myRequests', 'profile', 'registrations'].indexOf(targetTab) !== -1) {
+          this.showTab(targetTab, true);
+        }
+        this.showOAuthNotice();
+      } catch (err) {
+        console.error('BOOTSTRAP_SESSION', err);
+        this.handleExpiredSession();
+      } finally {
+        this.showLoading(false);
+      }
+    },
+
+
+    initTheme() {
+      let theme = 'light';
+      try {
+        const saved = localStorage.getItem(this.themeKey);
+        if (saved === 'dark' || saved === 'light') theme = saved;
+        else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) theme = 'dark';
+      } catch (err) {
+        console.warn('THEME_READ', err);
+      }
+      this.applyTheme(theme, false);
+    },
+
+    applyTheme(theme, persist = true) {
+      const normalized = theme === 'dark' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', normalized);
+      document.body && document.body.setAttribute('data-theme', normalized);
+      const themeMeta = document.querySelector('meta[name="theme-color"]');
+      if (themeMeta) themeMeta.setAttribute('content', normalized === 'dark' ? '#081323' : '#f4f8fd');
+      const lightButton = document.getElementById('themeLightButton');
+      const darkButton = document.getElementById('themeDarkButton');
+      if (lightButton) lightButton.classList.toggle('active', normalized === 'light');
+      if (darkButton) darkButton.classList.toggle('active', normalized === 'dark');
+      if (persist) {
+        try { localStorage.setItem(this.themeKey, normalized); } catch (err) { console.warn('THEME_WRITE', err); }
+      }
+      return normalized;
+    },
+
+    setTheme(theme) {
+      this.applyTheme(theme, true);
+    },
+
+    toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      this.setTheme(current === 'dark' ? 'light' : 'dark');
+    },
+
+    bindWorkspaceShortcuts() {
+      if (document.documentElement.dataset.workspaceShortcutsBound === 'true') return;
+      document.documentElement.dataset.workspaceShortcutsBound = 'true';
+      document.addEventListener('keydown', (event) => {
+        if ((event.ctrlKey || event.metaKey) && String(event.key || '').toLowerCase() === 'k') {
+          const input = document.getElementById('globalSearchInput');
+          if (input && !document.getElementById('mainView').classList.contains('hidden')) {
+            event.preventDefault();
+            input.focus();
+            input.select();
+          }
+        }
+      });
+    },
+
+    toggleSidebar(forceOpen) {
+      const sidebar = document.getElementById('appSidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      if (!sidebar) return;
+      const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : !sidebar.classList.contains('is-open');
+      sidebar.classList.toggle('is-open', shouldOpen);
+      if (backdrop) backdrop.classList.toggle('is-open', shouldOpen);
+      document.body.classList.toggle('sidebar-open', shouldOpen);
+    },
+
+    async quickSearch(event) {
+      if (event) event.preventDefault();
+      const globalInput = document.getElementById('globalSearchInput');
+      const query = String(globalInput ? globalInput.value : '').trim();
+      const requestSearch = document.getElementById('requestSearch');
+      if (requestSearch) requestSearch.value = query;
+      this.showTab('myRequests', false);
+      if (!this.requestsLoaded) await this.loadRequests(true, true);
+      else this.applyRequestFilters();
+      this.toggleSidebar(false);
+    },
+
+
+    bindGlobalErrorFeedback() {
+      if (document.documentElement.dataset.globalErrorBound === 'true') return;
+      document.documentElement.dataset.globalErrorBound = 'true';
+
+      const report = (source, error) => {
+        console.error(source, error);
+        const now = Date.now();
+        if (this.lastClientErrorAt && now - this.lastClientErrorAt < 1500) return;
+        this.lastClientErrorAt = now;
+        this.notify('ระบบไม่สามารถดำเนินการได้ กรุณาลองอีกครั้งหรือโหลดหน้าใหม่', 'error', 'เกิดข้อผิดพลาดในหน้าเว็บ');
+      };
+
+      window.addEventListener('error', (event) => {
+        if (!event || !event.error) return;
+        report('CLIENT_RUNTIME_ERROR', event.error);
+      });
+
+      window.addEventListener('unhandledrejection', (event) => {
+        report('CLIENT_UNHANDLED_REJECTION', event && event.reason);
+        if (event && typeof event.preventDefault === 'function') event.preventDefault();
+      });
+    },
+
+
+    bindThaiPhoneInputs() {
+      if (document.documentElement.dataset.thaiPhoneBound === 'true') {
+        this.refreshThaiPhoneInputs();
+        return;
+      }
+      document.documentElement.dataset.thaiPhoneBound = 'true';
+
+      document.addEventListener('input', (event) => {
+        const input = event.target.closest('[data-thai-phone]');
+        if (!input) return;
+        input.value = this.formatThaiPhoneDisplay(input.value);
+        this.clearThaiPhoneError(input.id);
+      });
+
+      document.addEventListener('blur', (event) => {
+        const input = event.target.closest('[data-thai-phone]');
+        if (!input || !input.value.trim()) return;
+        this.validateThaiPhoneField(input.id, true);
+      }, true);
+
+      document.addEventListener('paste', (event) => {
+        const input = event.target.closest('[data-thai-phone]');
+        if (!input) return;
+        setTimeout(() => {
+          input.value = this.formatThaiPhoneDisplay(input.value);
+          this.clearThaiPhoneError(input.id);
+        }, 0);
+      });
+
+      this.refreshThaiPhoneInputs();
+    },
+
+    refreshThaiPhoneInputs() {
+      document.querySelectorAll('[data-thai-phone]').forEach((input) => {
+        if (input.value) input.value = this.formatThaiPhoneDisplay(input.value);
+      });
+    },
+
+    normalizeThaiPhoneDigits(value) {
+      let digits = String(value || '').replace(/\D/g, '');
+      if (digits.indexOf('0066') === 0) digits = digits.slice(4);
+      else if (digits.indexOf('66') === 0) digits = digits.slice(2);
+      if (digits.indexOf('0') === 0) digits = digits.slice(1);
+      return digits.slice(0, 9);
+    },
+
+    formatThaiPhoneDisplay(value) {
+      const digits = this.normalizeThaiPhoneDigits(value);
+      if (!digits) return '';
+      if (digits.length <= 2) return digits;
+      if (digits.length <= 5) return digits.slice(0, 2) + ' ' + digits.slice(2);
+      return digits.slice(0, 2) + ' ' + digits.slice(2, 5) + ' ' + digits.slice(5, 9);
+    },
+
+    toThaiPhoneE164(value) {
+      const digits = this.normalizeThaiPhoneDigits(value);
+      return /^[2-9]\d{7,8}$/.test(digits) ? '+66' + digits : '';
+    },
+
+    clearThaiPhoneError(inputId) {
+      const error = document.getElementById(inputId + 'Error');
+      const input = document.getElementById(inputId);
+      if (error) error.textContent = '';
+      if (input) input.removeAttribute('aria-invalid');
+    },
+
+    validateThaiPhoneField(inputId, showError) {
+      const input = document.getElementById(inputId);
+      if (!input) return '';
+      const raw = input.value.trim();
+      if (!raw) {
+        this.clearThaiPhoneError(inputId);
+        return '';
+      }
+      const e164 = this.toThaiPhoneE164(raw);
+      const error = document.getElementById(inputId + 'Error');
+      if (!e164) {
+        input.setAttribute('aria-invalid', 'true');
+        if (showError && error) error.textContent = 'กรุณากรอกเบอร์โทรศัพท์ไทยให้ถูกต้อง';
+        return null;
+      }
+      input.value = this.formatThaiPhoneDisplay(e164);
+      this.clearThaiPhoneError(inputId);
+      return e164;
+    },
+
+    bindPasswordVisibility() {
+      if (document.documentElement.dataset.passwordToggleBound === 'true') return;
+      document.documentElement.dataset.passwordToggleBound = 'true';
+      document.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-password-target]');
+        if (!button) return;
+        const input = document.getElementById(button.getAttribute('data-password-target'));
+        if (!input) return;
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        button.setAttribute('aria-pressed', show ? 'true' : 'false');
+        button.setAttribute('aria-label', show ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน');
+        const eye = button.querySelector('.password-icon-eye');
+        const eyeOff = button.querySelector('.password-icon-eye-off');
+        if (eye) eye.classList.toggle('hidden', show);
+        if (eyeOff) eyeOff.classList.toggle('hidden', !show);
+        input.focus({ preventScroll: true });
+      });
+    },
+
+    serverCall(invoker) {
+      return new Promise((resolve, reject) => {
+        const runner = google.script.run
+          .withSuccessHandler(resolve)
+          .withFailureHandler(reject);
+        try {
+          invoker(runner);
+        } catch (err) {
+          reject(err);
+        }
+      });
+    },
+
+    clientErrorMessage(error, fallback) {
+      const raw = error && (error.message || error.toString && error.toString());
+      const message = String(raw || '').trim();
+      if (!message) return fallback || 'ระบบไม่สามารถดำเนินการได้';
+      if (/network|fetch|connection|failed to fetch|service unavailable/i.test(message)) {
+        return 'การเชื่อมต่อขัดข้อง กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่';
+      }
+      if (/timeout|timed out/i.test(message)) {
+        return 'ระบบใช้เวลาประมวลผลนานกว่าปกติ กรุณาตรวจสอบรายการก่อนกดซ้ำ';
+      }
+      return message;
+    },
+
+    bindOAuthCallbackMessage() {
+      if (document.documentElement.dataset.oauthCallbackBound === 'true') return;
+      document.documentElement.dataset.oauthCallbackBound = 'true';
+
+      window.addEventListener('message', (event) => {
+        const packet = event && event.data;
+        if (!packet || packet.type !== 'FRS_OAUTH_CALLBACK' || !packet.result) return;
+        if (this.socialAuthWindow && event.source !== this.socialAuthWindow) return;
+
+        this.persistOAuthResult(packet.result);
+        try {
+          if (event.source && !event.source.closed) event.source.close();
+        } catch (closeError) {}
+        window.location.reload();
+      });
+    },
+
+    persistOAuthResult(result) {
+      if (!result || typeof result !== 'object') return;
+      if (result.token) sessionStorage.setItem(this.sessionKey, String(result.token));
+      if (result.registrationToken) {
+        sessionStorage.setItem('FRS_REGISTRATION_CONTEXT', JSON.stringify(result));
+      }
+      sessionStorage.setItem('FRS_OAUTH_RESULT', JSON.stringify(result));
+    },
+
+    consumeOAuthStorage() {
+      const hash = String(window.location.hash || '');
+      if (hash.indexOf('#frs_oauth=') === 0) {
+        try {
+          const resultFromHash = JSON.parse(decodeURIComponent(hash.slice('#frs_oauth='.length)));
+          this.persistOAuthResult(resultFromHash);
+          history.replaceState(null, document.title, window.location.pathname + window.location.search);
+        } catch (hashError) {
+          console.warn('OAUTH_HASH', hashError);
+        }
+      }
+
+      this.token = sessionStorage.getItem(this.sessionKey) || '';
+      try {
+        this.oauthResult = JSON.parse(sessionStorage.getItem('FRS_OAUTH_RESULT') || 'null');
+      } catch (err) {
+        this.oauthResult = null;
+      }
+      sessionStorage.removeItem('FRS_OAUTH_RESULT');
+
+      try {
+        this.socialRegistrationContext = JSON.parse(sessionStorage.getItem('FRS_REGISTRATION_CONTEXT') || 'null');
+      } catch (err) {
+        this.socialRegistrationContext = null;
+      }
+    },
+
+    async ensurePublicRegistrationData() {
+      if (this.publicRegistrationData) return this.publicRegistrationData;
+      if (this.publicRegistrationPromise) return this.publicRegistrationPromise;
+      this.publicRegistrationPromise = this.loadPublicRegistrationData()
+        .finally(() => { this.publicRegistrationPromise = null; });
+      return this.publicRegistrationPromise;
+    },
+
+    async loadPublicRegistrationData() {
+      const res = await this.serverCall((runner) => runner.apiGetPublicRegistrationData());
+      if (!res || !res.ok) throw new Error((res && res.message) || 'โหลดการตั้งค่าสมัครสมาชิกไม่สำเร็จ');
+      this.publicRegistrationData = res.data || {};
+      this.renderPublicAuthConfig();
+    },
+
+    renderPublicAuthConfig() {
+      const data = this.publicRegistrationData || {};
+      const cfg = data.config || {};
+      const googleEnabled = Boolean(cfg.googleEnabled);
+      const lineEnabled = Boolean(cfg.lineEnabled);
+      const registrationEnabled = Boolean(cfg.registrationEnabled);
+      const socialEnabled = googleEnabled || lineEnabled;
+
+      ['googleLoginButton', 'googleRegisterButton', 'linkGoogleButton'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('hidden', !googleEnabled);
+      });
+      ['lineLoginButton', 'lineRegisterButton', 'linkLineButton'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('hidden', !lineEnabled);
+      });
+
+      const socialLogin = document.getElementById('socialLoginButtons');
+      const socialRegister = document.getElementById('registerSocialButtons');
+      if (socialLogin) socialLogin.classList.toggle('hidden', !socialEnabled);
+      if (socialRegister) socialRegister.classList.toggle('hidden', !socialEnabled);
+      const linkWrap = document.getElementById('registrationLinkWrap');
+      if (linkWrap) linkWrap.classList.toggle('hidden', !registrationEnabled);
+
+      this.fillDepartmentSelect('registerDepartment');
+      this.fillDepartmentSelect('socialRegisterDepartment');
+    },
+
+    fillDepartmentSelect(elementId) {
+      const select = document.getElementById(elementId);
+      if (!select) return;
+      const rows = (this.publicRegistrationData && this.publicRegistrationData.departments) || [];
+      const current = select.value;
+      const options = ['<option value="">เลือกฝ่าย/แผนก</option>'];
+      rows.forEach((row) => {
+        options.push('<option value="' + this.escapeAttr(row.DEPARTMENT_ID) + '">' +
+          this.escapeHtml((row.DIVISION || '') + ' / ' + (row.DEPARTMENT || '')) + '</option>');
+      });
+      select.innerHTML = options.join('');
+      if (current) select.value = current;
+    },
+
+    getSelectedDepartment(elementId) {
+      const select = document.getElementById(elementId);
+      const id = select ? select.value : '';
+      const rows = (this.publicRegistrationData && this.publicRegistrationData.departments) || [];
+      return rows.find((row) => String(row.DEPARTMENT_ID) === String(id)) || null;
+    },
+
+    showAuthPanel(name) {
+      const map = {
+        login: 'loginPanel',
+        manualRegister: 'manualRegisterPanel',
+        registerSocial: 'socialRegisterPanel'
+      };
+      Object.keys(map).forEach((key) => {
+        const el = document.getElementById(map[key]);
+        if (el) el.classList.toggle('hidden', key !== name);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+
+    async beginSocialAuth(provider, intent = 'LOGIN') {
+      const normalizedIntent = String(intent || 'LOGIN').toUpperCase();
+      const cfg = (this.publicRegistrationData && this.publicRegistrationData.config) || {};
+      if (provider === 'GOOGLE' && !cfg.googleEnabled) {
+        this.notify('Google Login ยังไม่ได้ตั้งค่าในระบบ', 'warning');
+        return;
+      }
+      if (provider === 'LINE' && !cfg.lineEnabled) {
+        this.notify('LINE Login ยังไม่ได้ตั้งค่าในระบบ', 'warning');
+        return;
+      }
+
+      // Open a temporary window directly from the user's click. Apps Script runs
+      // inside a sandboxed iframe, so assigning window.top.location after an
+      // asynchronous server call can raise SecurityError: The operation is insecure.
+      let authWindow = null;
+      try {
+        authWindow = window.open('about:blank', '_blank');
+        if (authWindow) {
+          authWindow.document.open();
+          authWindow.document.write(
+            '<!doctype html><html><head><meta charset="utf-8">' +
+            '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+            '<title>FRS Social Login</title></head>' +
+            '<body style="margin:0;min-height:100vh;display:grid;place-items:center;' +
+            'font-family:system-ui,-apple-system,sans-serif;background:#f4f9ff;color:#1e3a5f">' +
+            '<div style="text-align:center;padding:24px">' +
+            '<div style="width:42px;height:42px;margin:0 auto 16px;border:4px solid #dbeafe;' +
+            'border-top-color:#1683ff;border-radius:50%;animation:spin .8s linear infinite"></div>' +
+            '<strong>กำลังเปิดหน้าตรวจสอบตัวตน...</strong>' +
+            '<style>@keyframes spin{to{transform:rotate(360deg)}}</style>' +
+            '</div></body></html>'
+          );
+          authWindow.document.close();
+        }
+      } catch (popupErr) {
+        authWindow = null;
+      }
+
+      this.showLoading(true);
+      try {
+        const res = await this.serverCall((runner) => runner.apiBeginSocialAuth(
+          provider,
+          normalizedIntent,
+          normalizedIntent === 'LINK' ? this.token : '',
+          normalizedIntent === 'LINK' ? 'profile' : 'dashboard'
+        ));
+        if (!res || !res.ok) {
+          if (authWindow && !authWindow.closed) authWindow.close();
+          this.handleApiError(res);
+          return;
+        }
+
+        if (normalizedIntent === 'LINK') {
+          sessionStorage.setItem('FRS_POST_LOGIN_TAB', 'profile');
+        }
+
+        const authUrl = String((res.data && res.data.url) || '').trim();
+        if (!/^https:\/\//i.test(authUrl)) {
+          if (authWindow && !authWindow.closed) authWindow.close();
+          throw new Error('OAuth URL ไม่ถูกต้อง');
+        }
+
+        if (authWindow && !authWindow.closed) {
+          this.socialAuthWindow = authWindow;
+          authWindow.location.replace(authUrl);
+          try { authWindow.focus(); } catch (focusErr) {}
+          return;
+        }
+
+        // Popup blocked: present a real user-activated link instead of trying to
+        // navigate the sandboxed top frame programmatically.
+        const proceed = await this.confirmBox({
+          type: 'warning',
+          title: 'เปิดหน้าตรวจสอบตัวตน',
+          message: 'เบราว์เซอร์ปิดกั้นหน้าต่างเข้าสู่ระบบ กรุณากดดำเนินการต่อเพื่อเปิด ' + provider,
+          confirmText: 'ดำเนินการต่อ',
+          cancelText: 'ยกเลิก'
+        });
+        if (proceed) {
+          const anchor = document.createElement('a');
+          anchor.href = authUrl;
+          anchor.target = '_blank';
+          anchor.rel = 'noopener noreferrer';
+          anchor.style.display = 'none';
+          document.body.appendChild(anchor);
+          anchor.click();
+          anchor.remove();
+        }
+      } catch (err) {
+        if (authWindow && !authWindow.closed) authWindow.close();
+        this.notify((err && err.message) || 'เปิดหน้าตรวจสอบตัวตนไม่สำเร็จ', 'error');
+      } finally {
+        this.showLoading(false);
+      }
+    },
+
+    showOAuthNotice() {
+      const result = this.oauthResult;
+      if (!result) return;
+      this.oauthResult = null;
+      if (result.action === 'REGISTRATION_REQUIRED') return;
+      const type = result.action === 'ERROR' ? 'error' :
+        (result.action === 'REGISTRATION_PENDING' ? 'info' : 'success');
+      this.notify(result.message || 'ดำเนินการเรียบร้อย', type,
+        result.action === 'ERROR' ? 'Social Login ไม่สำเร็จ' : 'ข้อความจากระบบ');
+    },
+
+    showSocialRegistrationPanel() {
+      const context = this.socialRegistrationContext;
+      if (!context || !context.registrationToken || !context.profile) {
+        this.notify('ข้อมูลสมัครสมาชิกหมดอายุหรือไม่ครบ กรุณาเริ่มใหม่', 'warning');
+        this.cancelSocialRegistration();
+        return;
+      }
+      const profile = context.profile;
+      document.getElementById('socialProviderText').textContent = 'ยืนยันตัวตนด้วย ' + (profile.provider || 'Social Account') + ' แล้ว';
+      const socialEmailInput = document.getElementById('socialRegisterEmail');
+      socialEmailInput.value = profile.email || '';
+      socialEmailInput.readOnly = Boolean(profile.email && profile.emailVerified);
+      socialEmailInput.title = socialEmailInput.readOnly ? 'อีเมลนี้ได้รับการยืนยันจาก Provider และไม่สามารถแก้ไขได้' : '';
+      document.getElementById('socialRegisterUsername').value = profile.usernameSuggestion || '';
+      document.getElementById('socialRegisterFullName').value = profile.displayName || '';
+      const socialPhoneInput = document.getElementById('socialRegisterPhone');
+      if (socialPhoneInput) socialPhoneInput.value = '';
+      this.clearThaiPhoneError('socialRegisterPhone');
+      const card = document.getElementById('socialProfileCard');
+      const avatar = profile.profileImageUrl
+        ? '<img class="social-avatar" src="' + this.escapeAttr(profile.profileImageUrl) + '" alt="รูปโปรไฟล์">'
+        : '<div class="social-avatar social-avatar-placeholder">' + this.escapeHtml((profile.provider || 'U').charAt(0)) + '</div>';
+      card.innerHTML = avatar + '<div><strong>' + this.escapeHtml(profile.displayName || 'บัญชีที่ยืนยันแล้ว') +
+        '</strong><div class="field-help">' + this.escapeHtml(profile.email || 'Provider ไม่ได้ส่งอีเมล กรุณากรอกอีเมลที่ใช้งานจริง') + '</div></div>';
+      this.showAuthPanel('registerSocial');
+    },
+
+    cancelSocialRegistration() {
+      sessionStorage.removeItem('FRS_REGISTRATION_CONTEXT');
+      this.socialRegistrationContext = null;
+      this.showAuthPanel('login');
+    },
+
+    showPrivacyNotice() {
+      return this.notify(
+        'ระบบใช้ชื่อ อีเมล เบอร์โทร หน่วยงาน ตำแหน่ง และข้อมูลบัญชี Google/LINE เฉพาะเพื่อยืนยันตัวตน บริหารสิทธิ์ผู้ใช้ ติดต่อเกี่ยวกับงานแจ้งซ่อม และตรวจสอบประวัติการใช้งาน ผู้สมัครใหม่จะได้รับ Role USER หลังผู้ดูแลระบบอนุมัติ และระบบไม่บันทึก Access Token หรือ Refresh Token ของ Google/LINE',
+        'info',
+        'การใช้ข้อมูลส่วนบุคคล'
+      );
+    },
+
+    async submitManualRegistration(event) {
+      if (event) event.preventDefault();
+
+      let phoneValue;
+      try {
+        phoneValue = this.validateThaiPhoneField('registerPhone', true);
+        if (phoneValue === null) {
+          const phoneInput = document.getElementById('registerPhone');
+          if (phoneInput) phoneInput.focus();
+          await this.notify('กรุณาตรวจสอบรูปแบบเบอร์โทรศัพท์ หรือเว้นว่างหากไม่ต้องการระบุ', 'warning', 'เบอร์โทรไม่ถูกต้อง');
+          return;
+        }
+      } catch (err) {
+        console.error('SUBMIT_MANUAL_REGISTRATION_PREFLIGHT', err);
+        await this.notify((err && err.message) || 'ไม่สามารถตรวจสอบข้อมูลสมัครสมาชิกได้', 'error');
+        return;
+      }
+
+      const department = this.getSelectedDepartment('registerDepartment');
+      const payload = {
+        email: document.getElementById('registerEmail').value.trim(),
+        username: document.getElementById('registerUsername').value.trim(),
+        password: document.getElementById('registerPassword').value,
+        fullName: document.getElementById('registerFullName').value.trim(),
+        phone: phoneValue,
+        division: department ? department.DIVISION : '',
+        department: department ? department.DEPARTMENT : '',
+        position: document.getElementById('registerPosition').value.trim(),
+        website: document.getElementById('registerWebsite').value,
+        consentAccepted: document.getElementById('registerConsent').checked
+      };
+      if (!department || !document.getElementById('registerConsent').checked) {
+        this.notify('กรุณาเลือกฝ่าย/แผนกและยอมรับเงื่อนไข', 'warning');
+        return;
+      }
+      const confirmed = await this.confirmBox({
+        title: 'ส่งคำขอสมัครสมาชิก?',
+        message: 'บัญชีจะยังไม่สามารถใช้งานได้จนกว่าผู้ดูแลระบบจะอนุมัติ',
+        detail: payload.fullName + '\n' + payload.email,
+        confirmText: 'ส่งคำขอ',
+        cancelText: 'ตรวจสอบอีกครั้ง'
+      });
+      if (!confirmed) return;
+
+      this.showLoading(true);
+      try {
+        const res = await this.serverCall((runner) => runner.apiRegisterPassword(payload));
+        if (!res || !res.ok) {
+          this.notify((res && res.message) || 'สมัครสมาชิกไม่สำเร็จ', 'error');
+          return;
+        }
+        document.getElementById('manualRegisterForm').reset();
+        this.clearThaiPhoneError('registerPhone');
+        this.showAuthPanel('login');
+        await this.notify(res.message, 'success', 'ส่งคำขอแล้ว');
+      } catch (err) {
+        this.notify((err && err.message) || 'สมัครสมาชิกไม่สำเร็จ', 'error');
+      } finally {
+        this.showLoading(false);
+      }
+    },
+
+    async submitSocialRegistration(event) {
+      if (event) event.preventDefault();
+
+      let phoneValue;
+      try {
+        phoneValue = this.validateThaiPhoneField('socialRegisterPhone', true);
+        if (phoneValue === null) {
+          const phoneInput = document.getElementById('socialRegisterPhone');
+          if (phoneInput) phoneInput.focus();
+          await this.notify('กรุณาตรวจสอบรูปแบบเบอร์โทรศัพท์ หรือเว้นว่างหากไม่ต้องการระบุ', 'warning', 'เบอร์โทรไม่ถูกต้อง');
+          return;
+        }
+      } catch (err) {
+        console.error('SUBMIT_SOCIAL_REGISTRATION_PREFLIGHT', err);
+        await this.notify((err && err.message) || 'ไม่สามารถตรวจสอบข้อมูลสมัครสมาชิกได้', 'error');
+        return;
+      }
+
+      const context = this.socialRegistrationContext;
+      const department = this.getSelectedDepartment('socialRegisterDepartment');
+      if (!context || !context.registrationToken) {
+        this.notify('Registration Token หมดอายุ กรุณาเริ่มใหม่', 'warning');
+        return;
+      }
+      if (!department || !document.getElementById('socialRegisterConsent').checked) {
+        this.notify('กรุณาเลือกฝ่าย/แผนกและยอมรับเงื่อนไข', 'warning');
+        return;
+      }
+      const payload = {
+        email: document.getElementById('socialRegisterEmail').value.trim(),
+        username: document.getElementById('socialRegisterUsername').value.trim(),
+        fullName: document.getElementById('socialRegisterFullName').value.trim(),
+        phone: phoneValue,
+        division: department.DIVISION,
+        department: department.DEPARTMENT,
+        position: document.getElementById('socialRegisterPosition').value.trim(),
+        consentAccepted: document.getElementById('socialRegisterConsent').checked
+      };
+      this.showLoading(true);
+      try {
+        const res = await this.serverCall((runner) => runner.apiCompleteSocialRegistration(context.registrationToken, payload));
+        if (!res || !res.ok) {
+          this.notify((res && res.message) || 'ส่งคำขอไม่สำเร็จ', 'error');
+          return;
+        }
+        sessionStorage.removeItem('FRS_REGISTRATION_CONTEXT');
+        this.socialRegistrationContext = null;
+        document.getElementById('socialRegisterForm').reset();
+        this.clearThaiPhoneError('socialRegisterPhone');
+        this.showAuthPanel('login');
+        await this.notify(res.message, 'success', 'ส่งคำขอแล้ว');
+      } catch (err) {
+        this.notify((err && err.message) || 'ส่งคำขอไม่สำเร็จ', 'error');
+      } finally {
+        this.showLoading(false);
+      }
+    },
+
+    async login(event) {
+      if (event) event.preventDefault();
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+
+      if (!username || !password) {
+        this.notify('กรุณากรอก Username และ Password', 'warning', 'ข้อมูลเข้าสู่ระบบยังไม่ครบ');
+        return;
+      }
+
+      this.showLoading(true);
+      try {
+        const res = await this.serverCall((runner) => runner.apiLogin({
+          username: username,
+          password: password,
+          userAgent: navigator.userAgent || ''
+        }));
+
+        if (!res || !res.ok) {
+          this.notify((res && res.message) || 'เข้าสู่ระบบไม่สำเร็จ', 'error', 'เข้าสู่ระบบไม่สำเร็จ');
+          return;
+        }
+
+        this.token = res.data.token;
+        this.currentUser = res.data.user;
+        sessionStorage.setItem(this.sessionKey, this.token);
+        document.getElementById('loginPassword').value = '';
+        this.showMain();
+        await this.loadInitialData();
+      } catch (err) {
+        this.notify((err && err.message) || 'เกิดข้อผิดพลาด', 'error', 'เกิดข้อผิดพลาด');
+      } finally {
+        this.showLoading(false);
+      }
+    },
+
+    async logout() {
+      const confirmed = await this.confirmBox({
+        title: 'ออกจากระบบ?',
+        message: 'Session ปัจจุบันจะถูกยกเลิก และต้องเข้าสู่ระบบใหม่เมื่อต้องการใช้งานต่อ',
+        confirmText: 'ออกจากระบบ',
+        cancelText: 'อยู่ต่อ',
+        type: 'question'
+      });
+      if (!confirmed) return;
+
+      const token = this.token;
+      this.clearSession();
+      this.closeRequestModal();
+      this.showLogin();
+      if (token) google.script.run.apiLogout(token);
+    },
+
+    clearSession() {
+      this.token = '';
+      this.currentUser = null;
+      this.currentDetail = null;
+      this.permissions = null;
+      this.requestRows = [];
+      this.requestsLoaded = false;
+      this.requestLoadPromise = null;
+      this.actionLocks = Object.create(null);
+      this.pendingRequestClientId = '';
+      sessionStorage.removeItem(this.sessionKey);
+    },
+
+    handleExpiredSession(message) {
+      this.clearSession();
+      this.closeRequestModal();
+      this.showLogin();
+      if (message) this.notify(message, 'warning', 'Session หมดอายุ');
+    },
+
+    handleApiError(res) {
+      const message = (res && res.message) || 'เกิดข้อผิดพลาด';
+      if (/Session|เข้าสู่ระบบใหม่/i.test(message)) {
+        this.handleExpiredSession(message);
+      } else {
+        this.notify(message, 'error', 'ไม่สามารถดำเนินการได้');
+      }
+    },
+
+    showLogin() {
+      document.getElementById('loginView').classList.remove('hidden');
+      document.getElementById('mainView').classList.add('hidden');
+      if (!this.socialRegistrationContext) this.showAuthPanel('login');
+      if (!this.publicRegistrationData) {
+        this.ensurePublicRegistrationData().catch((err) => console.warn('PUBLIC_REGISTRATION_DATA', err));
+      }
+    },
+
+    showMain() {
+      document.getElementById('loginView').classList.add('hidden');
+      document.getElementById('mainView').classList.remove('hidden');
+
+      const requestPhone = document.getElementById('PHONE');
+      if (requestPhone) requestPhone.value = '';
+      this.clearThaiPhoneError('PHONE');
+
+      const role = (this.currentUser && this.currentUser.ROLE) || '';
+      const fullName = (this.currentUser && this.currentUser.FULL_NAME) || 'ผู้ใช้งาน';
+      const firstName = String(fullName).trim().split(/\s+/)[0] || 'ผู้ใช้งาน';
+      const currentUserText = document.getElementById('currentUserText');
+      if (currentUserText) currentUserText.textContent = fullName + ' | ' + role;
+      const headerUserName = document.getElementById('headerUserName');
+      const headerUserRole = document.getElementById('headerUserRole');
+      const headerAvatar = document.getElementById('headerAvatar');
+      const sidebarUserName = document.getElementById('sidebarUserName');
+      const sidebarUserRole = document.getElementById('sidebarUserRole');
+      const sidebarAvatar = document.getElementById('sidebarAvatar');
+      const greeting = document.getElementById('dashboardGreeting');
+      if (headerUserName) headerUserName.textContent = firstName;
+      if (headerUserRole) headerUserRole.textContent = role;
+      if (headerAvatar) headerAvatar.textContent = firstName.charAt(0).toUpperCase();
+      if (sidebarUserName) sidebarUserName.textContent = firstName;
+      if (sidebarUserRole) sidebarUserRole.textContent = role;
+      if (sidebarAvatar) sidebarAvatar.textContent = firstName.charAt(0).toUpperCase();
+      if (greeting) greeting.textContent = 'สวัสดีครับ, ' + firstName;
+      const requestListTitle = document.getElementById('requestListTitle');
+      if (requestListTitle) {
+        requestListTitle.textContent = role === 'USER'
+          ? 'รายการแจ้งซ่อมของฉัน'
+          : (role === 'TECHNICIAN' ? 'คิวงานและงานที่รับผิดชอบ' : 'รายการแจ้งซ่อมทั้งหมด');
+      }
+      const navMyRequestsLabel = document.getElementById('navMyRequestsLabel');
+      const mobileNavMyRequestsLabel = document.getElementById('mobileNavMyRequestsLabel');
+      const queueLabel = role === 'USER' ? 'งานของฉัน' : 'คิวงาน';
+      if (navMyRequestsLabel) navMyRequestsLabel.textContent = queueLabel;
+      if (mobileNavMyRequestsLabel) mobileNavMyRequestsLabel.textContent = queueLabel;
+
+      const canApprove = ['ADMIN', 'MANAGER'].indexOf(String(role).toUpperCase()) !== -1;
+      const registrationNav = document.getElementById('navRegistrations');
+      if (registrationNav) {
+        registrationNav.classList.toggle('nav-unavailable', !canApprove);
+        registrationNav.setAttribute('aria-hidden', canApprove ? 'false' : 'true');
+        registrationNav.tabIndex = canApprove ? 0 : -1;
+      }
+      const dataNav = document.getElementById('navData');
+      if (dataNav) dataNav.classList.toggle('nav-unavailable', !canApprove);
+      const dataRegistrationButton = document.getElementById('dataRegistrationButton');
+      if (dataRegistrationButton) dataRegistrationButton.classList.toggle('hidden', !canApprove);
+      this.applyTheme(document.documentElement.getAttribute('data-theme') || 'light', false);
+      this.showTab('dashboard', false);
+    },
+
+    applyBootstrapData(data) {
+      const payload = data || {};
+      this.currentUser = payload.user || this.currentUser;
+      this.permissions = payload.permissions || {};
+      this.master = payload.master || { systems: [], locations: [], departments: [], sla: [], status: [] };
+      this.requestRows = [];
+      this.requestsLoaded = false;
+      this.requestLoadPromise = null;
+      this.lastLoaded.myRequests = 0;
+      this.renderMasterOptions();
+      this.renderDashboardData(payload.dashboard || {});
+    },
+
+    async loadInitialData() {
+      this.renderDashboardSkeleton();
+      const res = await this.serverCall((runner) => runner.apiBootstrap(this.token));
+      if (!res || !res.ok) {
+        this.handleApiError(res);
+        return false;
+      }
+      this.applyBootstrapData(res.data);
+      return true;
+    },
+
+    renderDashboardData(data) {
+      const dashboard = data || {};
+      const summary = dashboard.summary || {};
+      const setText = (id, value) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+      };
+      this.currentDashboard = dashboard;
+      const active = Number(summary.assigned || 0) + Number(summary.inProgress || 0) + Number(summary.waitingPart || 0) + Number(summary.outsource || 0);
+      const done = Number(summary.done || 0) + Number(summary.closed || 0);
+      const waiting = Number(summary.new || 0) + Number(summary.received || 0);
+      setText('statTotal', summary.total || 0);
+      setText('statProgress', active);
+      setText('statDone', done);
+      setText('statSla', summary.slaCompliance === null || summary.slaCompliance === undefined ? '—' : (summary.slaCompliance + '%'));
+      setText('overviewDone', done);
+      setText('overviewActive', active);
+      setText('overviewWaiting', waiting);
+      setText('overviewOverSla', summary.overSla || 0);
+      const notificationCount = Number(
+        summary.alertCount !== undefined && summary.alertCount !== null
+          ? summary.alertCount
+          : (Number(summary.critical || 0) + Number(summary.overSla || 0))
+      );
+      const notificationBadge = document.getElementById('notificationBadge');
+      if (notificationBadge) {
+        notificationBadge.textContent = notificationCount > 99 ? '99+' : String(notificationCount);
+        notificationBadge.classList.toggle('hidden', notificationCount < 1);
+      }
+      const latest = Array.isArray(dashboard.latest) ? dashboard.latest : [];
+      const activities = Array.isArray(dashboard.activities) ? dashboard.activities : [];
+      this.renderDashboardTable(latest);
+      this.renderDashboardActivities(activities);
+      this.renderDashboardExperience(summary, latest);
+      this.lastLoaded.dashboard = Date.now();
+      const dashboardTab = document.getElementById('dashboardTab');
+      if (dashboardTab) dashboardTab.classList.remove('panel-loading');
+    },
+
+    async loadDashboard(showLoader = true) {
+      if (showLoader) this.renderDashboardSkeleton();
+      try {
+        const res = await this.serverCall((runner) => runner.apiGetDashboard(this.token));
+        if (!res || !res.ok) {
+          this.handleApiError(res);
+          return;
+        }
+        this.renderDashboardData(res.data);
+      } catch (err) {
+        this.notify(this.clientErrorMessage(err, 'โหลด Dashboard ไม่สำเร็จ'), 'error', 'โหลดข้อมูลไม่สำเร็จ');
+      } finally {
+        const dashboardTab = document.getElementById('dashboardTab');
+        if (dashboardTab) dashboardTab.classList.remove('panel-loading');
+      }
+    },
+
+    renderDashboardExperience(summary, latest) {
+      const rows = Array.isArray(latest) ? latest : [];
+      const focus = rows.find((row) => !['CLOSED', 'CANCELLED'].includes(String(row.STATUS_CODE || '').toUpperCase())) || rows[0] || null;
+      const progress = focus ? Number(focus.PROGRESS_PERCENT || (focus.PROGRESS && focus.PROGRESS.percent) || 0) : 0;
+      const step = focus ? Number(focus.PROGRESS_STEP || (focus.PROGRESS && focus.PROGRESS.step) || this.progressStepFromStatus(focus.STATUS_CODE)) : 0;
+      const status = focus ? String(focus.STATUS_NAME_TH || focus.STATUS_CODE || '-') : 'พร้อมใช้งาน';
+      const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+      this.focusRequestId = focus ? String(focus.REQUEST_ID || '') : '';
+      setText('focusRequestId', focus ? (focus.REQUEST_ID || '-') : 'ยังไม่มีรายการ');
+      setText('focusRequestSubject', focus ? (focus.PROBLEM_DETAIL || 'ไม่มีรายละเอียดปัญหา') : 'ระบบจะเลือกงานล่าสุดที่ยังไม่ปิด');
+      setText('focusStatusBadge', status);
+      setText('focusProgressText', progress + '%');
+      setText('focusLocation', focus ? (focus.LOCATION_FULL || '-') : '-');
+      setText('focusSystem', focus ? (focus.SYSTEM_NAME_TH || '-') : '-');
+      setText('focusTechnician', focus ? (focus.ASSIGNED_TO_NAME || focus.ASSIGNED_TO || 'ยังไม่มอบหมาย') : '-');
+      const workflowDates = focus && focus.WORKFLOW_DATES ? focus.WORKFLOW_DATES : {};
+      const focusStatusCode = focus ? String(focus.STATUS_CODE || '').toUpperCase() : '';
+      setText('focusStepDate1', focus ? this.formatDashboardDate(workflowDates.NEW || focus.REQUEST_DATE || focus.CREATED_AT) : '—');
+      setText('focusStepDate2', focus ? this.formatDashboardDate(workflowDates.RECEIVED || focus.RECEIVED_DATE) : '—');
+      setText('focusStepDate3', focus && step >= 3 ? this.formatDashboardDate(workflowDates.ASSIGNED || focus.ASSIGNED_DATE || focus.UPDATED_AT) : '—');
+      setText('focusStepDate4', focus && step >= 4 ? this.formatDashboardDate(workflowDates.IN_PROGRESS || focus.FIX_START_DATE) : '—');
+      setText('focusStepDate5', focusStatusCode === 'CLOSED' ? this.formatDashboardDate(workflowDates.CLOSED || focus.CLOSED_DATE || focus.UPDATED_AT) : '—');
+      const detailButton = document.getElementById('focusDetailButton');
+      if (detailButton) detailButton.disabled = !this.focusRequestId;
+      const fill = document.getElementById('focusProgressFill');
+      if (fill) fill.style.width = Math.max(0, Math.min(100, progress)) + '%';
+      const badge = document.getElementById('focusStatusBadge');
+      if (badge) badge.dataset.status = focus ? String(focus.STATUS_CODE || '').toUpperCase() : '';
+      document.querySelectorAll('#dashboardStepper .frs-step').forEach((node) => {
+        const n = Number(node.dataset.step || 0);
+        node.classList.toggle('is-done', step > 0 && n < step);
+        node.classList.toggle('is-active', step > 0 && n === step);
+      });
+
+      const active = Number(summary.assigned || 0) + Number(summary.inProgress || 0) + Number(summary.waitingPart || 0) + Number(summary.outsource || 0);
+      const closed = Number(summary.done || 0) + Number(summary.closed || 0);
+      const denominator = Math.max(0, Number(summary.total || 0) - Number(summary.cancelled || 0));
+      const completion = denominator > 0 ? Math.round((closed / denominator) * 100) : 0;
+      setText('dashboardProgressPercent', completion + '%');
+      const ring = document.getElementById('dashboardProgressRing');
+      if (ring) ring.style.setProperty('--progress', Math.max(0, Math.min(100, completion)));
+      setText('dashboardHealthText', active > 0 ? 'มีงานกำลังดำเนินการ' : (closed > 0 ? 'งานล่าสุดเสร็จเรียบร้อย' : 'พร้อมรับรายการใหม่'));
+      setText('dashboardHealthDetail', (summary.total || 0) + ' งานทั้งหมด · ' + active + ' งานกำลังดำเนินการ');
+    },
+
+    formatDashboardDate(value) {
+      if (!value) return '—';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '—';
+      try {
+        return new Intl.DateTimeFormat('th-TH', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(date);
+      } catch (err) {
+        return this.formatDateText(value) || '—';
+      }
+    },
+
+    openFocusRequest() {
+      if (!this.focusRequestId) return;
+      this.openRequest(this.focusRequestId);
+    },
+
+    renderDashboardTable(rows) {
+      const container = document.getElementById('latestList');
+      if (!container) return;
+      const data = Array.isArray(rows) ? rows.slice(0, 5) : [];
+      if (!data.length) {
+        container.innerHTML = '<div class="empty-state">ยังไม่มีรายการแจ้งซ่อม</div>';
+        return;
+      }
+      const body = data.map((row) => {
+        const statusCode = String(row.STATUS_CODE || '');
+        return '<button class="frs-table-row" type="button" data-request-id="' + this.escapeAttr(row.REQUEST_ID || '') + '">' +
+          '<span class="frs-table-id">' + this.escapeHtml(row.REQUEST_ID || '-') + '</span>' +
+          '<span class="frs-table-subject"><strong>' + this.escapeHtml(row.PROBLEM_DETAIL || '-') + '</strong><small>' + this.escapeHtml(row.LOCATION_FULL || row.SYSTEM_NAME_TH || '-') + '</small></span>' +
+          '<span><i class="badge ' + this.escapeAttr(statusCode) + '">' + this.escapeHtml(row.STATUS_NAME_TH || statusCode || '-') + '</i></span>' +
+          '<span class="frs-table-assignee">' + this.escapeHtml(row.ASSIGNED_TO_NAME || 'ยังไม่มอบหมาย') + '</span>' +
+          '<span class="frs-table-date">' + this.escapeHtml(this.formatDashboardDate(row.UPDATED_AT || row.CREATED_AT)) + '</span>' +
+        '</button>';
+      }).join('');
+      container.innerHTML = '<div class="frs-table-header"><span>เลขที่งาน</span><span>เรื่อง</span><span>สถานะ</span><span>ผู้รับผิดชอบ</span><span>อัปเดตล่าสุด</span></div>' + body;
+      container.querySelectorAll('[data-request-id]').forEach((row) => row.addEventListener('click', () => this.openRequest(row.dataset.requestId)));
+    },
+
+    renderDashboardActivities(rows) {
+      const container = document.getElementById('dashboardActivityList');
+      if (!container) return;
+      const data = Array.isArray(rows) ? rows : [];
+      if (!data.length) {
+        container.innerHTML = '<div class="empty-state">ยังไม่มีกิจกรรมล่าสุด</div>';
+        return;
+      }
+      container.innerHTML = data.map((row) => {
+        const status = String(row.NEW_STATUS_CODE || '').toUpperCase();
+        return '<button class="frs-activity-item" type="button" data-request-id="' + this.escapeAttr(row.REQUEST_ID || '') + '">' +
+          '<span class="frs-activity-icon ' + this.escapeAttr(status.toLowerCase()) + '">' + this.iconSvg(this.statusIconName(status)) + '</span>' +
+          '<span class="frs-activity-copy"><strong>' + this.escapeHtml(row.REQUEST_ID || '-') + '</strong><small>' + this.escapeHtml((row.ACTION_NAME ? row.ACTION_NAME + ' · ' : '') + (row.NOTE || this.getStatusName(status))) + '</small></span>' +
+          '<time>' + this.escapeHtml(this.formatRelativeTime(row.ACTION_DATE)) + '</time>' +
+        '</button>';
+      }).join('');
+      container.querySelectorAll('[data-request-id]').forEach((row) => row.addEventListener('click', () => this.openRequest(row.dataset.requestId)));
+    },
+
+    formatRelativeTime(value) {
+      if (!value) return '';
+      const timestamp = new Date(value).getTime();
+      if (!timestamp) return this.formatDashboardDate(value);
+      const seconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
+      if (seconds < 60) return 'เมื่อสักครู่';
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return minutes + ' นาทีที่แล้ว';
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return hours + ' ชั่วโมงที่แล้ว';
+      const days = Math.floor(hours / 24);
+      if (days < 7) return days + ' วันที่แล้ว';
+      return this.formatDashboardDate(value);
+    },
+
+    showDashboardAlerts() {
+      const summary = (this.currentDashboard && this.currentDashboard.summary) || {};
+      const critical = Number(summary.critical || 0);
+      const overSla = Number(summary.overSla || 0);
+      if (!critical && !overSla) {
+        this.notify('ขณะนี้ไม่มีงาน Critical หรือรายการเกิน SLA ที่ต้องแจ้งเตือน', 'success', 'สถานะปกติ');
+        return;
+      }
+      this.notify('งาน Critical ' + critical + ' รายการ · เกิน SLA ' + overSla + ' รายการ', overSla ? 'warning' : 'info', 'รายการที่ควรติดตาม');
+    },
+
+    progressStepFromStatus(statusCode) {
+      const map = { NEW: 1, RECEIVED: 2, ASSIGNED: 3, IN_PROGRESS: 4, WAITING_PART: 4, OUTSOURCE: 4, DONE: 4, CLOSED: 5, CANCELLED: 0 };
+      return map[String(statusCode || '').toUpperCase()] || 1;
+    },
+
+    async refreshExperience() {
+      this.invalidateTabs('dashboard', 'myRequests');
+      if (this.requestsLoaded) {
+        await Promise.all([this.loadDashboard(true), this.loadRequests(true, true)]);
+      } else {
+        await this.loadDashboard(true);
+      }
+    },
+
+    openQueueByStatus(statusCode) {
+      const select = document.getElementById('requestStatusFilter');
+      if (select) select.value = statusCode || '';
+      this.showTab('myRequests', true);
+    },
+
+    async loadRequests(showLoader = true, force = false) {
+      if (this.requestLoadPromise) {
+        const pendingRows = await this.requestLoadPromise;
+        if (!force) return pendingRows;
+      }
+      if (!force && this.requestsLoaded && !this.shouldRefreshTab('myRequests')) {
+        this.applyRequestFilters();
+        return this.requestRows;
+      }
+
+      if (showLoader) this.renderRequestListSkeleton('myRequestList', 5);
+      const panel = document.getElementById('myRequestsTab');
+      if (panel) panel.classList.add('panel-loading');
+
+      this.requestLoadPromise = (async () => {
+        try {
+          const role = (this.currentUser && this.currentUser.ROLE) || '';
+          const res = role === 'USER'
+            ? await this.serverCall((runner) => runner.apiGetMyRequests(this.token))
+            : await this.serverCall((runner) => runner.apiGetAllRequests(this.token));
+
+          if (!res || !res.ok) {
+            this.handleApiError(res);
+            return [];
+          }
+
+          this.requestRows = Array.isArray(res.data) ? res.data : [];
+          this.requestsLoaded = true;
+          this.applyRequestFilters();
+          this.lastLoaded.myRequests = Date.now();
+          return this.requestRows;
+        } catch (err) {
+          this.notify(this.clientErrorMessage(err, 'โหลดรายการไม่สำเร็จ'), 'error', 'โหลดข้อมูลไม่สำเร็จ');
+          const container = document.getElementById('myRequestList');
+          if (container) container.innerHTML = '<div class="empty-state">โหลดรายการไม่สำเร็จ กรุณากดรีเฟรชอีกครั้ง</div>';
+          return [];
+        } finally {
+          if (panel) panel.classList.remove('panel-loading');
+          this.requestLoadPromise = null;
+        }
+      })();
+
+      return this.requestLoadPromise;
+    },
+
+    async loadReports() {
+      if (!this.requestsLoaded) await this.loadRequests(false, true);
+      this.renderReports();
+    },
+
+    iconSvg(name, className) {
+      const safeName = String(name || 'info').replace(/[^a-z0-9-]/gi, '');
+      const cls = className ? 'frs-ui-icon ' + String(className).replace(/[^a-z0-9 _-]/gi, '') : 'frs-ui-icon';
+      return '<svg class="' + cls + '" aria-hidden="true"><use href="#frs-icon-' + safeName + '"></use></svg>';
+    },
+
+    statusIconName(statusCode) {
+      const code = String(statusCode || '').toUpperCase();
+      if (['DONE', 'CLOSED'].includes(code)) return 'check-circle';
+      if (['IN_PROGRESS', 'ASSIGNED', 'RECEIVED'].includes(code)) return 'clock';
+      if (['CANCELLED'].includes(code)) return 'x';
+      return 'clipboard';
+    },
+
+    renderReports() {
+      const rows = Array.isArray(this.requestRows) ? this.requestRows : [];
+      const summary = (this.currentDashboard && this.currentDashboard.summary) || {};
+      const reportSummary = document.getElementById('reportSummary');
+      if (reportSummary) {
+        const totalCost = rows.reduce((sum, row) => sum + (Number(row.COST) || 0), 0);
+        const completed = rows.filter((row) => ['DONE', 'CLOSED'].includes(String(row.STATUS_CODE || '').toUpperCase())).length;
+        reportSummary.innerHTML = [
+          ['งานทั้งหมด', rows.length, 'clipboard', 'blue'],
+          ['เสร็จ/ปิดงาน', completed, 'check-circle', 'green'],
+          ['SLA ผ่าน', summary.slaCompliance === null || summary.slaCompliance === undefined ? '—' : summary.slaCompliance + '%', 'trend', 'purple'],
+          ['ค่าใช้จ่ายรวม', this.formatMoney(totalCost), 'chart', 'amber']
+        ].map((item) => '<div class="frs-report-card"><div class="frs-report-card-head"><span class="frs-report-icon ' + item[3] + '">' + this.iconSvg(item[2]) + '</span><span>' + this.escapeHtml(String(item[0])) + '</span></div><strong>' + this.escapeHtml(String(item[1])) + '</strong></div>').join('');
+      }
+      const statusCounts = Object.create(null);
+      const priorityCounts = Object.create(null);
+      rows.forEach((row) => {
+        const status = row.STATUS_NAME_TH || row.STATUS_CODE || 'ไม่ระบุ';
+        const priority = row.PRIORITY_NAME_TH || row.PRIORITY_CODE || 'ไม่ระบุ';
+        statusCounts[status] = (statusCounts[status] || 0) + 1;
+        priorityCounts[priority] = (priorityCounts[priority] || 0) + 1;
+      });
+      this.renderBreakdown('reportStatusBreakdown', statusCounts, rows.length);
+      this.renderBreakdown('reportPriorityBreakdown', priorityCounts, rows.length);
+    },
+
+    renderBreakdown(containerId, counts, total) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const entries = Object.keys(counts || {}).sort((a, b) => counts[b] - counts[a]);
+      if (!entries.length) {
+        container.innerHTML = '<div class="empty-state">ยังไม่มีข้อมูล</div>';
+        return;
+      }
+      container.innerHTML = entries.map((label) => {
+        const count = Number(counts[label] || 0);
+        const percent = total ? Math.round((count / total) * 100) : 0;
+        return '<div class="frs-breakdown-row"><div><span>' + this.escapeHtml(label) + '</span><strong>' + count + '</strong></div><div class="frs-breakdown-track"><i style="width:' + percent + '%"></i></div><small>' + percent + '%</small></div>';
+      }).join('');
+    },
+
+    renderDataManagement() {
+      const container = document.getElementById('masterDataOverview');
+      if (!container) return;
+      const master = this.master || {};
+      const groups = [
+        ['ระบบ/อุปกรณ์', master.systems || [], 'SYSTEM_NAME_TH', 'layers'],
+        ['สถานที่', master.locations || [], 'LOCATION_FULL', 'map-pin'],
+        ['ฝ่าย/แผนก', master.departments || [], 'DEPARTMENT', 'users'],
+        ['SLA', master.sla || [], 'PRIORITY_NAME_TH', 'trend'],
+        ['สถานะงาน', master.status || [], 'STATUS_NAME_TH', 'check-circle']
+      ];
+      container.innerHTML = groups.map((group) => {
+        const rows = group[1];
+        const sample = rows.slice(0, 5).map((row) => '<li>' + this.escapeHtml(row[group[2]] || '-') + '</li>').join('');
+        return '<section class="frs-panel frs-master-card"><div class="frs-panel-head"><h2 class="frs-title-with-icon"><span class="frs-master-title-icon">' + this.iconSvg(group[3]) + '</span><span>' + this.escapeHtml(group[0]) + '</span></h2><strong>' + rows.length + '</strong></div><ul>' + (sample || '<li>ยังไม่มีข้อมูล</li>') + '</ul>' + (rows.length > 5 ? '<small>และอีก ' + (rows.length - 5) + ' รายการ</small>' : '') + '</section>';
+      }).join('');
+    },
+
+    exportRequestsCsv() {
+      const rows = Array.isArray(this.requestRows) ? this.requestRows : [];
+      if (!rows.length) {
+        this.notify('ยังไม่มีข้อมูลสำหรับ Export กรุณาเปิดหน้ารายการงานก่อน', 'warning', 'ไม่พบข้อมูล');
+        return;
+      }
+      const columns = [
+        ['REQUEST_ID', 'เลขที่งาน'], ['REQUEST_DATE', 'วันที่แจ้ง'], ['PROBLEM_DETAIL', 'รายละเอียดปัญหา'],
+        ['SYSTEM_NAME_TH', 'ระบบ'], ['LOCATION_FULL', 'สถานที่'], ['PRIORITY_NAME_TH', 'ความเร่งด่วน'],
+        ['STATUS_NAME_TH', 'สถานะ'], ['REQUESTER_NAME', 'ผู้แจ้ง'], ['ASSIGNED_TO_NAME', 'ผู้รับผิดชอบ'],
+        ['SLA_RESULT', 'ผล SLA'], ['COST', 'ค่าใช้จ่าย'], ['UPDATED_AT', 'อัปเดตล่าสุด']
+      ];
+      const csvCell = (value) => '"' + String(value === null || value === undefined ? '' : value).replace(/"/g, '""') + '"';
+      const lines = [columns.map((col) => csvCell(col[1])).join(',')];
+      rows.forEach((row) => lines.push(columns.map((col) => csvCell(row[col[0]])).join(',')));
+      const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = 'FRS_Requests_' + new Date().toISOString().slice(0, 10) + '.csv';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 500);
+    },
+
+
+    renderMasterOptions() {
+      const systems = (this.master && this.master.systems) || [];
+      const locations = (this.master && this.master.locations) || [];
+      const sla = (this.master && this.master.sla) || [];
+      const statuses = (this.master && this.master.status) || [];
+
+      this.fillSelect('SYSTEM_CODE', systems, 'SYSTEM_CODE', 'SYSTEM_NAME_TH', 'เลือกระบบ/อุปกรณ์');
+      this.fillSelect('LOCATION_ID', locations, 'LOCATION_ID', 'LOCATION_FULL', 'เลือกสถานที่');
+      this.fillSelect('PRIORITY_CODE', sla, 'PRIORITY_CODE', 'PRIORITY_NAME_TH', 'เลือกระดับความเร่งด่วน');
+      this.fillSelect('requestStatusFilter', statuses, 'STATUS_CODE', 'STATUS_NAME_TH', 'ทุกสถานะ');
+      document.querySelectorAll('[data-select-filter]').forEach((input) => this.applySelectFilter(input));
+    },
+
+    fillSelect(elementId, rows, valueField, labelField, placeholder) {
+      const select = document.getElementById(elementId);
+      if (!select) return;
+      const currentValue = select.value;
+      const options = ['<option value="">' + this.escapeHtml(placeholder) + '</option>'];
+      rows.forEach((row) => {
+        options.push('<option value="' + this.escapeAttr(row[valueField]) + '">' + this.escapeHtml(row[labelField]) + '</option>');
+      });
+      select.innerHTML = options.join('');
+      if (currentValue) select.value = currentValue;
+    },
+
+    bindSystemPriority() {
+      document.addEventListener('change', (event) => {
+        if (event.target && event.target.id === 'SYSTEM_CODE' && this.master) {
+          const selected = (this.master.systems || []).find((row) => String(row.SYSTEM_CODE) === String(event.target.value));
+          if (selected && selected.DEFAULT_PRIORITY_CODE) {
+            document.getElementById('PRIORITY_CODE').value = selected.DEFAULT_PRIORITY_CODE;
+          }
+        }
+      });
+    },
+
+    bindSearchableSelectFilters() {
+      if (document.documentElement.dataset.selectFilterBound === 'true') return;
+      document.documentElement.dataset.selectFilterBound = 'true';
+
+      document.addEventListener('input', (event) => {
+        const input = event.target.closest('[data-select-filter]');
+        if (!input) return;
+        const targetId = input.getAttribute('data-select-filter');
+        clearTimeout(this.selectFilterTimers[targetId]);
+        this.selectFilterTimers[targetId] = setTimeout(() => this.applySelectFilter(input), 180);
+      });
+
+      document.addEventListener('keydown', (event) => {
+        const input = event.target.closest('[data-select-filter]');
+        if (!input) return;
+        if (event.key === 'Escape') {
+          input.value = '';
+          this.applySelectFilter(input);
+          input.blur();
+          return;
+        }
+        if (event.key === 'Enter') {
+          const select = document.getElementById(input.getAttribute('data-select-filter'));
+          if (!select) return;
+          const visible = Array.from(select.options).filter((option) => option.value && !option.hidden);
+          if (visible.length === 1) {
+            event.preventDefault();
+            select.value = visible[0].value;
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            select.focus();
+          }
+        }
+      });
+    },
+
+    applySelectFilter(input) {
+      if (!input) return;
+      const select = document.getElementById(input.getAttribute('data-select-filter'));
+      if (!select) return;
+      const query = String(input.value || '').trim().toLocaleLowerCase('th-TH');
+      let visibleCount = 0;
+      Array.from(select.options).forEach((option, index) => {
+        if (index === 0 || !option.value) {
+          option.hidden = false;
+          return;
+        }
+        const text = (String(option.textContent || '') + ' ' + String(option.value || '')).toLocaleLowerCase('th-TH');
+        const visible = !query || text.indexOf(query) !== -1 || option.value === select.value;
+        option.hidden = !visible;
+        option.disabled = !visible;
+        if (visible) visibleCount++;
+      });
+      const countId = input.getAttribute('data-match-count');
+      const count = countId ? document.getElementById(countId) : null;
+      if (count) count.textContent = query ? ('พบ ' + visibleCount + ' รายการ') : '';
+    },
+
+    clearSelectFilters() {
+      document.querySelectorAll('[data-select-filter]').forEach((input) => {
+        input.value = '';
+        this.applySelectFilter(input);
+      });
+    },
+
+    syncMobileNavigation(name) {
+      const primaryTabs = ['dashboard', 'myRequests', 'newRequest', 'reports'];
+      document.querySelectorAll('[data-mobile-tab]').forEach((node) => {
+        const active = node.getAttribute('data-mobile-tab') === name;
+        node.classList.toggle('active', active);
+        if (active) node.setAttribute('aria-current', 'page');
+        else node.removeAttribute('aria-current');
+      });
+      const more = document.getElementById('mobileNavMore');
+      if (more) {
+        const moreActive = primaryTabs.indexOf(name) === -1;
+        more.classList.toggle('active', moreActive);
+        if (moreActive) more.setAttribute('aria-current', 'page');
+        else more.removeAttribute('aria-current');
+      }
+    },
+
+    showTab(name, refresh = true) {
+      const tabs = ['dashboard', 'newRequest', 'myRequests', 'reports', 'data', 'settings', 'profile', 'registrations'];
+      tabs.forEach((tab) => {
+        const panel = document.getElementById(tab + 'Tab');
+        if (panel) panel.classList.toggle('hidden', tab !== name);
+      });
+
+      const navMap = {
+        dashboard: 'navDashboard',
+        newRequest: 'navNewRequest',
+        myRequests: 'navMyRequests',
+        reports: 'navReports',
+        data: 'navData',
+        settings: 'navSettings',
+        profile: 'navProfile',
+        registrations: 'navRegistrations'
+      };
+      Object.keys(navMap).forEach((tab) => {
+        const nav = document.getElementById(navMap[tab]);
+        if (!nav) return;
+        const isActive = tab === name || (name === 'registrations' && tab === 'data');
+        nav.classList.toggle('active', isActive);
+        if (isActive) nav.setAttribute('aria-current', 'page');
+        else nav.removeAttribute('aria-current');
+      });
+      this.syncMobileNavigation(name);
+
+      if (refresh) {
+        if (name === 'dashboard' && this.shouldRefreshTab('dashboard')) this.loadDashboard();
+        if (name === 'myRequests') this.loadRequests();
+        if (name === 'profile' && this.shouldRefreshTab('profile')) this.loadProfile();
+        if (name === 'registrations' && this.shouldRefreshTab('registrations')) this.loadRegistrations();
+      }
+      if (name === 'reports') this.loadReports();
+      if (name === 'data') this.renderDataManagement();
+      if (name === 'settings') this.applyTheme(document.documentElement.getAttribute('data-theme') || 'light', false);
+      this.toggleSidebar(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+
+    shouldRefreshTab(name) {
+      if (name === 'myRequests' && !this.requestsLoaded) return true;
+      const last = Number(this.lastLoaded[name] || 0);
+      return !last || (Date.now() - last) > this.cacheTtlMs;
+    },
+
+    invalidateTabs() {
+      const names = Array.prototype.slice.call(arguments);
+      names.forEach((name) => { this.lastLoaded[name] = 0; });
+    },
+
+    capitalize(text) {
+      return text.charAt(0).toUpperCase() + text.slice(1);
+    },
+
+    async loadProfile(showLoader = true) {
+      if (showLoader) this.showLoading(true);
+      try {
+        const results = await Promise.all([
+          this.ensurePublicRegistrationData().catch((err) => {
+            console.warn('PROFILE_PUBLIC_CONFIG', err);
+            return null;
+          }),
+          this.serverCall((runner) => runner.apiGetLinkedIdentities(this.token))
+        ]);
+        const res = results[1];
+        if (!res || !res.ok) {
+          this.handleApiError(res);
+          return;
+        }
+        this.identities = res.data || [];
+        this.renderProfile();
+        this.lastLoaded.profile = Date.now();
+      } catch (err) {
+        this.notify((err && err.message) || 'โหลดข้อมูลบัญชีไม่สำเร็จ', 'error');
+      } finally {
+        if (showLoader) this.showLoading(false);
+      }
+    },
+
+    renderProfile() {
+      const user = this.currentUser || {};
+      document.getElementById('profileSummary').innerHTML =
+        '<div class="detail-grid">' +
+        '<div><span>ชื่อผู้ใช้งาน</span><strong>' + this.escapeHtml(user.USERNAME || '-') + '</strong></div>' +
+        '<div><span>ชื่อ-นามสกุล</span><strong>' + this.escapeHtml(user.FULL_NAME || '-') + '</strong></div>' +
+        '<div><span>อีเมล</span><strong>' + this.escapeHtml(user.EMAIL || '-') + '</strong></div>' +
+        '<div><span>หน่วยงาน</span><strong>' + this.escapeHtml([user.DIVISION, user.DEPARTMENT].filter(Boolean).join(' / ') || '-') + '</strong></div>' +
+        '<div><span>Role</span><strong>' + this.escapeHtml(user.ROLE || '-') + '</strong></div>' +
+        '</div>';
+
+      const container = document.getElementById('identityList');
+      if (!this.identities.length) {
+        container.innerHTML = '<div class="empty-state">ยังไม่พบวิธีเข้าสู่ระบบที่เชื่อมไว้</div>';
+      } else {
+        container.innerHTML = this.identities.map((identity) => {
+          const provider = String(identity.PROVIDER || '').toUpperCase();
+          const canUnlink = provider !== 'PASSWORD' && this.identities.length > 1;
+          return '<div class="identity-card"><div><span class="provider-badge ' + this.escapeAttr(provider) + '">' +
+            this.escapeHtml(provider) + '</span><div class="identity-provider">' +
+            this.escapeHtml(identity.DISPLAY_NAME || identity.PROVIDER_EMAIL || provider) + '</div><div class="identity-meta">' +
+            this.escapeHtml(identity.PROVIDER_EMAIL || 'ไม่มีอีเมลจาก Provider') + '<br>เชื่อมเมื่อ ' +
+            this.escapeHtml(this.formatDateText(identity.LINKED_AT)) + '</div></div>' +
+            (canUnlink ? '<button class="btn btn-light btn-small" type="button" onclick="App.unlinkIdentity(\'' +
+              this.escapeAttr(identity.IDENTITY_ID) + '\', \'' + this.escapeAttr(provider) + '\')">ยกเลิกการเชื่อม</button>' : '') +
+            '</div>';
+        }).join('');
+      }
+
+      const providers = this.identities.map((item) => String(item.PROVIDER || '').toUpperCase());
+      const cfg = (this.publicRegistrationData && this.publicRegistrationData.config) || {};
+      const googleButton = document.getElementById('linkGoogleButton');
+      const lineButton = document.getElementById('linkLineButton');
+      if (googleButton) googleButton.classList.toggle('hidden', !cfg.googleEnabled || providers.indexOf('GOOGLE') !== -1);
+      if (lineButton) lineButton.classList.toggle('hidden', !cfg.lineEnabled || providers.indexOf('LINE') !== -1);
+    },
+
+    async unlinkIdentity(identityId, provider) {
+      const confirmed = await this.confirmBox({
+        title: 'ยกเลิกการเชื่อมบัญชี ' + provider + '?',
+        message: 'หลังยกเลิกจะไม่สามารถใช้บัญชีนี้เข้าสู่ FRS ได้ จนกว่าจะเชื่อมใหม่',
+        confirmText: 'ยกเลิกการเชื่อม',
+        cancelText: 'คงการเชื่อมไว้',
+        type: 'warning'
+      });
+      if (!confirmed) return;
+      this.showLoading(true);
+      try {
+        const res = await this.serverCall((runner) => runner.apiUnlinkIdentity(this.token, identityId));
+        if (!res || !res.ok) {
+          this.handleApiError(res);
+          return;
+        }
+        await this.loadProfile(false);
+        await this.notify(res.message, 'success');
+      } catch (err) {
+        this.notify((err && err.message) || 'ยกเลิกการเชื่อมไม่สำเร็จ', 'error');
+      } finally {
+        this.showLoading(false);
+      }
+    },
+
+    async loadRegistrations(showLoader = true) {
+      const role = String((this.currentUser && this.currentUser.ROLE) || '').toUpperCase();
+      if (['ADMIN', 'MANAGER'].indexOf(role) === -1) {
+        this.notify('สิทธิ์ไม่เพียงพอสำหรับดูคำขอสมัครสมาชิก', 'warning');
+        this.showTab('dashboard', false);
+        return;
+      }
+      if (showLoader) this.showLoading(true);
+      try {
+        const res = await this.serverCall((runner) => runner.apiGetPendingRegistrations(this.token));
+        if (!res || !res.ok) {
+          this.handleApiError(res);
+          return;
+        }
+        this.registrationRows = res.data || [];
+        this.renderRegistrations();
+        this.lastLoaded.registrations = Date.now();
+      } catch (err) {
+        this.notify((err && err.message) || 'โหลดคำขอสมัครสมาชิกไม่สำเร็จ', 'error');
+      } finally {
+        if (showLoader) this.showLoading(false);
+      }
+    },
+
+    renderRegistrations() {
+      const container = document.getElementById('registrationList');
+      if (!this.registrationRows.length) {
+        container.innerHTML = '<div class="empty-state">ไม่มีคำขอสมัครสมาชิกที่รออนุมัติ</div>';
+        return;
+      }
+      container.innerHTML = this.registrationRows.map((row) => {
+        const id = String(row.REGISTRATION_ID || '');
+        return '<div class="registration-card"><div class="registration-card-header"><div><div class="registration-name">' +
+          this.escapeHtml(row.FULL_NAME || '-') + '</div><div class="identity-meta">' +
+          this.escapeHtml(row.USERNAME || '-') + ' · ' + this.escapeHtml(row.EMAIL || '-') + '</div></div><span class="provider-badge ' +
+          this.escapeAttr(row.PROVIDER || '') + '">' + this.escapeHtml(row.PROVIDER || '-') + '</span></div>' +
+          '<div class="registration-details"><div><strong>หน่วยงาน:</strong> ' + this.escapeHtml([row.DIVISION, row.DEPARTMENT].filter(Boolean).join(' / ') || '-') + '</div>' +
+          '<div><strong>ตำแหน่ง:</strong> ' + this.escapeHtml(row.POSITION || '-') + '</div><div><strong>โทร:</strong> ' + this.escapeHtml(row.PHONE || '-') + '</div>' +
+          '<div><strong>วันที่ขอ:</strong> ' + this.escapeHtml(this.formatDateText(row.REQUESTED_AT || row.CREATED_AT)) + '</div></div>' +
+          '<div class="form-group mt"><label for="reject_' + this.escapeAttr(id) + '">เหตุผลกรณีไม่อนุมัติ</label><textarea id="reject_' +
+          this.escapeAttr(id) + '" rows="2" maxlength="1500"></textarea></div>' +
+          '<div class="button-row"><button class="btn btn-success" type="button" onclick="App.approveRegistration(\'' + this.escapeAttr(id) + '\')">อนุมัติเป็น USER</button>' +
+          '<button class="btn btn-danger" type="button" onclick="App.rejectRegistration(\'' + this.escapeAttr(id) + '\')">ไม่อนุมัติ</button></div></div>';
+      }).join('');
+    },
+
+    async approveRegistration(registrationId) {
+      const row = this.registrationRows.find((item) => String(item.REGISTRATION_ID) === String(registrationId));
+      const confirmed = await this.confirmBox({
+        title: 'อนุมัติสมาชิกใหม่?',
+        message: 'ระบบจะสร้างบัญชี FRS และกำหนด Role เริ่มต้นเป็น USER',
+        detail: row ? ((row.FULL_NAME || '') + '\n' + (row.EMAIL || '')) : registrationId,
+        confirmText: 'อนุมัติสมาชิก',
+        cancelText: 'ยกเลิก'
+      });
+      if (!confirmed) return;
+      this.showLoading(true);
+      try {
+        const res = await this.serverCall((runner) => runner.apiApproveRegistration(this.token, { registrationId: registrationId }));
+        if (!res || !res.ok) {
+          this.handleApiError(res);
+          return;
+        }
+        await this.loadRegistrations(false);
+        await this.notify(res.message, 'success');
+      } catch (err) {
+        this.notify((err && err.message) || 'อนุมัติสมาชิกไม่สำเร็จ', 'error');
+      } finally {
+        this.showLoading(false);
+      }
+    },
+
+    async rejectRegistration(registrationId) {
+      const reasonElement = document.getElementById('reject_' + registrationId);
+      const reason = reasonElement ? reasonElement.value.trim() : '';
+      if (!reason) {
+        this.notify('กรุณากรอกเหตุผลการไม่อนุมัติ', 'warning');
+        return;
+      }
+      const confirmed = await this.confirmBox({
+        title: 'ไม่อนุมัติคำขอนี้?',
+        message: 'เหตุผลจะถูกบันทึกในประวัติคำขอสมัครสมาชิก',
+        detail: reason,
+        confirmText: 'ยืนยันไม่อนุมัติ',
+        cancelText: 'กลับไป',
+        type: 'warning'
+      });
+      if (!confirmed) return;
+      this.showLoading(true);
+      try {
+        const res = await this.serverCall((runner) => runner.apiRejectRegistration(this.token, {
+          registrationId: registrationId,
+          reason: reason
+        }));
+        if (!res || !res.ok) {
+          this.handleApiError(res);
+          return;
+        }
+        await this.loadRegistrations(false);
+        await this.notify(res.message, 'success');
+      } catch (err) {
+        this.notify((err && err.message) || 'บันทึกการไม่อนุมัติไม่สำเร็จ', 'error');
+      } finally {
+        this.showLoading(false);
+      }
+    },
+
+    acquireActionLock(name) {
+      const key = String(name || 'action');
+      if (this.actionLocks[key]) return false;
+      this.actionLocks[key] = true;
+      return true;
+    },
+
+    releaseActionLock(name) {
+      delete this.actionLocks[String(name || 'action')];
+    },
+
+    setButtonBusy(buttonOrId, busy, busyLabel) {
+      const button = typeof buttonOrId === 'string' ? document.getElementById(buttonOrId) : buttonOrId;
+      if (!button) return;
+      if (!button.dataset.defaultLabel) button.dataset.defaultLabel = button.textContent.trim();
+      button.disabled = Boolean(busy);
+      button.classList.toggle('is-busy', Boolean(busy));
+      button.setAttribute('aria-busy', busy ? 'true' : 'false');
+      button.textContent = busy ? (busyLabel || 'กำลังดำเนินการ...') : button.dataset.defaultLabel;
+    },
+
+    createClientRequestId(prefix) {
+      const random = (window.crypto && typeof window.crypto.getRandomValues === 'function')
+        ? Array.from(window.crypto.getRandomValues(new Uint32Array(2))).map((value) => value.toString(16)).join('')
+        : Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+      return String(prefix || 'ACT') + '-' + Date.now().toString(36) + '-' + random;
+    },
+
+    findMasterLabel(collectionName, valueField, labelField, value) {
+      const rows = (this.master && this.master[collectionName]) || [];
+      const row = rows.find((item) => String(item[valueField]) === String(value));
+      return row ? (row[labelField] || value) : value;
+    },
+
+    showRequestPreview(payload) {
+      const modal = document.getElementById('requestPreviewModal');
+      if (!modal) return Promise.resolve(true);
+
+      const setText = (id, value) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value || '-';
+      };
+      setText('previewSystem', this.findMasterLabel('systems', 'SYSTEM_CODE', 'SYSTEM_NAME_TH', payload.SYSTEM_CODE));
+      setText('previewLocation', this.findMasterLabel('locations', 'LOCATION_ID', 'LOCATION_FULL', payload.LOCATION_ID));
+      setText('previewPriority', this.findMasterLabel('sla', 'PRIORITY_CODE', 'PRIORITY_NAME_TH', payload.PRIORITY_CODE));
+      setText('previewPhone', payload.PHONE ? this.formatThaiPhoneDisplay(payload.PHONE) : 'ไม่ระบุ');
+      setText('previewProblem', payload.PROBLEM_DETAIL);
+      setText('previewRemark', payload.REMARK || '');
+
+      const remarkBlock = document.getElementById('previewRemarkBlock');
+      if (remarkBlock) remarkBlock.classList.toggle('hidden', !payload.REMARK);
+      const photoBlock = document.getElementById('previewPhotoBlock');
+      const photo = document.getElementById('previewPhoto');
+      if (photoBlock) photoBlock.classList.toggle('hidden', !payload.PHOTO_BASE64);
+      if (photo) photo.style.backgroundImage = payload.PHOTO_BASE64 ? 'url("' + payload.PHOTO_BASE64 + '")' : '';
+
+      modal.classList.remove('hidden');
+      document.body.classList.add('modal-open');
+      const confirmButton = document.getElementById('requestPreviewConfirmButton');
+      setTimeout(() => { if (confirmButton) confirmButton.focus(); }, 30);
+
+      return new Promise((resolve) => {
+        this.requestPreviewResolver = resolve;
+      });
+    },
+
+    resolveRequestPreview(result) {
+      const modal = document.getElementById('requestPreviewModal');
+      if (modal) modal.classList.add('hidden');
+      document.body.classList.remove('modal-open');
+      const resolver = this.requestPreviewResolver;
+      this.requestPreviewResolver = null;
+      if (resolver) resolver(Boolean(result));
+    },
+
+    renderRequestListSkeleton(containerId, count) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const total = Math.max(1, Number(count || 4));
+      container.innerHTML = Array.from({ length: total }, () =>
+        '<div class="skeleton-card" aria-hidden="true"><div class="skeleton-line short"></div><div class="skeleton-line medium"></div><div class="skeleton-line"></div></div>'
+      ).join('');
+    },
+
+    renderDashboardSkeleton() {
+      const panel = document.getElementById('dashboardTab');
+      if (panel) panel.classList.add('panel-loading');
+      const latest = document.getElementById('latestList');
+      if (latest && !this.lastLoaded.dashboard) this.renderRequestListSkeleton('latestList', 3);
+    },
+
+    async submitRequest(event) {
+      if (event) event.preventDefault();
+      if (!this.acquireActionLock('createRequest')) {
+        this.notify('ระบบกำลังประมวลผลรายการเดิม กรุณารอสักครู่', 'warning', 'กำลังบันทึกข้อมูล');
+        return;
+      }
+
+      const submitButton = (event && event.submitter) || document.getElementById('requestSubmitButton');
+      this.setButtonBusy(submitButton, true, 'กำลังตรวจสอบ...');
+      let loadingShown = false;
+
+      try {
+        const phoneValue = this.validateThaiPhoneField('PHONE', true);
+        if (phoneValue === null) {
+          const phoneInput = document.getElementById('PHONE');
+          if (phoneInput) phoneInput.focus();
+          await this.notify('กรุณาตรวจสอบรูปแบบเบอร์โทรศัพท์ หรือเว้นว่างหากไม่ต้องการระบุ', 'warning', 'เบอร์โทรไม่ถูกต้อง');
+          return;
+        }
+
+        const systemInput = document.getElementById('SYSTEM_CODE');
+        const locationInput = document.getElementById('LOCATION_ID');
+        const priorityInput = document.getElementById('PRIORITY_CODE');
+        const problemInput = document.getElementById('PROBLEM_DETAIL');
+        const remarkInput = document.getElementById('REMARK');
+
+        if (!systemInput || !locationInput || !priorityInput || !problemInput || !remarkInput) {
+          throw new Error('โครงสร้างแบบฟอร์มแจ้งซ่อมไม่ครบ กรุณาโหลดหน้าใหม่');
+        }
+
+        const payload = {
+          SYSTEM_CODE: systemInput.value,
+          LOCATION_ID: locationInput.value,
+          PRIORITY_CODE: priorityInput.value,
+          PROBLEM_DETAIL: problemInput.value.trim(),
+          PHONE: phoneValue,
+          PHOTO_BASE64: this.photoBase64,
+          REMARK: remarkInput.value.trim()
+        };
+
+        if (!payload.SYSTEM_CODE || !payload.LOCATION_ID || !payload.PRIORITY_CODE || !payload.PROBLEM_DETAIL) {
+          await this.notify('กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบ', 'warning', 'ข้อมูลยังไม่ครบ');
+          return;
+        }
+
+        this.setButtonBusy(submitButton, true, 'รอยืนยันข้อมูล...');
+        const confirmed = await this.showRequestPreview(payload);
+        if (!confirmed) return;
+        if (!this.pendingRequestClientId) this.pendingRequestClientId = this.createClientRequestId('REQ');
+        payload.CLIENT_REQUEST_ID = this.pendingRequestClientId;
+
+        this.setButtonBusy(submitButton, true, 'กำลังส่งแจ้งซ่อม...');
+        this.showLoading(true);
+        loadingShown = true;
+        const res = await this.serverCall((runner) => runner.apiCreateRequest(this.token, payload));
+        if (!res || !res.ok) {
+          this.handleApiError(res);
+          return;
+        }
+
+        const duplicateText = res.data && res.data.duplicate ? ' (ระบบตรวจพบการส่งซ้ำและใช้รายการเดิม)' : '';
+        await this.notify('สร้างรายการแจ้งซ่อมเลขที่ ' + res.data.requestId + ' เรียบร้อยแล้ว' + duplicateText, 'success', 'ส่งแจ้งซ่อมสำเร็จ');
+        this.resetRequestForm();
+        this.invalidateTabs('dashboard', 'myRequests');
+        await Promise.all([this.loadDashboard(false), this.loadRequests(false, true)]);
+        this.showTab('myRequests', false);
+      } catch (err) {
+        console.error('SUBMIT_REQUEST', err);
+        await this.notify(this.clientErrorMessage(err, 'บันทึกไม่สำเร็จ'), 'error', 'ส่งแจ้งซ่อมไม่สำเร็จ');
+      } finally {
+        if (loadingShown) this.showLoading(false);
+        this.resolveRequestPreview(false);
+        this.setButtonBusy(submitButton, false);
+        this.releaseActionLock('createRequest');
+      }
+    },
+
+    resetRequestForm() {
+      const form = document.getElementById('requestForm');
+      if (form) form.reset();
+      const phoneInput = document.getElementById('PHONE');
+      if (phoneInput) phoneInput.value = '';
+      this.clearThaiPhoneError('PHONE');
+      this.clearSelectFilters();
+      this.pendingRequestClientId = '';
+      this.photoBase64 = '';
+      document.getElementById('photoPreview').classList.add('hidden');
+      document.getElementById('photoPreview').style.backgroundImage = '';
+      document.getElementById('photoInfo').textContent = '';
+    },
+
+    bindPhotoInput() {
+      const input = document.getElementById('PHOTO_FILE');
+      if (!input) return;
+      input.addEventListener('change', async (event) => {
+        const result = await this.processPhotoInput(event.target, 'photoInfo', 'photoPreview');
+        this.photoBase64 = result || '';
+      });
+    },
+
+    async processPhotoInput(input, infoId, previewId) {
+      const file = input.files && input.files[0];
+      const info = document.getElementById(infoId);
+      const preview = document.getElementById(previewId);
+      if (!file) {
+        if (info) info.textContent = '';
+        if (preview) preview.classList.add('hidden');
+        return '';
+      }
+
+      const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+      if (allowed.indexOf(file.type) === -1) {
+        this.notify('รองรับเฉพาะ JPG, PNG และ WEBP หากเป็น HEIC ให้แปลงเป็น JPG ก่อน', 'warning', 'ชนิดไฟล์ไม่รองรับ');
+        input.value = '';
+        return '';
+      }
+      if (file.size > 15 * 1024 * 1024) {
+        this.notify('ไฟล์ต้นฉบับต้องไม่เกิน 15 MB', 'warning', 'ไฟล์มีขนาดใหญ่เกินไป');
+        input.value = '';
+        return '';
+      }
+
+      this.showLoading(true);
+      try {
+        const result = await this.compressImage(file, 1600, 0.82, 2 * 1024 * 1024);
+        if (info) info.textContent = 'ขนาดหลังย่อ: ' + this.formatBytes(result.bytes) + ' (' + result.width + ' × ' + result.height + ' px)';
+        if (preview) {
+          preview.style.backgroundImage = 'url("' + result.dataUrl + '")';
+          preview.classList.remove('hidden');
+        }
+        return result.dataUrl;
+      } catch (err) {
+        input.value = '';
+        this.notify(err.message || 'ไม่สามารถประมวลผลรูปภาพได้', 'error', 'ประมวลผลรูปภาพไม่สำเร็จ');
+        return '';
+      } finally {
+        this.showLoading(false);
+      }
+    },
+
+    compressImage(file, maxDimension, initialQuality, maxBytes) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('ไม่สามารถอ่านไฟล์รูปภาพได้'));
+        reader.onload = () => {
+          const image = new Image();
+          image.onerror = () => reject(new Error('Browser ไม่รองรับรูปภาพนี้ กรุณาใช้ JPG, PNG หรือ WEBP'));
+          image.onload = () => {
+            let width = image.naturalWidth || image.width;
+            let height = image.naturalHeight || image.height;
+            const scale = Math.min(1, maxDimension / Math.max(width, height));
+            width = Math.max(1, Math.round(width * scale));
+            height = Math.max(1, Math.round(height * scale));
+
+            let quality = initialQuality;
+            let dataUrl = '';
+            let bytes = 0;
+
+            for (let attempt = 0; attempt < 8; attempt++) {
+              const canvas = document.createElement('canvas');
+              canvas.width = width;
+              canvas.height = height;
+              const context = canvas.getContext('2d', { alpha: false });
+              context.fillStyle = '#ffffff';
+              context.fillRect(0, 0, width, height);
+              context.drawImage(image, 0, 0, width, height);
+              dataUrl = canvas.toDataURL('image/jpeg', quality);
+              bytes = this.estimateDataUrlBytes(dataUrl);
+
+              if (bytes <= maxBytes) break;
+              quality = Math.max(0.58, quality - 0.06);
+              width = Math.max(640, Math.round(width * 0.88));
+              height = Math.max(480, Math.round(height * 0.88));
+            }
+
+            if (bytes > maxBytes) {
+              reject(new Error('รูปภาพยังมีขนาดใหญ่เกินไป กรุณาเลือกรูปความละเอียดต่ำลง'));
+              return;
+            }
+            resolve({ dataUrl: dataUrl, bytes: bytes, width: width, height: height });
+          };
+          image.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    },
+
+    estimateDataUrlBytes(dataUrl) {
+      const comma = dataUrl.indexOf(',');
+      const base64 = comma === -1 ? dataUrl : dataUrl.slice(comma + 1);
+      return Math.ceil(base64.length * 0.75);
+    },
+
+    formatBytes(bytes) {
+      if (!bytes) return '0 KB';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    },
+
+    applyRequestFilters() {
+      const search = String(document.getElementById('requestSearch').value || '').trim().toLowerCase();
+      const status = document.getElementById('requestStatusFilter').value;
+      const filtered = this.requestRows.filter((row) => {
+        if (status && String(row.STATUS_CODE) !== String(status)) return false;
+        if (!search) return true;
+        const haystack = [
+          row.REQUEST_ID, row.PROBLEM_DETAIL, row.SYSTEM_NAME_TH, row.LOCATION_FULL,
+          row.REQUESTER_NAME, row.ASSIGNED_TO_NAME, row.STATUS_NAME_TH
+        ].join(' ').toLowerCase();
+        return haystack.indexOf(search) !== -1;
+      });
+      this.renderRequestList('myRequestList', filtered);
+    },
+
+    getProgressData(row) {
+      if (row && row.PROGRESS && typeof row.PROGRESS === 'object') return row.PROGRESS;
+      const status = String((row && row.STATUS_CODE) || 'NEW').trim().toUpperCase();
+      const map = {
+        NEW: { percent: 10, step: 1, tone: 'new' },
+        RECEIVED: { percent: 25, step: 2, tone: 'received' },
+        ASSIGNED: { percent: 40, step: 3, tone: 'assigned' },
+        IN_PROGRESS: { percent: 70, step: 4, tone: 'working' },
+        WAITING_PART: { percent: 65, step: 4, tone: 'waiting' },
+        OUTSOURCE: { percent: 65, step: 4, tone: 'outsource' },
+        DONE: { percent: 90, step: 4, tone: 'done' },
+        CLOSED: { percent: 100, step: 5, tone: 'closed' },
+        CANCELLED: { percent: 0, step: 0, tone: 'cancelled' }
+      };
+      const meta = map[status] || map.NEW;
+      const labels = ['แจ้งซ่อม', 'รับเรื่อง', 'มอบหมายช่าง', 'กำลังดำเนินการ', 'ปิดงาน'];
+      return {
+        percent: meta.percent,
+        step: meta.step,
+        tone: meta.tone,
+        isCancelled: status === 'CANCELLED',
+        steps: labels.map((label, index) => {
+          const no = index + 1;
+          return { number: no, label: label, state: no < meta.step ? 'completed' : (no === meta.step ? 'active' : 'pending') };
+        }),
+        subProgress: []
+      };
+    },
+
+    renderCompactProgress(row) {
+      const progress = this.getProgressData(row);
+      const percent = Math.max(0, Math.min(100, Number(progress.percent || 0)));
+      const tone = this.escapeAttr(progress.tone || 'new');
+      const label = progress.isCancelled ? 'ยกเลิกงาน' : 'ความคืบหน้า ' + percent + '%';
+      return '<div class="frs-progress-compact frs-tone-' + tone + '">' +
+        '<div class="frs-progress-compact__head"><span>' + this.escapeHtml(label) + '</span><strong>' + percent + '%</strong></div>' +
+        '<div class="frs-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + percent + '">' +
+          '<span class="frs-progress-fill" style="width:' + percent + '%"></span>' +
+        '</div>' +
+      '</div>';
+    },
+
+    renderProgressOverview(row) {
+      const progress = this.getProgressData(row);
+      const percent = Math.max(0, Math.min(100, Number(progress.percent || 0)));
+      const steps = progress.steps || [];
+      const subtasks = progress.subProgress || [];
+      const tone = this.escapeAttr(progress.tone || 'new');
+
+      const stepHtml = steps.map((step, index) => {
+        const state = step.state || 'pending';
+        const symbol = state === 'completed' ? '&#10003;' : this.escapeHtml(step.number);
+        return '<div class="frs-step frs-step--' + this.escapeAttr(state) + '">' +
+          '<div class="frs-step__node">' + symbol + '</div>' +
+          '<div class="frs-step__label">' + this.escapeHtml(step.label) + '</div>' +
+          (index < steps.length - 1 ? '<div class="frs-step__connector"></div>' : '') +
+        '</div>';
+      }).join('');
+
+      const subHtml = subtasks.length ? '<div class="frs-subprogress">' + subtasks.map((item) => {
+        const value = Math.max(0, Math.min(100, Number(item.percent || 0)));
+        return '<div class="frs-subprogress__row"><span>' + this.escapeHtml(item.label) + '</span>' +
+          '<div class="frs-subprogress__track"><i style="width:' + value + '%"></i></div><strong>' + value + '%</strong></div>';
+      }).join('') + '</div>' : '';
+
+      return '<section class="frs-progress-overview frs-tone-' + tone + '" aria-label="ความคืบหน้างานแจ้งซ่อม">' +
+        '<div class="frs-progress-overview__head"><div><div class="frs-progress-eyebrow">ความคืบหน้ารวมของงาน</div>' +
+          '<div class="frs-progress-status">' + this.escapeHtml(row.STATUS_NAME_TH || row.STATUS_CODE || '') + '</div></div>' +
+          '<div class="frs-progress-percent">' + percent + '%</div></div>' +
+        '<div class="frs-progress-track frs-progress-track--large"><span class="frs-progress-fill" style="width:' + percent + '%"></span></div>' +
+        '<div class="frs-steps">' + stepHtml + '</div>' + subHtml +
+      '</section>';
+    },
+
+    renderRequestList(containerId, rows) {
+      const element = document.getElementById(containerId);
+      if (!element) return;
+
+      if (!rows || rows.length === 0) {
+        element.innerHTML = '<div class="request-card"><div class="request-meta">ยังไม่มีรายการ</div></div>';
+        return;
+      }
+
+      element.innerHTML = rows.map((row) => {
+        const dateText = this.formatDateText(row.REQUEST_DATE || row.CREATED_AT);
+        const statusCode = row.STATUS_CODE || '';
+        const assignee = row.ASSIGNED_TO_NAME || '';
+        return '<article class="request-card clickable" role="button" tabindex="0" data-request-id="' + this.escapeAttr(row.REQUEST_ID || '') + '">' +
+          '<div class="request-card-header">' +
+            '<div class="request-id frs-request-id-with-icon">' + this.iconSvg('file-text') + '<span>' + this.escapeHtml(row.REQUEST_ID || '') + '</span></div>' +
+            '<div class="badge ' + this.escapeAttr(statusCode) + '">' + this.escapeHtml(row.STATUS_NAME_TH || statusCode) + '</div>' +
+          '</div>' +
+          '<div class="request-detail">' + this.escapeHtml(row.PROBLEM_DETAIL || '') + '</div>' +
+          '<div class="request-meta">' +
+            'ระบบ: ' + this.escapeHtml(row.SYSTEM_NAME_TH || '') + '<br>' +
+            'สถานที่: ' + this.escapeHtml(row.LOCATION_FULL || '') + '<br>' +
+            'วันที่แจ้ง: ' + this.escapeHtml(dateText) +
+          '</div>' +
+          (assignee ? '<div class="request-assignee">ผู้รับผิดชอบ: ' + this.escapeHtml(assignee) + '</div>' : '') +
+          this.renderCompactProgress(row) +
+        '</article>';
+      }).join('');
+
+      element.querySelectorAll('[data-request-id]').forEach((card) => {
+        const open = () => this.openRequest(card.getAttribute('data-request-id'));
+        card.addEventListener('click', open);
+        card.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            open();
+          }
+        });
+      });
+    },
+
+    async openRequest(requestId) {
+      this.showLoading(true);
+      try {
+        const res = await this.serverCall((runner) => runner.apiGetRequestDetail(this.token, requestId));
+        if (!res || !res.ok) {
+          this.handleApiError(res);
+          return;
+        }
+        this.currentDetail = res.data;
+        this.renderRequestDetail();
+        document.getElementById('requestModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      } catch (err) {
+        this.notify((err && err.message) || 'เปิดรายละเอียดไม่สำเร็จ', 'error', 'เปิดรายการไม่สำเร็จ');
+      } finally {
+        this.showLoading(false);
+      }
+    },
+
+    closeRequestModal() {
+      document.getElementById('requestModal').classList.add('hidden');
+      document.body.style.overflow = '';
+      this.currentDetail = null;
+      this.repairPhotos = { before: '', after: '' };
+    },
+
+    renderRequestDetail() {
+      if (!this.currentDetail) return;
+      const row = this.currentDetail.request || {};
+      document.getElementById('requestModalTitle').textContent = row.REQUEST_ID || 'รายละเอียดงาน';
+      document.getElementById('requestModalSubtitle').textContent = (row.STATUS_NAME_TH || row.STATUS_CODE || '') +
+        (row.ASSIGNED_TO_NAME ? ' | ' + row.ASSIGNED_TO_NAME : '');
+
+      const fields = [
+        ['ผู้แจ้ง', row.REQUESTER_NAME],
+        ['เบอร์โทร', row.PHONE],
+        ['ฝ่าย/แผนก', [row.DIVISION, row.DEPARTMENT].filter(Boolean).join(' / ')],
+        ['วันที่แจ้ง', this.formatDateText(row.REQUEST_DATE)],
+        ['ระบบ/อุปกรณ์', row.SYSTEM_NAME_TH],
+        ['สถานที่', row.LOCATION_FULL],
+        ['ความเร่งด่วน', row.PRIORITY_NAME_TH + (row.SLA_HOURS ? ' (SLA ' + row.SLA_HOURS + ' ชม.)' : '')],
+        ['ผู้รับผิดชอบ', row.ASSIGNED_TO_NAME || 'ยังไม่ได้มอบหมาย'],
+        ['เริ่มดำเนินการ', this.formatDateText(row.FIX_START_DATE)],
+        ['เสร็จสิ้น', this.formatDateText(row.FIX_DONE_DATE)],
+        ['ระยะเวลาดำเนินงาน', row.DURATION_HOURS !== '' && row.DURATION_HOURS !== null ? row.DURATION_HOURS + ' ชั่วโมง' : '-'],
+        ['ผล SLA', row.SLA_RESULT || '-'],
+        ['รายละเอียดปัญหา', row.PROBLEM_DETAIL],
+        ['วิธีแก้ไข/ผลดำเนินงาน', row.SOLUTION_DETAIL || '-'],
+        ['ค่าใช้จ่าย', this.formatMoney(row.COST)],
+        ['หมายเหตุ', row.REMARK || '-']
+      ];
+
+      let html = this.renderProgressOverview(row) + '<div class="detail-card"><div class="detail-grid">' + fields.map((field) =>
+        '<div class="detail-item"><span class="detail-label">' + this.escapeHtml(field[0]) + '</span>' +
+        '<div class="detail-value">' + this.escapeHtml(field[1] === undefined || field[1] === null || field[1] === '' ? '-' : field[1]) + '</div></div>'
+      ).join('') + '</div>';
+
+      const photos = [
+        ['รูปแจ้งซ่อม', row.PHOTO_REQUEST_URL],
+        ['รูปก่อนดำเนินการ', row.PHOTO_BEFORE_FIX_URL],
+        ['รูปหลังดำเนินการ', row.PHOTO_AFTER_FIX_URL]
+      ].filter((item) => item[1]);
+      if (photos.length) {
+        html += '<div class="photo-links">' + photos.map((item) =>
+          '<a class="photo-link" href="' + this.escapeAttr(this.safeUrl(item[1])) + '" target="_blank" rel="noopener noreferrer">' + this.escapeHtml(item[0]) + '</a>'
+        ).join('') + '</div>';
+      }
+      html += '</div>';
+      document.getElementById('requestDetailContent').innerHTML = html;
+
+      this.renderWorkflowActions();
+      this.renderTimeline(this.currentDetail.logs || []);
+    },
+
+    renderTimeline(logs) {
+      const container = document.getElementById('statusTimeline');
+      if (!logs.length) {
+        container.innerHTML = '<div class="request-card"><div class="request-meta">ยังไม่มีประวัติ</div></div>';
+        return;
+      }
+      container.innerHTML = logs.map((log) => {
+        const newStatus = log.NEW_STATUS_CODE || '-';
+        const statusName = this.getStatusName(newStatus);
+        return '<div class="timeline-item">' +
+          '<div class="timeline-title frs-title-with-icon"><span class="frs-timeline-icon">' + this.iconSvg(this.statusIconName(newStatus)) + '</span><span>' + this.escapeHtml(statusName) + '</span></div>' +
+          '<div class="timeline-meta">' + this.escapeHtml(log.ACTION_NAME || log.ACTION_BY || '-') + ' | ' + this.escapeHtml(this.formatDateText(log.ACTION_DATE)) + '</div>' +
+          (log.NOTE ? '<div class="timeline-note">' + this.escapeHtml(log.NOTE) + '</div>' : '') +
+        '</div>';
+      }).join('');
+    },
+
+    renderWorkflowActions() {
+      const container = document.getElementById('workflowActions');
+      const actions = (this.currentDetail && this.currentDetail.allowedActions) || {};
+      const request = (this.currentDetail && this.currentDetail.request) || {};
+      const technicians = (this.currentDetail && this.currentDetail.technicians) || [];
+      const blocks = [];
+
+      if (actions.receive || actions.claim || actions.start || actions.resume) {
+        const buttons = [];
+        if (actions.receive) buttons.push('<button class="btn btn-primary" type="button" onclick="App.receiveCurrent()">รับเรื่อง</button>');
+        if (actions.claim) buttons.push('<button class="btn btn-success" type="button" onclick="App.claimCurrent()">รับงานนี้</button>');
+        if (actions.start) buttons.push('<button class="btn btn-success" type="button" onclick="App.startCurrent()">เริ่มดำเนินการ</button>');
+        if (actions.resume) buttons.push('<button class="btn btn-success" type="button" onclick="App.startCurrent()">กลับมาดำเนินการต่อ</button>');
+        blocks.push('<div class="action-card"><div class="action-title">ดำเนินงาน</div><div class="button-row">' + buttons.join('') + '</div></div>');
+      }
+
+      if (actions.assign) {
+        const options = ['<option value="">เลือกช่างผู้รับผิดชอบ</option>'].concat(technicians.map((tech) =>
+          '<option value="' + this.escapeAttr(tech.USER_ID) + '"' + (String(request.ASSIGNED_TO) === String(tech.USER_ID) ? ' selected' : '') + '>' +
+          this.escapeHtml(tech.FULL_NAME + (tech.POSITION ? ' - ' + tech.POSITION : '')) + '</option>'
+        ));
+        blocks.push('<div class="action-card"><div class="action-title">มอบหมาย / ส่งต่องาน</div>' +
+          '<div class="action-grid"><div><label for="assignTechnician">ช่างผู้รับผิดชอบ</label><select id="assignTechnician">' + options.join('') + '</select></div>' +
+          '<div><label for="assignNote">หมายเหตุ</label><input id="assignNote" maxlength="1500"></div></div>' +
+          '<div class="button-row"><button class="btn btn-primary" type="button" onclick="App.assignCurrent()">บันทึกการมอบหมาย</button></div></div>');
+      }
+
+      if (actions.waitingPart || actions.outsource) {
+        const buttons = [];
+        if (actions.waitingPart) buttons.push('<button class="btn btn-warning" type="button" onclick="App.setCurrentWorkStatus(\'WAITING_PART\')">รออะไหล่/จัดซื้อ</button>');
+        if (actions.outsource) buttons.push('<button class="btn btn-warning" type="button" onclick="App.setCurrentWorkStatus(\'OUTSOURCE\')">ส่งซ่อมภายนอก</button>');
+        blocks.push('<div class="action-card"><div class="action-title">พัก/ส่งต่องานภายนอก</div>' +
+          '<label for="workStatusNote">รายละเอียดหรือเหตุผล <span class="required">*</span></label>' +
+          '<textarea id="workStatusNote" rows="2" maxlength="1500"></textarea>' +
+          '<div class="button-row">' + buttons.join('') + '</div></div>');
+      }
+
+      if (actions.complete) {
+        blocks.push('<div class="action-card"><div class="action-title">บันทึกผลและดำเนินการเสร็จสิ้น</div>' +
+          '<div class="form-group"><label for="completeSolution">วิธีการแก้ไข/ผลการดำเนินงาน <span class="required">*</span></label>' +
+          '<textarea id="completeSolution" rows="4" maxlength="5000">' + this.escapeHtml(request.SOLUTION_DETAIL || '') + '</textarea></div>' +
+          '<div class="form-group"><label for="completeCost">ค่าใช้จ่าย (บาท)</label><input id="completeCost" type="number" min="0" step="0.01" value="' + this.escapeAttr(request.COST === 0 || request.COST ? request.COST : '') + '"></div>' +
+          '<div class="action-grid"><div class="form-group"><label for="beforePhotoFile">รูปก่อนดำเนินการ</label><input id="beforePhotoFile" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"><div id="beforePhotoInfo" class="field-help"></div><div id="beforePhotoPreview" class="photo-preview hidden"></div></div>' +
+          '<div class="form-group"><label for="afterPhotoFile">รูปหลังดำเนินการ</label><input id="afterPhotoFile" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"><div id="afterPhotoInfo" class="field-help"></div><div id="afterPhotoPreview" class="photo-preview hidden"></div></div></div>' +
+          '<div class="form-group"><label for="completeNote">หมายเหตุเพิ่มเติม</label><textarea id="completeNote" rows="2" maxlength="1500"></textarea></div>' +
+          '<button class="btn btn-success btn-full" type="button" onclick="App.completeCurrent()">บันทึกและส่งตรวจสอบ</button></div>');
+      }
+
+      if (actions.close) {
+        blocks.push('<div class="action-card"><div class="action-title">ตรวจสอบและปิดงาน</div>' +
+          '<label for="closeNote">ผลการตรวจสอบ</label><textarea id="closeNote" rows="2" maxlength="1500"></textarea>' +
+          '<div class="button-row"><button class="btn btn-success" type="button" onclick="App.closeCurrent()">ปิดงาน</button></div></div>');
+      }
+
+      if (actions.cancel) {
+        blocks.push('<div class="action-card"><div class="action-title">ยกเลิกรายการ</div>' +
+          '<label for="cancelNote">เหตุผลการยกเลิก <span class="required">*</span></label><textarea id="cancelNote" rows="2" maxlength="1500"></textarea>' +
+          '<div class="button-row"><button class="btn btn-danger" type="button" onclick="App.cancelCurrent()">ยกเลิกงาน</button></div></div>');
+      }
+
+      container.innerHTML = blocks.length ? '<div class="section-title mt">การดำเนินงาน</div>' + blocks.join('') : '';
+      this.repairPhotos = { before: '', after: '' };
+      this.bindRepairPhotoInputs();
+    },
+
+    bindRepairPhotoInputs() {
+      const beforeInput = document.getElementById('beforePhotoFile');
+      const afterInput = document.getElementById('afterPhotoFile');
+      if (beforeInput) {
+        beforeInput.addEventListener('change', async (event) => {
+          this.repairPhotos.before = await this.processPhotoInput(event.target, 'beforePhotoInfo', 'beforePhotoPreview') || '';
+        });
+      }
+      if (afterInput) {
+        afterInput.addEventListener('change', async (event) => {
+          this.repairPhotos.after = await this.processPhotoInput(event.target, 'afterPhotoInfo', 'afterPhotoPreview') || '';
+        });
+      }
+    },
+
+    currentRequestId() {
+      return this.currentDetail && this.currentDetail.request && this.currentDetail.request.REQUEST_ID;
+    },
+
+    async runWorkflow(invoker, confirmConfig) {
+      if (confirmConfig) {
+        const confirmed = await this.confirmBox(confirmConfig);
+        if (!confirmed) return;
+      }
+
+      const requestId = this.currentRequestId();
+      if (!requestId) {
+        this.notify('ไม่พบเลขที่ใบแจ้งซ่อม กรุณาปิดหน้าต่างแล้วเปิดรายการใหม่', 'error', 'ไม่สามารถดำเนินการได้');
+        return;
+      }
+
+      this.showLoading(true);
+      let successMessage = '';
+      try {
+        const res = await this.serverCall(invoker);
+        if (!res || !res.ok) {
+          this.handleApiError(res);
+          return;
+        }
+        successMessage = res.message || 'ดำเนินการเรียบร้อย';
+        await Promise.all([this.loadDashboard(false), this.loadRequests(false)]);
+        await this.openRequest(requestId);
+      } catch (err) {
+        this.notify((err && err.message) || 'ดำเนินการไม่สำเร็จ', 'error', 'เกิดข้อผิดพลาด');
+      } finally {
+        this.showLoading(false);
+      }
+
+      if (successMessage) {
+        await this.notify(successMessage, 'success', 'บันทึกสำเร็จ');
+      }
+    },
+
+    receiveCurrent() {
+      const payload = { REQUEST_ID: this.currentRequestId(), NOTE: '' };
+      return this.runWorkflow(
+        (runner) => runner.apiReceiveRequest(this.token, payload),
+        {
+          title: 'รับเรื่องแจ้งซ่อม?',
+          message: 'ระบบจะเปลี่ยนสถานะเป็น “รับเรื่องแล้ว” และบันทึกชื่อผู้ดำเนินการใน Timeline',
+          detail: this.currentRequestId(),
+          confirmText: 'รับเรื่อง',
+          cancelText: 'ยกเลิก',
+          type: 'question'
+        }
+      );
+    },
+
+    claimCurrent() {
+      const payload = { REQUEST_ID: this.currentRequestId(), NOTE: '' };
+      return this.runWorkflow(
+        (runner) => runner.apiClaimRequest(this.token, payload),
+        {
+          title: 'รับงานนี้เป็นผู้รับผิดชอบ?',
+          message: 'งานจะถูกมอบหมายให้คุณ และผู้ใช้งานคนอื่นจะเห็นชื่อคุณเป็นช่างผู้รับผิดชอบ',
+          detail: this.currentRequestId(),
+          confirmText: 'รับงานนี้',
+          cancelText: 'ยกเลิก',
+          type: 'question'
+        }
+      );
+    },
+
+    assignCurrent() {
+      const select = document.getElementById('assignTechnician');
+      const technicianId = select.value;
+      const technicianName = select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : technicianId;
+      const note = document.getElementById('assignNote').value.trim();
+      if (!technicianId) {
+        this.notify('กรุณาเลือกช่างผู้รับผิดชอบก่อนบันทึกการมอบหมาย', 'warning', 'ยังไม่ได้เลือก Technician');
+        return;
+      }
+      const payload = { REQUEST_ID: this.currentRequestId(), TECHNICIAN_ID: technicianId, NOTE: note };
+      return this.runWorkflow(
+        (runner) => runner.apiAssignRequest(this.token, payload),
+        {
+          title: 'ยืนยันการมอบหมายงาน?',
+          message: 'รายการนี้จะถูกมอบหมายหรือส่งต่อให้ Technician ที่เลือก',
+          detail: 'ผู้รับผิดชอบ: ' + technicianName + (note ? '\nหมายเหตุ: ' + note : ''),
+          confirmText: 'มอบหมายงาน',
+          cancelText: 'กลับไปแก้ไข',
+          type: 'question'
+        }
+      );
+    },
+
+    startCurrent() {
+      const payload = { REQUEST_ID: this.currentRequestId(), NOTE: '' };
+      const status = this.currentDetail && this.currentDetail.request && this.currentDetail.request.STATUS_CODE;
+      const resume = ['WAITING_PART', 'OUTSOURCE'].indexOf(String(status)) !== -1;
+      return this.runWorkflow(
+        (runner) => runner.apiStartRequest(this.token, payload),
+        {
+          title: resume ? 'กลับมาดำเนินการต่อ?' : 'เริ่มดำเนินการ?',
+          message: resume
+            ? 'ระบบจะเปลี่ยนสถานะกลับเป็น “กำลังดำเนินการ” และบันทึกเวลาเริ่มทำงานต่อ'
+            : 'ระบบจะบันทึกเวลาเริ่มงานและเปลี่ยนสถานะเป็น “กำลังดำเนินการ”',
+          detail: this.currentRequestId(),
+          confirmText: resume ? 'ดำเนินการต่อ' : 'เริ่มงาน',
+          cancelText: 'ยกเลิก',
+          type: 'question'
+        }
+      );
+    },
+
+    setCurrentWorkStatus(statusCode) {
+      const note = document.getElementById('workStatusNote').value.trim();
+      if (!note) {
+        this.notify('กรุณาระบุรายละเอียดหรือเหตุผลก่อนเปลี่ยนสถานะงาน', 'warning', 'ต้องระบุเหตุผล');
+        return;
+      }
+      const statusName = statusCode === 'WAITING_PART' ? 'รออะไหล่/จัดซื้อ' : 'ส่งซ่อมภายนอก';
+      const payload = { REQUEST_ID: this.currentRequestId(), STATUS_CODE: statusCode, NOTE: note };
+      return this.runWorkflow(
+        (runner) => runner.apiSetWorkStatus(this.token, payload),
+        {
+          title: 'เปลี่ยนสถานะเป็น “' + statusName + '”?',
+          message: 'สถานะใหม่และเหตุผลจะถูกบันทึกใน Timeline ของงาน',
+          detail: note,
+          confirmText: 'ยืนยันสถานะ',
+          cancelText: 'กลับไปแก้ไข',
+          type: 'warning'
+        }
+      );
+    },
+
+    completeCurrent() {
+      const solution = document.getElementById('completeSolution').value.trim();
+      if (!solution) {
+        this.notify('กรุณาระบุวิธีการแก้ไขหรือผลการดำเนินงาน', 'warning', 'ข้อมูลผลการซ่อมยังไม่ครบ');
+        return;
+      }
+      const cost = document.getElementById('completeCost').value;
+      const payload = {
+        REQUEST_ID: this.currentRequestId(),
+        SOLUTION_DETAIL: solution,
+        COST: cost,
+        NOTE: document.getElementById('completeNote').value.trim(),
+        PHOTO_BEFORE_BASE64: this.repairPhotos.before,
+        PHOTO_AFTER_BASE64: this.repairPhotos.after
+      };
+      return this.runWorkflow(
+        (runner) => runner.apiCompleteRequest(this.token, payload),
+        {
+          title: 'ส่งงานให้ผู้ดูแลตรวจสอบ?',
+          message: 'ระบบจะบันทึกผลการซ่อม ค่าใช้จ่าย รูปประกอบ และเปลี่ยนสถานะเป็น “ดำเนินการแล้วเสร็จ”',
+          detail: 'ค่าใช้จ่าย: ' + this.formatMoney(cost || 0) + '\nผลการดำเนินงาน: ' + solution,
+          confirmText: 'บันทึกและส่งตรวจ',
+          cancelText: 'ตรวจสอบอีกครั้ง',
+          type: 'question'
+        }
+      );
+    },
+
+    closeCurrent() {
+      const note = document.getElementById('closeNote').value.trim();
+      const payload = { REQUEST_ID: this.currentRequestId(), NOTE: note };
+      return this.runWorkflow(
+        (runner) => runner.apiCloseRequest(this.token, payload),
+        {
+          title: 'ปิดงานนี้?',
+          message: 'หลังปิดงาน ระบบจะถือว่า Workflow เสร็จสมบูรณ์และไม่สามารถดำเนินการต่อในสถานะปกติได้',
+          detail: note || this.currentRequestId(),
+          confirmText: 'ยืนยันปิดงาน',
+          cancelText: 'ยังไม่ปิด',
+          type: 'warning'
+        }
+      );
+    },
+
+    cancelCurrent() {
+      const note = document.getElementById('cancelNote').value.trim();
+      if (!note) {
+        this.notify('กรุณาระบุเหตุผลที่ต้องการยกเลิกรายการ', 'warning', 'ต้องระบุเหตุผล');
+        return;
+      }
+      const payload = { REQUEST_ID: this.currentRequestId(), NOTE: note };
+      return this.runWorkflow(
+        (runner) => runner.apiCancelRequest(this.token, payload),
+        {
+          title: 'ยกเลิกรายการนี้?',
+          message: 'สถานะจะเปลี่ยนเป็น “ยกเลิก” และเหตุผลจะถูกบันทึกถาวรใน Timeline',
+          detail: note,
+          confirmText: 'ยืนยันยกเลิกงาน',
+          cancelText: 'กลับไป',
+          type: 'error'
+        }
+      );
+    },
+
+    getStatusName(code) {
+      const row = ((this.master && this.master.status) || []).find((item) => String(item.STATUS_CODE) === String(code));
+      return row ? row.STATUS_NAME_TH : code;
+    },
+
+    formatDateText(value) {
+      if (!value) return '-';
+      const date = new Date(value);
+      if (isNaN(date.getTime())) return String(value);
+      return date.toLocaleString('th-TH', {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit'
+      });
+    },
+
+    formatMoney(value) {
+      if (value === '' || value === null || value === undefined) return '-';
+      const number = Number(value);
+      return isNaN(number) ? String(value) : number.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' บาท';
+    },
+
+    safeUrl(value) {
+      const url = String(value || '');
+      return /^https:\/\//i.test(url) ? url : '#';
+    },
+
+    showLoading(show) {
+      this.loadingCount = Math.max(0, this.loadingCount + (show ? 1 : -1));
+      document.getElementById('loadingOverlay').classList.toggle('hidden', this.loadingCount === 0);
+    },
+
+    notify(message, type = 'info', title = '', options = {}) {
+      const titles = {
+        success: 'ดำเนินการสำเร็จ',
+        warning: 'กรุณาตรวจสอบ',
+        error: 'เกิดข้อผิดพลาด',
+        question: 'ยืนยันการดำเนินการ',
+        info: 'ข้อความจากระบบ'
+      };
+      return this.showMessageBox(Object.assign({
+        type: type,
+        title: title || titles[type] || titles.info,
+        message: String(message || ''),
+        confirmText: 'ตกลง',
+        showCancel: false
+      }, options || {}));
+    },
+
+    confirmBox(config) {
+      return this.showMessageBox(Object.assign({
+        type: 'question',
+        title: 'ยืนยันการดำเนินการ',
+        message: '',
+        confirmText: 'ยืนยัน',
+        cancelText: 'ยกเลิก',
+        showCancel: true
+      }, config || {}, { showCancel: true }));
+    },
+
+    showMessageBox(config) {
+      return new Promise((resolve) => {
+        this.messageQueue.push({ config: config || {}, resolve: resolve });
+        this.renderNextMessageBox();
+      });
+    },
+
+    renderNextMessageBox() {
+      if (this.messageActive || !this.messageQueue.length) return;
+
+      const item = this.messageQueue.shift();
+      const config = item.config || {};
+      const type = ['success', 'warning', 'error', 'question', 'info'].indexOf(config.type) !== -1
+        ? config.type
+        : 'info';
+
+      this.messageActive = item;
+      this.messagePreviousFocus = document.activeElement;
+
+      const box = document.getElementById('messageBox');
+      const panel = box.querySelector('.msgbox-panel');
+      const cancelButton = document.getElementById('messageBoxCancel');
+      const confirmButton = document.getElementById('messageBoxConfirm');
+      const closeButton = document.getElementById('messageBoxClose');
+      const detail = document.getElementById('messageBoxDetail');
+      const actions = box.querySelector('.msgbox-actions');
+
+      panel.setAttribute('data-type', type);
+      document.getElementById('messageBoxIcon').innerHTML = this.messageBoxIcon(type);
+      document.getElementById('messageBoxEyebrow').textContent = this.messageBoxEyebrow(type);
+      document.getElementById('messageBoxTitle').textContent = config.title || 'ข้อความจากระบบ';
+      document.getElementById('messageBoxMessage').textContent = config.message || '';
+
+      detail.textContent = config.detail || '';
+      detail.classList.toggle('hidden', !config.detail);
+
+      cancelButton.textContent = config.cancelText || 'ยกเลิก';
+      cancelButton.classList.toggle('hidden', !config.showCancel);
+      actions.classList.toggle('single-action', !config.showCancel);
+      confirmButton.textContent = config.confirmText || 'ตกลง';
+      closeButton.classList.toggle('hidden', config.showClose === false);
+
+      box.classList.remove('hidden');
+      document.body.classList.add('msgbox-open');
+      setTimeout(() => confirmButton.focus(), 30);
+    },
+
+    resolveMessageBox(result) {
+      if (!this.messageActive) return;
+      const active = this.messageActive;
+      this.messageActive = null;
+
+      const box = document.getElementById('messageBox');
+      box.classList.add('hidden');
+      document.body.classList.remove('msgbox-open');
+
+      if (this.messagePreviousFocus && typeof this.messagePreviousFocus.focus === 'function') {
+        try { this.messagePreviousFocus.focus(); } catch (err) {}
+      }
+      this.messagePreviousFocus = null;
+      active.resolve(Boolean(result));
+      setTimeout(() => this.renderNextMessageBox(), 40);
+    },
+
+    dismissMessageBoxFromBackdrop() {
+      if (!this.messageActive) return;
+      const config = this.messageActive.config || {};
+      if (config.backdropClose === false || config.showCancel) return;
+      this.resolveMessageBox(false);
+    },
+
+    messageBoxEyebrow(type) {
+      return {
+        success: 'SUCCESS',
+        warning: 'ATTENTION',
+        error: 'ERROR',
+        question: 'CONFIRM',
+        info: 'INFORMATION'
+      }[type] || 'FRS';
+    },
+
+    messageBoxIcon(type) {
+      const icons = {
+        success: 'check-circle',
+        warning: 'alert',
+        error: 'x',
+        question: 'help',
+        info: 'info'
+      };
+      return this.iconSvg(icons[type] || icons.info);
+    },
+
+    toast(message) {
+      return this.notify(message, 'info');
+    },
+
+    escapeHtml(text) {
+      return String(text === null || text === undefined ? '' : text).replace(/[&<>"']/g, function(char) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char];
+      });
+    },
+
+    escapeAttr(text) {
+      return this.escapeHtml(text).replace(/`/g, '&#096;');
+    }
+  };
+
+  document.addEventListener('DOMContentLoaded', function() { App.init(); });
+</script>

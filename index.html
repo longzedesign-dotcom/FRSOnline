@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="referrer" content="same-origin">
+  <title><?= appName ?></title>
+  <?!= include('style'); ?>
+</head>
+<body class="frs-v2303-root">
+  <div id="app">
+
+    <svg class="frs-icon-sprite" aria-hidden="true" focusable="false">
+      <defs>
+        <symbol id="frs-icon-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a4.5 4.5 0 0 0-5.8 5.8L3.6 17.4a2 2 0 0 0 2.8 2.8l5.3-5.3a4.5 4.5 0 0 0 5.8-5.8l-2.7 2.7-2.6-.7-.7-2.6z"/><path d="m14.2 14.2 5.4 5.4"/></symbol>
+        <symbol id="frs-icon-home" viewBox="0 0 24 24"><path d="m3 10.5 9-7.5 9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-7h6v7"/></symbol>
+        <symbol id="frs-icon-briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/><path d="M10 12v2h4v-2"/></symbol>
+        <symbol id="frs-icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+        <symbol id="frs-icon-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+        <symbol id="frs-icon-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+        <symbol id="frs-icon-users" viewBox="0 0 24 24"><path d="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/><path d="M16 10a3 3 0 1 0 0-6"/><path d="M2 21v-2.2C2 15.6 4.6 13 7.8 13h.4c3.2 0 5.8 2.6 5.8 5.8V21"/><path d="M15 13.5c3.8.2 6 2.3 6 5.3V21"/></symbol>
+        <symbol id="frs-icon-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9A1.7 1.7 0 0 0 21 10h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></symbol>
+        <symbol id="frs-icon-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+        <symbol id="frs-icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+        <symbol id="frs-icon-refresh" viewBox="0 0 24 24"><path d="M20 6v6h-6"/><path d="M4 18v-6h6"/><path d="M18.5 9A7 7 0 0 0 6 6.5L4 9"/><path d="M5.5 15A7 7 0 0 0 18 17.5l2-2.5"/></symbol>
+        <symbol id="frs-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></symbol>
+        <symbol id="frs-icon-moon" viewBox="0 0 24 24"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.6 8.6 0 1 0 20.5 14.2z"/></symbol>
+        <symbol id="frs-icon-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></symbol>
+        <symbol id="frs-icon-clipboard" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M9 9h6M9 13h6M9 17h4"/></symbol>
+        <symbol id="frs-icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+        <symbol id="frs-icon-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></symbol>
+        <symbol id="frs-icon-trend" viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 15 4-4 3 3 5-6"/></symbol>
+        <symbol id="frs-icon-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></symbol>
+        <symbol id="frs-icon-pie" viewBox="0 0 24 24"><path d="M11 3a9 9 0 1 0 10 10h-10z"/><path d="M14 3.5A8 8 0 0 1 20.5 10H14z"/></symbol>
+        <symbol id="frs-icon-file-text" viewBox="0 0 24 24"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v5h5"/><path d="M9 12h6M9 16h6"/></symbol>
+        <symbol id="frs-icon-activity" viewBox="0 0 24 24"><path d="M3 12h4l2-5 4 10 2-5h6"/></symbol>
+        <symbol id="frs-icon-map-pin" viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+        <symbol id="frs-icon-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 12 9 5 9-5"/><path d="m3 16 9 5 9-5"/></symbol>
+        <symbol id="frs-icon-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c.6-4.5 3.2-7 8-7s7.4 2.5 8 7"/></symbol>
+        <symbol id="frs-icon-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+        <symbol id="frs-icon-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+        <symbol id="frs-icon-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+        <symbol id="frs-icon-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18h1.5a2 2 0 0 0 0-4H12a2 2 0 0 1 0-4h3a6 6 0 0 0 6-6c0-2.2-4-4-9-4z"/><circle cx="7.5" cy="9" r=".8"/><circle cx="10" cy="6.5" r=".8"/><circle cx="14" cy="6.5" r=".8"/></symbol>
+        <symbol id="frs-icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></symbol>
+        <symbol id="frs-icon-download" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></symbol>
+        <symbol id="frs-icon-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"/><path d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.1-1.1"/></symbol>
+        <symbol id="frs-icon-log-out" viewBox="0 0 24 24"><path d="M10 5H5v14h5"/><path d="M14 8l4 4-4 4"/><path d="M18 12H9"/></symbol>
+
+        <symbol id="frs-icon-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+        <symbol id="frs-icon-eye-off" viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 4.2A10.5 10.5 0 0 1 12 4c6.5 0 10 8 10 8a18.4 18.4 0 0 1-3 4.2"/><path d="M6.2 6.2C3.5 8.1 2 12 2 12s3.5 8 10 8a10.5 10.5 0 0 0 4.1-.8"/></symbol>
+        <symbol id="frs-icon-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
+        <symbol id="frs-icon-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.6 2.6 0 1 1 4.7 1.6c-.9.8-2.3 1.2-2.3 2.9"/><path d="M12 17h.01"/></symbol>
+        <symbol id="frs-icon-alert" viewBox="0 0 24 24"><path d="M10.3 2.9 1.8 17a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 2.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></symbol>
+      </defs>
+    </svg>
+
+    <section id="loginView" class="page page-login">
+      <button class="auth-theme-toggle" type="button" onclick="App.toggleTheme()" aria-label="สลับโหมดมืดและสว่าง" title="สลับโหมดมืด/สว่าง">
+        <svg class="frs-ui-icon theme-icon theme-icon-sun" aria-hidden="true"><use href="#frs-icon-sun"></use></svg>
+        <svg class="frs-ui-icon theme-icon theme-icon-moon" aria-hidden="true"><use href="#frs-icon-moon"></use></svg>
+      </button>
+      <div class="auth-shell">
+        <div id="loginPanel" class="login-card auth-panel">
+          <div class="brand-icon frs-brand-icon-svg" aria-hidden="true"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-wrench"></use></svg></div>
+          <h1>เข้าสู่ระบบ FRS</h1>
+          <p class="muted">Facility Repair System</p>
+
+          <div id="socialLoginButtons" class="social-login-stack hidden">
+            <button id="googleLoginButton" class="social-button google-button hidden" type="button" onclick="App.beginSocialAuth('GOOGLE', 'LOGIN')">
+              <span class="social-mark google-mark" aria-hidden="true">G</span>
+              <span>เข้าสู่ระบบด้วย Google</span>
+            </button>
+            <button id="lineLoginButton" class="social-button line-button hidden" type="button" onclick="App.beginSocialAuth('LINE', 'LOGIN')">
+              <span class="social-mark line-mark" aria-hidden="true">LINE</span>
+              <span>เข้าสู่ระบบด้วย LINE</span>
+            </button>
+            <div class="auth-divider"><span>หรือ</span></div>
+          </div>
+
+          <form id="loginForm" onsubmit="App.login(event)">
+            <div class="form-group">
+              <label for="loginUsername">Username</label>
+              <input id="loginUsername" type="text" autocomplete="username" maxlength="80" placeholder="ชื่อผู้ใช้งาน" required>
+            </div>
+            <div class="form-group">
+              <label for="loginPassword">Password</label>
+              <div class="password-input-wrap">
+                <input id="loginPassword" type="password" autocomplete="current-password" maxlength="256" placeholder="รหัสผ่าน" required>
+                <button class="password-toggle" type="button" data-password-target="loginPassword" aria-label="แสดงรหัสผ่าน" aria-pressed="false">
+                  <span class="password-icon password-icon-eye" aria-hidden="true">
+                    <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-eye"></use></svg>
+                  </span>
+                  <span class="password-icon password-icon-eye-off hidden" aria-hidden="true">
+                    <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-eye-off"></use></svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-full" type="submit">เข้าสู่ระบบ</button>
+          </form>
+
+          <div id="registrationLinkWrap" class="auth-footer hidden">
+            ยังไม่มีบัญชี FRS?
+            <button class="text-button" type="button" onclick="App.showAuthPanel('manualRegister')">สมัครสมาชิก</button>
+          </div>
+          <div class="security-note">บัญชีใหม่ต้องผ่านการอนุมัติจากผู้ดูแลระบบก่อนใช้งาน</div>
+          <div class="version-text">Version <?= appVersion ?></div>
+        </div>
+
+        <div id="manualRegisterPanel" class="login-card auth-panel hidden">
+          <div class="auth-panel-header">
+            <button class="back-button" type="button" onclick="App.showAuthPanel('login')" aria-label="กลับ">←</button>
+            <div>
+              <h1>สมัครสมาชิก</h1>
+              <p class="muted">สมัครด้วย Username และ Password</p>
+            </div>
+          </div>
+
+          <div id="registerSocialButtons" class="social-login-stack hidden">
+            <button id="googleRegisterButton" class="social-button google-button hidden" type="button" onclick="App.beginSocialAuth('GOOGLE', 'LOGIN')">
+              <span class="social-mark google-mark" aria-hidden="true">G</span>
+              <span>สมัครด้วย Google</span>
+            </button>
+            <button id="lineRegisterButton" class="social-button line-button hidden" type="button" onclick="App.beginSocialAuth('LINE', 'LOGIN')">
+              <span class="social-mark line-mark" aria-hidden="true">LINE</span>
+              <span>สมัครด้วย LINE</span>
+            </button>
+            <div class="auth-divider"><span>หรือกรอกข้อมูล</span></div>
+          </div>
+
+          <form id="manualRegisterForm" onsubmit="App.submitManualRegistration(event)">
+            <input id="registerWebsite" class="honeypot" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <div class="form-group">
+              <label for="registerEmail">อีเมล <span class="required">*</span></label>
+              <input id="registerEmail" type="email" autocomplete="email" maxlength="200" required>
+            </div>
+            <div class="form-group">
+              <label for="registerUsername">Username <span class="required">*</span></label>
+              <input id="registerUsername" type="text" autocomplete="username" maxlength="80" pattern="[a-zA-Z0-9._-]{4,80}" required>
+              <div class="field-help">ใช้ a-z, 0-9, จุด, ขีดกลาง หรือขีดล่าง จำนวน 4-80 ตัว</div>
+            </div>
+            <div class="form-group">
+              <label for="registerPassword">Password <span class="required">*</span></label>
+              <div class="password-input-wrap">
+                <input id="registerPassword" type="password" autocomplete="new-password" maxlength="256" required>
+                <button class="password-toggle" type="button" data-password-target="registerPassword" aria-label="แสดงรหัสผ่าน" aria-pressed="false">
+                  <span class="password-icon password-icon-eye" aria-hidden="true">
+                    <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-eye"></use></svg>
+                  </span>
+                  <span class="password-icon password-icon-eye-off hidden" aria-hidden="true">
+                    <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-eye-off"></use></svg>
+                  </span>
+                </button>
+              </div>
+              <div class="field-help">อย่างน้อย 10 ตัว พร้อมตัวพิมพ์เล็ก พิมพ์ใหญ่ ตัวเลข และอักขระพิเศษ</div>
+            </div>
+            <div class="form-group">
+              <label for="registerFullName">ชื่อ-นามสกุล <span class="required">*</span></label>
+              <input id="registerFullName" type="text" maxlength="200" required>
+            </div>
+            <div class="form-group">
+              <label for="registerPhone">เบอร์โทร</label>
+              <div class="thai-phone-control" data-phone-control>
+                <div class="thai-phone-country" aria-label="ประเทศไทย รหัสประเทศบวกหกหก" title="ประเทศไทย">
+                  <span class="thai-phone-flag" aria-hidden="true">🇹🇭</span>
+                  <span class="thai-phone-country-code">+66</span>
+                </div>
+                <input id="registerPhone" type="tel" inputmode="numeric" autocomplete="off" maxlength="12" data-thai-phone>
+              </div>
+              <div class="field-help">กรอกหมายเลขโทรศัพท์ไทย ระบบจะจัดรูปแบบและบันทึกเป็น +66 อัตโนมัติ</div>
+              <div id="registerPhoneError" class="field-error" role="alert"></div>
+            </div>
+            <div class="form-group">
+              <label for="registerDepartment">ฝ่าย/แผนก <span class="required">*</span></label>
+              <select id="registerDepartment" required></select>
+            </div>
+            <div class="form-group">
+              <label for="registerPosition">ตำแหน่ง</label>
+              <input id="registerPosition" type="text" maxlength="200">
+            </div>
+            <label class="consent-row">
+              <input id="registerConsent" type="checkbox" required>
+              <span>ยืนยันว่าข้อมูลถูกต้องและยินยอมให้ใช้ข้อมูลเพื่อบริหารบัญชี FRS</span>
+            </label>
+            <button class="text-button privacy-link" type="button" onclick="App.showPrivacyNotice()">อ่านรายละเอียดการใช้ข้อมูล</button>
+            <button class="btn btn-primary btn-full" type="submit">ส่งคำขอสมัครสมาชิก</button>
+          </form>
+        </div>
+
+        <div id="socialRegisterPanel" class="login-card auth-panel hidden">
+          <div class="auth-panel-header">
+            <button class="back-button" type="button" onclick="App.cancelSocialRegistration()" aria-label="กลับ">←</button>
+            <div>
+              <h1>ข้อมูลสมาชิกเพิ่มเติม</h1>
+              <p id="socialProviderText" class="muted">ยืนยันตัวตนแล้ว</p>
+            </div>
+          </div>
+          <div id="socialProfileCard" class="social-profile-card"></div>
+          <form id="socialRegisterForm" onsubmit="App.submitSocialRegistration(event)">
+            <div class="form-group">
+              <label for="socialRegisterEmail">อีเมล <span class="required">*</span></label>
+              <input id="socialRegisterEmail" type="email" maxlength="200" required>
+            </div>
+            <div class="form-group">
+              <label for="socialRegisterUsername">Username <span class="required">*</span></label>
+              <input id="socialRegisterUsername" type="text" maxlength="80" pattern="[a-zA-Z0-9._-]{4,80}" required>
+            </div>
+            <div class="form-group">
+              <label for="socialRegisterFullName">ชื่อ-นามสกุล <span class="required">*</span></label>
+              <input id="socialRegisterFullName" type="text" maxlength="200" required>
+            </div>
+            <div class="form-group">
+              <label for="socialRegisterPhone">เบอร์โทร</label>
+              <div class="thai-phone-control" data-phone-control>
+                <div class="thai-phone-country" aria-label="ประเทศไทย รหัสประเทศบวกหกหก" title="ประเทศไทย">
+                  <span class="thai-phone-flag" aria-hidden="true">🇹🇭</span>
+                  <span class="thai-phone-country-code">+66</span>
+                </div>
+                <input id="socialRegisterPhone" type="tel" inputmode="numeric" autocomplete="off" maxlength="12" data-thai-phone>
+              </div>
+              <div class="field-help">กรอกหมายเลขโทรศัพท์ไทย ระบบจะจัดรูปแบบและบันทึกเป็น +66 อัตโนมัติ</div>
+              <div id="socialRegisterPhoneError" class="field-error" role="alert"></div>
+            </div>
+            <div class="form-group">
+              <label for="socialRegisterDepartment">ฝ่าย/แผนก <span class="required">*</span></label>
+              <select id="socialRegisterDepartment" required></select>
+            </div>
+            <div class="form-group">
+              <label for="socialRegisterPosition">ตำแหน่ง</label>
+              <input id="socialRegisterPosition" type="text" maxlength="200">
+            </div>
+            <label class="consent-row">
+              <input id="socialRegisterConsent" type="checkbox" required>
+              <span>ยืนยันว่าข้อมูลถูกต้องและยินยอมให้ใช้ข้อมูลเพื่อบริหารบัญชี FRS</span>
+            </label>
+            <button class="text-button privacy-link" type="button" onclick="App.showPrivacyNotice()">อ่านรายละเอียดการใช้ข้อมูล</button>
+            <button class="btn btn-primary btn-full" type="submit">ส่งคำขอสมัครสมาชิก</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section id="mainView" class="page hidden frs-app-shell frs-v2303">
+      <aside id="appSidebar" class="frs-sidebar" aria-label="เมนูหลัก">
+        <div class="frs-sidebar-brand">
+          <div class="frs-brand-mark" aria-hidden="true">
+            <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-wrench"></use></svg>
+          </div>
+          <div class="frs-sidebar-brand-copy">
+            <div class="frs-brand-title">FRS <span class="app-version">v<?= appVersion ?></span></div>
+            <div class="frs-brand-subtitle">Facility Repair System</div>
+          </div>
+          <button class="frs-sidebar-close" type="button" onclick="App.toggleSidebar(false)" aria-label="ปิดเมนู"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-x"></use></svg></button>
+        </div>
+
+        <nav id="bottomNav" class="bottom-nav frs-side-nav">
+          <button type="button" onclick="App.showTab('dashboard')" id="navDashboard" class="nav-item active" aria-label="หน้าหลัก" aria-current="page">
+            <span class="nav-icon" aria-hidden="true"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-home"></use></svg></span><span class="nav-label">หน้าหลัก</span>
+          </button>
+          <button type="button" onclick="App.showTab('myRequests')" id="navMyRequests" class="nav-item" aria-label="งานของฉัน">
+            <span class="nav-icon" aria-hidden="true"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-briefcase"></use></svg></span><span id="navMyRequestsLabel" class="nav-label">งานของฉัน</span>
+          </button>
+          <button type="button" onclick="App.showTab('newRequest')" id="navNewRequest" class="nav-item" aria-label="แจ้งซ่อมใหม่">
+            <span class="nav-icon" aria-hidden="true"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-plus"></use></svg></span><span class="nav-label">แจ้งซ่อมใหม่</span>
+          </button>
+          <button type="button" onclick="App.showTab('reports')" id="navReports" class="nav-item" aria-label="รายงาน">
+            <span class="nav-icon" aria-hidden="true"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-chart"></use></svg></span><span class="nav-label">รายงาน</span>
+          </button>
+          <div class="frs-nav-divider"></div>
+          <button type="button" onclick="App.showTab('data')" id="navData" class="nav-item nav-optional" aria-label="จัดการข้อมูล">
+            <span class="nav-icon" aria-hidden="true"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-database"></use></svg></span><span class="nav-label">จัดการข้อมูล</span>
+          </button>
+          <button type="button" onclick="App.showTab('registrations')" id="navRegistrations" class="nav-item nav-optional nav-unavailable" aria-label="คำขอสมาชิก" aria-hidden="true" tabindex="-1">
+            <span class="nav-icon" aria-hidden="true"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-users"></use></svg></span><span class="nav-label">คำขอสมาชิก</span>
+          </button>
+          <button type="button" onclick="App.showTab('settings')" id="navSettings" class="nav-item" aria-label="ตั้งค่าระบบ">
+            <span class="nav-icon" aria-hidden="true"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-settings"></use></svg></span><span class="nav-label">ตั้งค่าระบบ</span>
+          </button>
+        </nav>
+
+        <button id="navProfile" class="frs-sidebar-profile" type="button" onclick="App.showTab('profile')" aria-label="บัญชีของฉัน">
+          <span id="sidebarAvatar" class="frs-avatar">U</span>
+          <span><strong id="sidebarUserName">ผู้ใช้งาน</strong><small id="sidebarUserRole">USER</small></span>
+          <span class="frs-profile-chevron" aria-hidden="true"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-chevron-right"></use></svg></span>
+        </button>
+      </aside>
+
+      <div id="sidebarBackdrop" class="frs-sidebar-backdrop" onclick="App.toggleSidebar(false)" aria-hidden="true"></div>
+
+      <div class="frs-workspace">
+        <header class="frs-app-header">
+          <button class="frs-mobile-menu" type="button" onclick="App.toggleSidebar(true)" aria-label="เปิดเมนู"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-menu"></use></svg></button>
+          <form class="frs-global-search" onsubmit="App.quickSearch(event)"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-search"></use></svg><input id="globalSearchInput" type="search" autocomplete="off" placeholder="ค้นหาเลขที่งาน สถานที่ หรือผู้รับผิดชอบ" aria-label="ค้นหางานซ่อม">
+            <kbd>Ctrl K</kbd>
+          </form>
+          <div class="frs-header-actions">
+            <button id="mobileThemeToggle" class="frs-icon-button frs-mobile-theme-button" type="button" aria-label="สลับโหมดมืดและสว่าง" onclick="App.toggleTheme()" title="สลับโหมดมืด/สว่าง"><svg class="frs-ui-icon mobile-theme-sun" aria-hidden="true"><use href="#frs-icon-sun"></use></svg><svg class="frs-ui-icon mobile-theme-moon" aria-hidden="true"><use href="#frs-icon-moon"></use></svg></button>
+            <button class="frs-icon-button frs-notification-button" type="button" aria-label="การแจ้งเตือน" onclick="App.showDashboardAlerts()" title="การแจ้งเตือน"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-bell"></use></svg><span id="notificationBadge" class="frs-notification-badge hidden">0</span>
+            </button>
+            <button class="frs-profile-chip" type="button" onclick="App.showTab('profile')" aria-label="เปิดบัญชี">
+              <span id="headerAvatar" class="frs-avatar">U</span>
+              <span class="frs-profile-copy"><strong id="headerUserName">ผู้ใช้งาน</strong><small id="headerUserRole">USER</small></span>
+            </button>
+          </div>
+        </header>
+      <main class="content frs-content">
+        <div id="dashboardTab" class="tab-panel frs-dashboard-tab">
+          <section class="frs-welcome-row">
+            <div>
+              <p class="frs-eyebrow">ศูนย์ควบคุมงานซ่อม</p>
+              <h1 id="dashboardGreeting">สวัสดีครับ</h1>
+              <p id="dashboardSubtitle" class="frs-lead">ติดตามความคืบหน้าและจัดการงานซ่อมได้ในหน้าจอเดียว</p>
+            </div>
+            <button class="frs-primary-action" type="button" onclick="App.showTab('newRequest')"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-plus"></use></svg><span>แจ้งซ่อมใหม่</span>
+            </button>
+          </section>
+
+          <section class="frs-stat-grid frs-kpi-grid" aria-label="ตัวชี้วัดงานซ่อม">
+            <button class="frs-stat-card" type="button" onclick="App.showTab('myRequests')"><span class="frs-stat-icon blue"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-clipboard"></use></svg></span><div><small>งานทั้งหมด</small><strong id="statTotal">0</strong><em id="statTotalHint">ตามสิทธิ์การเข้าถึง</em></div></button>
+            <button class="frs-stat-card" type="button" onclick="App.openQueueByStatus('IN_PROGRESS')"><span class="frs-stat-icon amber"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-clock"></use></svg></span><div><small>กำลังดำเนินการ</small><strong id="statProgress">0</strong><em id="statProgressHint">รวมงานที่รอดำเนินการต่อ</em></div></button>
+            <button class="frs-stat-card" type="button" onclick="App.openQueueByStatus('CLOSED')"><span class="frs-stat-icon green"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-check-circle"></use></svg></span><div><small>เสร็จสิ้น / ปิดงาน</small><strong id="statDone">0</strong><em id="statDoneHint">งานที่ดำเนินการเสร็จแล้ว</em></div></button>
+            <button class="frs-stat-card" type="button" onclick="App.showTab('reports')"><span class="frs-stat-icon purple"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-trend"></use></svg></span><div><small>SLA ผ่าน</small><strong id="statSla">—</strong><em id="statSlaHint">จากงานที่ประเมิน SLA แล้ว</em></div></button>
+          </section>
+
+          <section class="frs-overview-grid">
+            <article class="frs-focus-card">
+              <div class="frs-focus-head">
+                <div><span class="frs-card-kicker frs-kicker-icon"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-target"></use></svg><span>งานที่กำลังติดตาม</span></span><h2 id="focusRequestId">ยังไม่มีรายการ</h2><p id="focusRequestSubject" class="frs-focus-subject">ระบบจะเลือกงานล่าสุดที่ยังไม่ปิด</p></div>
+                <span id="focusStatusBadge" class="frs-status-pill">พร้อมใช้งาน</span>
+              </div>
+              <div class="frs-progress-head"><span>ความคืบหน้ารวม</span><strong id="focusProgressText">0%</strong></div>
+              <div class="frs-progress-track"><span id="focusProgressFill" style="width:0%"></span></div>
+              <div class="frs-stepper" id="dashboardStepper" aria-label="ขั้นตอนงานซ่อม">
+                <div class="frs-step" data-step="1"><span>1</span><small>แจ้งซ่อม</small><time id="focusStepDate1">—</time></div>
+                <div class="frs-step" data-step="2"><span>2</span><small>รับเรื่อง</small><time id="focusStepDate2">—</time></div>
+                <div class="frs-step" data-step="3"><span>3</span><small>มอบหมาย</small><time id="focusStepDate3">—</time></div>
+                <div class="frs-step" data-step="4"><span>4</span><small>ดำเนินการ</small><time id="focusStepDate4">—</time></div>
+                <div class="frs-step" data-step="5"><span>5</span><small>ปิดงาน</small><time id="focusStepDate5">—</time></div>
+              </div>
+              <div class="frs-focus-meta">
+                <div class="frs-meta-with-icon"><svg class="frs-ui-icon frs-meta-icon" aria-hidden="true"><use href="#frs-icon-map-pin"></use></svg><span><small>สถานที่</small><strong id="focusLocation">-</strong></span></div>
+                <div class="frs-meta-with-icon"><svg class="frs-ui-icon frs-meta-icon" aria-hidden="true"><use href="#frs-icon-layers"></use></svg><span><small>ระบบ</small><strong id="focusSystem">-</strong></span></div>
+                <div class="frs-meta-with-icon"><svg class="frs-ui-icon frs-meta-icon" aria-hidden="true"><use href="#frs-icon-user"></use></svg><span><small>ผู้รับผิดชอบ</small><strong id="focusTechnician">-</strong></span></div>
+                <button id="focusDetailButton" class="frs-text-action" type="button" onclick="App.openFocusRequest()" disabled>ดูรายละเอียด <svg class="frs-ui-icon frs-inline-icon" aria-hidden="true"><use href="#frs-icon-chevron-right"></use></svg></button>
+              </div>
+            </article>
+
+            <article class="frs-score-card frs-overview-card">
+              <div class="frs-panel-head frs-overview-head"><div><span class="frs-card-kicker frs-kicker-icon"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-pie"></use></svg><span>ภาพรวมงาน</span></span><h2>สถานะปัจจุบัน</h2></div><span class="frs-period-chip">ตามสิทธิ์ของคุณ</span></div>
+              <div class="frs-overview-body">
+                <div class="frs-score-ring" id="dashboardProgressRing" style="--progress:0"><div><strong id="dashboardProgressPercent">0%</strong><span>งานสำเร็จ</span></div></div>
+                <div class="frs-overview-legend">
+                  <div><i class="legend-dot done"></i><span>เสร็จสิ้น</span><strong id="overviewDone">0</strong></div>
+                  <div><i class="legend-dot active"></i><span>กำลังดำเนินการ</span><strong id="overviewActive">0</strong></div>
+                  <div><i class="legend-dot waiting"></i><span>รอรับเรื่อง</span><strong id="overviewWaiting">0</strong></div>
+                  <div><i class="legend-dot risk"></i><span>เกิน SLA</span><strong id="overviewOverSla">0</strong></div>
+                </div>
+              </div>
+              <button class="frs-health-banner" type="button" onclick="App.showTab('reports')"><span class="frs-health-icon"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-check-circle"></use></svg></span><span><strong id="dashboardHealthText">ยังไม่มีข้อมูล</strong><small id="dashboardHealthDetail">ระบบจะสรุปจากรายการงานล่าสุด</small></span><b class="frs-health-chevron"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-chevron-right"></use></svg></b></button>
+            </article>
+          </section>
+
+          <section class="frs-dashboard-lower-grid">
+            <article class="frs-panel frs-latest-panel">
+              <div class="frs-panel-head"><div><span class="frs-card-kicker frs-kicker-icon"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-file-text"></use></svg><span>งานล่าสุด</span></span><h2>รายการแจ้งซ่อมล่าสุด</h2></div><button class="frs-text-action" type="button" onclick="App.showTab('myRequests')">ดูงานทั้งหมด <svg class="frs-ui-icon frs-inline-icon" aria-hidden="true"><use href="#frs-icon-chevron-right"></use></svg></button></div>
+              <div id="latestList" class="frs-dashboard-table-wrap"></div>
+            </article>
+            <article class="frs-panel frs-activity-panel">
+              <div class="frs-panel-head"><div><span class="frs-card-kicker frs-kicker-icon"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-activity"></use></svg><span>Activity</span></span><h2>กิจกรรมล่าสุด</h2></div></div>
+              <div id="dashboardActivityList" class="frs-activity-list"><div class="empty-state">ยังไม่มีกิจกรรมล่าสุด</div></div>
+            </article>
+          </section>
+        </div>
+
+        <div id="newRequestTab" class="tab-panel hidden">
+          <div class="section-title frs-title-with-icon"><svg class="frs-ui-icon frs-title-icon" aria-hidden="true"><use href="#frs-icon-plus"></use></svg><span>แจ้งซ่อมใหม่</span></div>
+          <form id="requestForm" class="card-form" onsubmit="App.submitRequest(event)">
+            <div class="form-group"><label for="SYSTEM_CODE">ระบบ/อุปกรณ์ <span class="required">*</span></label><div class="select-search-wrap"><input id="SYSTEM_CODE_SEARCH" class="select-search-input" type="search" autocomplete="off" placeholder="ค้นหาระบบหรืออุปกรณ์" data-select-filter="SYSTEM_CODE" data-match-count="SYSTEM_CODE_MATCH_COUNT" aria-label="ค้นหาระบบหรืออุปกรณ์"><span id="SYSTEM_CODE_MATCH_COUNT" class="select-match-count" aria-live="polite"></span></div><select id="SYSTEM_CODE" required></select></div>
+            <div class="form-group"><label for="LOCATION_ID">สถานที่ <span class="required">*</span></label><div class="select-search-wrap"><input id="LOCATION_ID_SEARCH" class="select-search-input" type="search" autocomplete="off" placeholder="ค้นหาอาคาร ชั้น หรือห้อง" data-select-filter="LOCATION_ID" data-match-count="LOCATION_ID_MATCH_COUNT" aria-label="ค้นหาสถานที่"><span id="LOCATION_ID_MATCH_COUNT" class="select-match-count" aria-live="polite"></span></div><select id="LOCATION_ID" required></select></div>
+            <div class="form-group"><label for="PRIORITY_CODE">ความเร่งด่วน <span class="required">*</span></label><select id="PRIORITY_CODE" required></select></div>
+            <div class="form-group"><label for="PROBLEM_DETAIL">รายละเอียดปัญหา <span class="required">*</span></label><textarea id="PROBLEM_DETAIL" rows="4" maxlength="3000" required></textarea><div class="field-help">ระบุอาการที่พบ ตำแหน่ง และผลกระทบให้ชัดเจน</div></div>
+            <div class="form-group"><label for="PHONE">เบอร์โทรติดต่อ</label><div class="thai-phone-control" data-phone-control>
+                <div class="thai-phone-country" aria-label="ประเทศไทย รหัสประเทศบวกหกหก" title="ประเทศไทย">
+                  <span class="thai-phone-flag" aria-hidden="true">🇹🇭</span>
+                  <span class="thai-phone-country-code">+66</span>
+                </div>
+                <input id="PHONE" type="tel" inputmode="numeric" autocomplete="off" maxlength="12" data-thai-phone>
+              </div>
+              <div class="field-help">กรอกหมายเลขโทรศัพท์ไทย ระบบจะจัดรูปแบบและบันทึกเป็น +66 อัตโนมัติ</div>
+              <div id="PHONEError" class="field-error" role="alert"></div></div>
+            <div class="form-group"><label for="PHOTO_FILE">แนบรูปภาพ</label><input id="PHOTO_FILE" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"><div class="field-help">รองรับ JPG, PNG, WEBP และย่อรูปอัตโนมัติก่อนส่ง</div><div id="photoInfo" class="field-help"></div><div id="photoPreview" class="photo-preview hidden"></div></div>
+            <div class="form-group"><label for="REMARK">หมายเหตุ</label><textarea id="REMARK" rows="2" maxlength="1000"></textarea></div>
+            <button id="requestSubmitButton" type="submit" class="btn btn-primary btn-full" data-default-label="ส่งแจ้งซ่อม">ส่งแจ้งซ่อม</button>
+          </form>
+        </div>
+
+        <div id="myRequestsTab" class="tab-panel hidden">
+          <div class="section-header-row"><div id="requestListTitle" class="section-title frs-title-with-icon"><svg class="frs-ui-icon frs-title-icon" aria-hidden="true"><use href="#frs-icon-briefcase"></use></svg><span>รายการแจ้งซ่อม</span></div><button type="button" class="btn btn-light btn-small frs-button-with-icon" onclick="App.loadRequests()"><svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-refresh"></use></svg><span>รีเฟรช</span></button></div>
+          <div class="filter-bar"><input id="requestSearch" type="search" placeholder="ค้นหาเลขแจ้งซ่อม ปัญหา หรือสถานที่" inputmode="search" oninput="App.applyRequestFilters()"><select id="requestStatusFilter" onchange="App.applyRequestFilters()"><option value="">ทุกสถานะ</option></select></div>
+          <div id="myRequestList" class="list"></div>
+        </div>
+
+
+        <div id="reportsTab" class="tab-panel hidden">
+          <div class="frs-page-heading"><div><p class="frs-eyebrow">Analytics</p><h1 class="frs-title-with-icon"><svg class="frs-ui-icon frs-title-icon" aria-hidden="true"><use href="#frs-icon-chart"></use></svg><span>รายงานและภาพรวม</span></h1><p>สรุปข้อมูลจากรายการงานที่คุณมีสิทธิ์เข้าถึง</p></div><button class="btn btn-primary frs-button-with-icon" type="button" onclick="App.exportRequestsCsv()"><svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-download"></use></svg><span>Export CSV</span></button></div>
+          <div id="reportSummary" class="frs-report-summary"></div>
+          <div class="frs-report-grid"><section class="frs-panel"><div class="frs-panel-head"><h2>สถานะงาน</h2></div><div id="reportStatusBreakdown"></div></section><section class="frs-panel"><div class="frs-panel-head"><h2>ระดับความเร่งด่วน</h2></div><div id="reportPriorityBreakdown"></div></section></div>
+        </div>
+
+        <div id="dataTab" class="tab-panel hidden">
+          <div class="frs-page-heading"><div><p class="frs-eyebrow">Master Data</p><h1 class="frs-title-with-icon"><svg class="frs-ui-icon frs-title-icon" aria-hidden="true"><use href="#frs-icon-database"></use></svg><span>จัดการข้อมูล</span></h1><p>ตรวจสอบข้อมูลอ้างอิงที่ระบบใช้งาน โดย Candidate นี้ยังไม่แก้ Schema หรือ Master Data</p></div><button id="dataRegistrationButton" class="btn btn-primary hidden frs-button-with-icon" type="button" onclick="App.showTab('registrations')"><svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-users"></use></svg><span>คำขอสมาชิก</span></button></div>
+          <div id="masterDataOverview" class="frs-master-grid"></div>
+        </div>
+
+        <div id="settingsTab" class="tab-panel hidden">
+          <div class="frs-page-heading"><div><p class="frs-eyebrow">Preferences</p><h1 class="frs-title-with-icon"><svg class="frs-ui-icon frs-title-icon" aria-hidden="true"><use href="#frs-icon-settings"></use></svg><span>ตั้งค่าระบบ</span></h1><p>ปรับหน้าตาและการใช้งานส่วนบุคคล</p></div></div>
+          <div class="frs-settings-grid">
+            <section class="frs-panel"><div class="frs-panel-head"><h2 class="frs-title-with-icon"><svg class="frs-ui-icon frs-panel-title-icon" aria-hidden="true"><use href="#frs-icon-palette"></use></svg><span>ธีมหน้าจอ</span></h2></div><p class="muted">เลือกโหมดสว่างหรือโหมดมืด ระบบจะจำค่าบนอุปกรณ์นี้</p><div class="frs-theme-choice"><button type="button" onclick="App.setTheme('light')"><svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-sun"></use></svg><span>โหมดสว่าง</span></button><button type="button" onclick="App.setTheme('dark')"><svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-moon"></use></svg><span>โหมดมืด</span></button></div></section>
+            <section class="frs-panel"><div class="frs-panel-head"><h2 class="frs-title-with-icon"><svg class="frs-ui-icon frs-panel-title-icon" aria-hidden="true"><use href="#frs-icon-user"></use></svg><span>บัญชีผู้ใช้</span></h2></div><p class="muted">ตรวจสอบข้อมูลบัญชีและวิธีเข้าสู่ระบบที่เชื่อมไว้</p><button class="btn btn-outline frs-button-with-icon" type="button" onclick="App.showTab('profile')"><svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-user"></use></svg><span>เปิดบัญชีของฉัน</span></button></section>
+            <section class="frs-panel"><div class="frs-panel-head"><h2 class="frs-title-with-icon"><svg class="frs-ui-icon frs-panel-title-icon" aria-hidden="true"><use href="#frs-icon-info"></use></svg><span>เวอร์ชันระบบ</span></h2></div><div class="frs-version-card"><strong>FRS v<?= appVersion ?></strong><span>Facility Repair System</span></div></section>
+          </div>
+        </div>
+
+        <div id="profileTab" class="tab-panel hidden">
+          <div class="section-header-row"><div class="section-title frs-title-with-icon"><svg class="frs-ui-icon frs-title-icon" aria-hidden="true"><use href="#frs-icon-user"></use></svg><span>บัญชีของฉัน</span></div><button type="button" class="btn btn-light btn-small frs-button-with-icon" onclick="App.loadProfile()"><svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-refresh"></use></svg><span>รีเฟรช</span></button></div>
+          <div id="profileSummary" class="detail-card"></div>
+          <div class="section-title mt">วิธีเข้าสู่ระบบที่เชื่อมไว้</div>
+          <div id="identityList" class="identity-list"></div>
+          <div id="linkIdentityActions" class="action-card">
+            <div class="action-title">เชื่อมบัญชีเพิ่มเติม</div>
+            <div class="button-row">
+              <button id="linkGoogleButton" class="btn btn-outline hidden" type="button" onclick="App.beginSocialAuth('GOOGLE', 'LINK')">เชื่อม Google</button>
+              <button id="linkLineButton" class="btn btn-success hidden" type="button" onclick="App.beginSocialAuth('LINE', 'LINK')">เชื่อม LINE</button>
+            </div>
+            <div class="field-help">ระบบจะไม่เชื่อมบัญชีอัตโนมัติจากอีเมลที่เหมือนกัน ต้องดำเนินการจากหน้านี้เท่านั้น</div>
+          </div>
+          <div class="action-card">
+            <div class="action-title">การเข้าสู่ระบบ</div>
+            <button class="btn btn-danger btn-full frs-button-with-icon" type="button" onclick="App.logout()"><svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-log-out"></use></svg><span>ออกจากระบบ</span></button>
+          </div>
+        </div>
+
+        <div id="registrationsTab" class="tab-panel hidden">
+          <div class="section-header-row"><div class="section-title frs-title-with-icon"><svg class="frs-ui-icon frs-title-icon" aria-hidden="true"><use href="#frs-icon-users"></use></svg><span>คำขอสมัครสมาชิก</span></div><button type="button" class="btn btn-light btn-small frs-button-with-icon" onclick="App.loadRegistrations()"><svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-refresh"></use></svg><span>รีเฟรช</span></button></div>
+          <div class="info-banner">บัญชีที่อนุมัติจากหน้านี้จะได้รับ Role เริ่มต้นเป็น USER</div>
+          <div id="registrationList" class="list"></div>
+        </div>
+      </main>
+
+        <nav id="mobileBottomNav" class="frs-mobile-bottom-nav" aria-label="เมนูหลักสำหรับมือถือ">
+          <button id="mobileNavDashboard" class="frs-mobile-nav-item active" type="button" data-mobile-tab="dashboard" onclick="App.showTab('dashboard')" aria-label="หน้าหลัก" aria-current="page">
+            <span class="frs-mobile-nav-icon" aria-hidden="true"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-home"></use></svg></span>
+            <span>หน้าหลัก</span>
+          </button>
+          <button id="mobileNavMyRequests" class="frs-mobile-nav-item" type="button" data-mobile-tab="myRequests" onclick="App.showTab('myRequests')" aria-label="คิวงาน">
+            <span class="frs-mobile-nav-icon" aria-hidden="true"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-briefcase"></use></svg></span>
+            <span id="mobileNavMyRequestsLabel">คิวงาน</span>
+          </button>
+          <button id="mobileNavNewRequest" class="frs-mobile-nav-item frs-mobile-nav-primary" type="button" data-mobile-tab="newRequest" onclick="App.showTab('newRequest')" aria-label="แจ้งซ่อมใหม่">
+            <span class="frs-mobile-nav-fab" aria-hidden="true"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-plus"></use></svg></span>
+            <span>แจ้งซ่อม</span>
+          </button>
+          <button id="mobileNavReports" class="frs-mobile-nav-item" type="button" data-mobile-tab="reports" onclick="App.showTab('reports')" aria-label="รายงาน">
+            <span class="frs-mobile-nav-icon" aria-hidden="true"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-chart"></use></svg></span>
+            <span>รายงาน</span>
+          </button>
+          <button id="mobileNavMore" class="frs-mobile-nav-item" type="button" data-mobile-more="true" onclick="App.toggleSidebar(true)" aria-label="เพิ่มเติม">
+            <span class="frs-mobile-nav-icon frs-mobile-nav-dots" aria-hidden="true"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-more"></use></svg></span>
+            <span>เพิ่มเติม</span>
+          </button>
+        </nav>
+      </div>
+    </section>
+
+    <div id="requestPreviewModal" class="modal request-preview-modal hidden" role="dialog" aria-modal="true" aria-labelledby="requestPreviewTitle">
+      <div class="modal-backdrop" onclick="App.resolveRequestPreview(false)"></div>
+      <div class="modal-panel request-preview-panel">
+        <div class="modal-header"><div><div id="requestPreviewTitle" class="modal-title">ตรวจสอบก่อนส่งแจ้งซ่อม</div><div class="modal-subtitle">ข้อมูลจะถูกบันทึกเมื่อกด “ยืนยันส่งแจ้งซ่อม”</div></div><button type="button" class="modal-close" onclick="App.resolveRequestPreview(false)" aria-label="กลับไปแก้ไข"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-x"></use></svg></button></div>
+        <div class="modal-body">
+          <div class="request-preview-grid">
+            <div><span>ระบบ/อุปกรณ์</span><strong id="previewSystem">-</strong></div>
+            <div><span>สถานที่</span><strong id="previewLocation">-</strong></div>
+            <div><span>ความเร่งด่วน</span><strong id="previewPriority">-</strong></div>
+            <div><span>เบอร์โทรติดต่อ</span><strong id="previewPhone">ไม่ระบุ</strong></div>
+          </div>
+          <div class="request-preview-block"><span>รายละเอียดปัญหา</span><p id="previewProblem"></p></div>
+          <div id="previewRemarkBlock" class="request-preview-block hidden"><span>หมายเหตุ</span><p id="previewRemark"></p></div>
+          <div id="previewPhotoBlock" class="request-preview-photo-block hidden"><span>รูปภาพแนบ</span><div id="previewPhoto" class="request-preview-photo" role="img" aria-label="รูปภาพที่จะแนบ"></div></div>
+          <div class="request-preview-actions"><button type="button" class="btn btn-light" onclick="App.resolveRequestPreview(false)">กลับไปแก้ไข</button><button id="requestPreviewConfirmButton" type="button" class="btn btn-primary" onclick="App.resolveRequestPreview(true)">ยืนยันส่งแจ้งซ่อม</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="requestModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="requestModalTitle">
+      <div class="modal-backdrop" onclick="App.closeRequestModal()"></div>
+      <div class="modal-panel">
+        <div class="modal-header"><div><div id="requestModalTitle" class="modal-title">รายละเอียดงาน</div><div id="requestModalSubtitle" class="modal-subtitle"></div></div><button type="button" class="modal-close" onclick="App.closeRequestModal()" aria-label="ปิด"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-x"></use></svg></button></div>
+        <div class="modal-body"><div id="requestDetailContent"></div><div id="workflowActions"></div><div class="section-title mt">ประวัติการดำเนินงาน</div><div id="statusTimeline" class="timeline"></div></div>
+      </div>
+    </div>
+
+    <div id="messageBox" class="msgbox hidden" role="dialog" aria-modal="true" aria-labelledby="messageBoxTitle" aria-describedby="messageBoxMessage">
+      <div class="msgbox-backdrop" onclick="App.dismissMessageBoxFromBackdrop()"></div>
+      <div class="msgbox-panel" role="document">
+        <button id="messageBoxClose" class="msgbox-close" type="button" onclick="App.resolveMessageBox(false)" aria-label="ปิดข้อความ"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-x"></use></svg></button>
+        <div id="messageBoxIcon" class="msgbox-icon" aria-hidden="true"></div><div id="messageBoxEyebrow" class="msgbox-eyebrow"></div><h2 id="messageBoxTitle" class="msgbox-title">แจ้งเตือน</h2><div id="messageBoxMessage" class="msgbox-message"></div><div id="messageBoxDetail" class="msgbox-detail hidden"></div>
+        <div class="msgbox-actions"><button id="messageBoxCancel" class="msgbox-button msgbox-button-secondary hidden" type="button" onclick="App.resolveMessageBox(false)">ยกเลิก</button><button id="messageBoxConfirm" class="msgbox-button msgbox-button-primary" type="button" onclick="App.resolveMessageBox(true)">ตกลง</button></div>
+      </div>
+    </div>
+
+    <div id="loadingOverlay" class="loading hidden" role="status" aria-live="polite"><div class="spinner"></div><div>กำลังดำเนินการ...</div></div>
+    <div id="toast" class="toast hidden" role="alert"></div>
+  </div>
+  <?!= include('script'); ?>
+</body>
+</html>

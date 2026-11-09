@@ -1,0 +1,10 @@
+# Node / dependencies
+node_modules/
+npm-debug.log*
+
+# Clasp local auth & runtime files
+.clasprc.json
+
+# OS files
+.DS_Store
+Thumbs.db
