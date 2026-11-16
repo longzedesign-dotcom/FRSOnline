@@ -1389,7 +1389,7 @@
 
       let html = '<table class="frs-master-table"><thead><tr>';
       if (cat === 'systems') {
-        html += '<th>รหัสระบบ</th><th>ชื่อระบบ (ไทย / อังกฤษ)</th><th>SLA เริ่มต้น</th><th>สถานะ</th><th>คำอธิบาย</th>' + (isAdmin ? '<th>จัดการ</th>' : '') + '</tr></thead><tbody>';
+        html += '<th>รหัสระบบ</th><th>ชื่อระบบ (ไทย / อังกฤษ)</th><th>SLA เริ่มต้น</th><th>สถานะเปิด/ปิด</th><th>คำอธิบาย</th>' + (isAdmin ? '<th>จัดการ</th>' : '') + '</tr></thead><tbody>';
         html += rows.map((r) => {
           const isActive = String(r.ACTIVE) === 'true' || r.ACTIVE === true || r.ACTIVE === 'TRUE';
           const rJson = this.escapeHtml(JSON.stringify(r));
@@ -1397,13 +1397,13 @@
             '<td class="td-key"><strong>' + this.escapeHtml(r.SYSTEM_CODE || '-') + '</strong></td>' +
             '<td class="td-title">' + this.escapeHtml(r.SYSTEM_NAME_TH || '-') + (r.SYSTEM_NAME_EN ? ' <small class="muted">(' + this.escapeHtml(r.SYSTEM_NAME_EN) + ')</small>' : '') + '</td>' +
             '<td class="td-meta"><span class="badge">' + this.escapeHtml(r.DEFAULT_PRIORITY_CODE || '-') + '</span></td>' +
-            '<td><span class="' + (isActive ? 'frs-badge-active' : 'frs-badge-inactive') + '">' + (isActive ? 'ใช้งาน' : 'ไม่ใช้งาน') + '</span></td>' +
+            '<td class="td-status">' + this.renderToggleSwitch('systems', r.SYSTEM_CODE, isActive, isAdmin) + '</td>' +
             '<td class="td-meta">' + this.escapeHtml(r.DESCRIPTION || '-') + '</td>' +
             (isAdmin ? '<td class="td-actions"><div class="frs-row-actions"><button type="button" class="frs-action-btn-sm" onclick=\'App.openMasterItemModal(' + rJson + ')\'>แก้ไข</button><button type="button" class="frs-action-btn-sm frs-action-btn-danger" onclick="App.deleteMasterItem(\'' + cat + '\', \'' + this.escapeHtml(r.SYSTEM_CODE) + '\', \'' + this.escapeHtml(r.SYSTEM_NAME_TH || r.SYSTEM_CODE) + '\')">ลบ</button></div></td>' : '') +
           '</tr>';
         }).join('');
       } else if (cat === 'locations') {
-        html += '<th>รหัสสถานที่</th><th>สถานที่เต็ม</th><th>อาคาร/ชั้น/ห้อง</th><th>QR Code</th><th>สถานะ</th>' + (isAdmin ? '<th>จัดการ</th>' : '') + '</tr></thead><tbody>';
+        html += '<th>รหัสสถานที่</th><th>สถานที่เต็ม</th><th>อาคาร/ชั้น/ห้อง</th><th>QR Code</th><th>สถานะเปิด/ปิด</th>' + (isAdmin ? '<th>จัดการ</th>' : '') + '</tr></thead><tbody>';
         html += rows.map((r) => {
           const isActive = String(r.ACTIVE) === 'true' || r.ACTIVE === true || r.ACTIVE === 'TRUE';
           const rJson = this.escapeHtml(JSON.stringify(r));
@@ -1413,12 +1413,12 @@
             '<td class="td-title">' + this.escapeHtml(r.LOCATION_FULL || '-') + '</td>' +
             '<td class="td-meta">' + this.escapeHtml(roomInfo || '-') + '</td>' +
             '<td class="td-meta"><small>' + this.escapeHtml(r.QR_CODE_REF || '-') + '</small></td>' +
-            '<td><span class="' + (isActive ? 'frs-badge-active' : 'frs-badge-inactive') + '">' + (isActive ? 'ใช้งาน' : 'ไม่ใช้งาน') + '</span></td>' +
+            '<td class="td-status">' + this.renderToggleSwitch('locations', r.LOCATION_ID, isActive, isAdmin) + '</td>' +
             (isAdmin ? '<td class="td-actions"><div class="frs-row-actions"><button type="button" class="frs-action-btn-sm" onclick=\'App.openMasterItemModal(' + rJson + ')\'>แก้ไข</button><button type="button" class="frs-action-btn-sm frs-action-btn-danger" onclick="App.deleteMasterItem(\'' + cat + '\', \'' + this.escapeHtml(r.LOCATION_ID) + '\', \'' + this.escapeHtml(r.LOCATION_FULL || r.LOCATION_ID) + '\')">ลบ</button></div></td>' : '') +
           '</tr>';
         }).join('');
       } else if (cat === 'departments') {
-        html += '<th>รหัสฝ่าย/แผนก</th><th>ฝ่าย/สำนัก</th><th>แผนก/ส่วนงาน</th><th>คำอธิบาย</th><th>สถานะ</th>' + (isAdmin ? '<th>จัดการ</th>' : '') + '</tr></thead><tbody>';
+        html += '<th>รหัสฝ่าย/แผนก</th><th>ฝ่าย/สำนัก</th><th>แผนก/ส่วนงาน</th><th>คำอธิบาย</th><th>สถานะเปิด/ปิด</th>' + (isAdmin ? '<th>จัดการ</th>' : '') + '</tr></thead><tbody>';
         html += rows.map((r) => {
           const isActive = String(r.ACTIVE) === 'true' || r.ACTIVE === true || r.ACTIVE === 'TRUE';
           const rJson = this.escapeHtml(JSON.stringify(r));
@@ -1427,12 +1427,12 @@
             '<td class="td-title">' + this.escapeHtml(r.DIVISION || '-') + '</td>' +
             '<td class="td-title"><strong>' + this.escapeHtml(r.DEPARTMENT || '-') + '</strong></td>' +
             '<td class="td-meta">' + this.escapeHtml(r.DESCRIPTION || '-') + '</td>' +
-            '<td><span class="' + (isActive ? 'frs-badge-active' : 'frs-badge-inactive') + '">' + (isActive ? 'ใช้งาน' : 'ไม่ใช้งาน') + '</span></td>' +
+            '<td class="td-status">' + this.renderToggleSwitch('departments', r.DEPARTMENT_ID, isActive, isAdmin) + '</td>' +
             (isAdmin ? '<td class="td-actions"><div class="frs-row-actions"><button type="button" class="frs-action-btn-sm" onclick=\'App.openMasterItemModal(' + rJson + ')\'>แก้ไข</button><button type="button" class="frs-action-btn-sm frs-action-btn-danger" onclick="App.deleteMasterItem(\'' + cat + '\', \'' + this.escapeHtml(r.DEPARTMENT_ID) + '\', \'' + this.escapeHtml(r.DEPARTMENT || r.DEPARTMENT_ID) + '\')">ลบ</button></div></td>' : '') +
           '</tr>';
         }).join('');
       } else if (cat === 'sla') {
-        html += '<th>รหัส SLA</th><th>ระดับความเร่งด่วน</th><th>SLA (ชั่วโมง)</th><th>ระยะเวลา</th><th>สถานะ</th>' + (isAdmin ? '<th>จัดการ</th>' : '') + '</tr></thead><tbody>';
+        html += '<th>รหัส SLA</th><th>ระดับความเร่งด่วน</th><th>SLA (ชั่วโมง)</th><th>ระยะเวลา</th><th>สถานะเปิด/ปิด</th>' + (isAdmin ? '<th>จัดการ</th>' : '') + '</tr></thead><tbody>';
         html += rows.map((r) => {
           const isActive = String(r.ACTIVE) === 'true' || r.ACTIVE === true || r.ACTIVE === 'TRUE';
           const rJson = this.escapeHtml(JSON.stringify(r));
@@ -1441,12 +1441,12 @@
             '<td class="td-title">' + this.escapeHtml(r.PRIORITY_NAME_TH || '-') + (r.PRIORITY_NAME_EN ? ' <small class="muted">(' + this.escapeHtml(r.PRIORITY_NAME_EN) + ')</small>' : '') + '</td>' +
             '<td><strong>' + this.escapeHtml(r.SLA_HOURS != null ? r.SLA_HOURS : '-') + '</strong> ชม.</td>' +
             '<td class="td-meta">' + this.escapeHtml(r.SLA_TEXT || '-') + '</td>' +
-            '<td><span class="' + (isActive ? 'frs-badge-active' : 'frs-badge-inactive') + '">' + (isActive ? 'ใช้งาน' : 'ไม่ใช้งาน') + '</span></td>' +
+            '<td class="td-status">' + this.renderToggleSwitch('sla', r.PRIORITY_CODE, isActive, isAdmin) + '</td>' +
             (isAdmin ? '<td class="td-actions"><div class="frs-row-actions"><button type="button" class="frs-action-btn-sm" onclick=\'App.openMasterItemModal(' + rJson + ')\'>แก้ไข</button><button type="button" class="frs-action-btn-sm frs-action-btn-danger" onclick="App.deleteMasterItem(\'' + cat + '\', \'' + this.escapeHtml(r.PRIORITY_CODE) + '\', \'' + this.escapeHtml(r.PRIORITY_NAME_TH || r.PRIORITY_CODE) + '\')">ลบ</button></div></td>' : '') +
           '</tr>';
         }).join('');
       } else if (cat === 'status') {
-        html += '<th>รหัสสถานะ</th><th>ชื่อสถานะ</th><th>ลำดับ (Sort Order)</th><th>คำอธิบาย</th><th>สถานะ</th>' + (isAdmin ? '<th>จัดการ</th>' : '') + '</tr></thead><tbody>';
+        html += '<th>รหัสสถานะ</th><th>ชื่อสถานะ</th><th>ลำดับ (Sort Order)</th><th>คำอธิบาย</th><th>สถานะเปิด/ปิด</th>' + (isAdmin ? '<th>จัดการ</th>' : '') + '</tr></thead><tbody>';
         html += rows.map((r) => {
           const isActive = String(r.ACTIVE) === 'true' || r.ACTIVE === true || r.ACTIVE === 'TRUE';
           const rJson = this.escapeHtml(JSON.stringify(r));
@@ -1455,13 +1455,88 @@
             '<td class="td-title">' + this.escapeHtml(r.STATUS_NAME_TH || '-') + (r.STATUS_NAME_EN ? ' <small class="muted">(' + this.escapeHtml(r.STATUS_NAME_EN) + ')</small>' : '') + '</td>' +
             '<td><span class="badge">' + this.escapeHtml(r.SORT_ORDER != null ? r.SORT_ORDER : '-') + '</span></td>' +
             '<td class="td-meta">' + this.escapeHtml(r.DESCRIPTION || '-') + '</td>' +
-            '<td><span class="' + (isActive ? 'frs-badge-active' : 'frs-badge-inactive') + '">' + (isActive ? 'ใช้งาน' : 'ไม่ใช้งาน') + '</span></td>' +
+            '<td class="td-status">' + this.renderToggleSwitch('status', r.STATUS_CODE, isActive, isAdmin) + '</td>' +
             (isAdmin ? '<td class="td-actions"><div class="frs-row-actions"><button type="button" class="frs-action-btn-sm" onclick=\'App.openMasterItemModal(' + rJson + ')\'>แก้ไข</button><button type="button" class="frs-action-btn-sm frs-action-btn-danger" onclick="App.deleteMasterItem(\'' + cat + '\', \'' + this.escapeHtml(r.STATUS_CODE) + '\', \'' + this.escapeHtml(r.STATUS_NAME_TH || r.STATUS_CODE) + '\')">ลบ</button></div></td>' : '') +
           '</tr>';
         }).join('');
       }
       html += '</tbody></table>';
       container.innerHTML = html;
+    },
+
+    renderToggleSwitch(category, pkValue, isActive, isAdmin) {
+      const checkedAttr = isActive ? ' checked' : '';
+      const disabledAttr = isAdmin ? '' : ' disabled style="cursor:not-allowed; opacity:0.75;"';
+      const onchangeAttr = isAdmin ? ' onchange="App.toggleMasterActive(\'' + category + '\', \'' + this.escapeHtml(pkValue) + '\', this)"' : '';
+      const labelText = isActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน';
+      const titleText = isAdmin ? (isActive ? 'คลิกเพื่อปิดใช้งาน' : 'คลิกเพื่อเปิดใช้งาน') : labelText;
+
+      return '<label class="frs-toggle-switch is-table" title="' + titleText + '"' + (isAdmin ? '' : ' style="cursor:not-allowed;"') + '>' +
+        '<input type="checkbox"' + checkedAttr + disabledAttr + onchangeAttr + '>' +
+        '<span class="frs-toggle-slider"></span>' +
+        '<span class="frs-toggle-text">' + labelText + '</span>' +
+      '</label>';
+    },
+
+    async toggleMasterActive(category, keyValue, inputEl) {
+      if (!this.isAdminUser()) {
+        if (inputEl) inputEl.checked = !inputEl.checked;
+        this.notify('คุณไม่มีสิทธิ์แก้ไขข้อมูลหลัก', 'warning');
+        return;
+      }
+
+      const newActive = Boolean(inputEl && inputEl.checked);
+      const textEl = inputEl ? inputEl.closest('.frs-toggle-switch').querySelector('.frs-toggle-text') : null;
+      if (textEl) {
+        textEl.textContent = newActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน';
+      }
+
+      const pkMap = {
+        systems: 'SYSTEM_CODE',
+        locations: 'LOCATION_ID',
+        departments: 'DEPARTMENT_ID',
+        sla: 'PRIORITY_CODE',
+        status: 'STATUS_CODE'
+      };
+      const pkField = pkMap[category];
+      const targetRow = (this.currentMasterRows || []).find((r) => String(r[pkField]) === String(keyValue));
+
+      if (!targetRow) {
+        this.notify('ไม่พบรายการข้อมูล', 'error');
+        return;
+      }
+
+      const payload = Object.assign({}, targetRow, { ACTIVE: newActive });
+
+      try {
+        const res = await this.serverCall((runner) => runner.apiSaveMasterCategoryItem(this.token, category, payload));
+        if (!res || !res.ok) {
+          if (inputEl) {
+            inputEl.checked = !newActive;
+            if (textEl) textEl.textContent = !newActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน';
+          }
+          this.handleApiError(res);
+          return;
+        }
+
+        targetRow.ACTIVE = newActive;
+        const itemName = targetRow.SYSTEM_NAME_TH || targetRow.LOCATION_FULL || targetRow.DEPARTMENT || targetRow.PRIORITY_NAME_TH || targetRow.STATUS_NAME_TH || keyValue;
+        await this.notify((newActive ? 'เปิดใช้งาน ' : 'ปิดใช้งาน ') + itemName + ' แล้ว', 'success', 'เปลี่ยนสถานะสำเร็จ');
+
+        // Background master update
+        this.serverCall((runner) => runner.apiGetMasterData(this.token)).then((masterRes) => {
+          if (masterRes && masterRes.ok && masterRes.data) {
+            this.master = masterRes.data;
+          }
+        }).catch(() => {});
+
+      } catch (err) {
+        if (inputEl) {
+          inputEl.checked = !newActive;
+          if (textEl) textEl.textContent = !newActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน';
+        }
+        this.notify((err && err.message) || 'เปลี่ยนสถานะไม่สำเร็จ', 'error', 'เกิดข้อผิดพลาด');
+      }
     },
 
     openMasterItemModal(item) {
@@ -1496,6 +1571,16 @@
       const data = item || {};
       const isActive = data.ACTIVE !== undefined ? (String(data.ACTIVE) === 'true' || data.ACTIVE === true || data.ACTIVE === 'TRUE') : true;
 
+      const activeToggleHtml =
+        '<div class="frs-form-toggle-wrap" style="margin-top:6px; padding:10px 14px; background:var(--frs-surface-2); border:1px solid var(--frs-border); border-radius:14px; display:flex; align-items:center; justify-content:space-between;">' +
+          '<div><strong style="display:block; font-size:13px; color:var(--frs-text);">สถานะการใช้งาน</strong><small class="muted" style="font-size:11px;">เปิดหรือปิดการเรียกใช้งานข้อมูลนี้ในระบบ</small></div>' +
+          '<label class="frs-toggle-switch" style="cursor:pointer;">' +
+            '<input type="checkbox" id="m_ACTIVE" name="ACTIVE"' + (isActive ? ' checked' : '') + ' onchange="document.getElementById(\'m_ACTIVE_TEXT\').textContent = this.checked ? \'เปิดใช้งาน\' : \'ปิดใช้งาน\'">' +
+            '<span class="frs-toggle-slider"></span>' +
+            '<span id="m_ACTIVE_TEXT" class="frs-toggle-text">' + (isActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน') + '</span>' +
+          '</label>' +
+        '</div>';
+
       let fieldsHtml = '';
 
       if (cat === 'systems') {
@@ -1510,7 +1595,7 @@
           '<div><label class="form-label" for="m_SYSTEM_NAME_EN">ชื่อระบบ (English)</label><input type="text" id="m_SYSTEM_NAME_EN" name="SYSTEM_NAME_EN" class="form-control" value="' + this.escapeHtml(data.SYSTEM_NAME_EN || '') + '" placeholder="เช่น Air Condition System"></div>' +
           '<div><label class="form-label" for="m_DEFAULT_PRIORITY_CODE">ระดับความเร่งด่วนเริ่มต้น (Default SLA)</label><select id="m_DEFAULT_PRIORITY_CODE" name="DEFAULT_PRIORITY_CODE" class="form-control">' + slaOptions + '</select></div>' +
           '<div><label class="form-label" for="m_DESCRIPTION">คำอธิบายเพิ่มเติม</label><textarea id="m_DESCRIPTION" name="DESCRIPTION" class="form-control" rows="2" placeholder="รายละเอียดหรือขอบเขตงาน">' + this.escapeHtml(data.DESCRIPTION || '') + '</textarea></div>' +
-          '<div><label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="m_ACTIVE" name="ACTIVE"' + (isActive ? ' checked' : '') + ' style="width:18px;height:18px;"> <span>เปิดใช้งาน (Active)</span></label></div>';
+          activeToggleHtml;
       } else if (cat === 'locations') {
         fieldsHtml =
           '<div><label class="form-label" for="m_LOCATION_ID">รหัสสถานที่ (Location ID) *</label><input type="text" id="m_LOCATION_ID" name="LOCATION_ID" class="form-control" required' + (isEdit ? ' readonly style="background:var(--frs-surface-2);"' : '') + ' value="' + this.escapeHtml(data.LOCATION_ID || '') + '" placeholder="เช่น LOC-001"></div>' +
@@ -1521,14 +1606,14 @@
           '<div><label class="form-label" for="m_ROOM">ห้อง / จุดติดตั้ง *</label><input type="text" id="m_ROOM" name="ROOM" class="form-control" required value="' + this.escapeHtml(data.ROOM || '') + '" placeholder="เช่น ห้องประชุม 101, โถงทางเดิน"></div>' +
           '<div><label class="form-label" for="m_LOCATION_FULL">ชื่อสถานที่เต็ม (Location Full)</label><input type="text" id="m_LOCATION_FULL" name="LOCATION_FULL" class="form-control" value="' + this.escapeHtml(data.LOCATION_FULL || '') + '" placeholder="หากเว้นว่าง ระบบจะรวมชื่ออาคาร ชั้น และห้องให้อัตโนมัติ"></div>' +
           '<div><label class="form-label" for="m_QR_CODE_REF">รหัสอ้างอิง QR Code</label><input type="text" id="m_QR_CODE_REF" name="QR_CODE_REF" class="form-control" value="' + this.escapeHtml(data.QR_CODE_REF || '') + '" placeholder="เช่น FRS-QR-LOC-001"></div>' +
-          '<div><label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="m_ACTIVE" name="ACTIVE"' + (isActive ? ' checked' : '') + ' style="width:18px;height:18px;"> <span>เปิดใช้งาน (Active)</span></label></div>';
+          activeToggleHtml;
       } else if (cat === 'departments') {
         fieldsHtml =
           '<div><label class="form-label" for="m_DEPARTMENT_ID">รหัสฝ่าย/แผนก (Department ID) *</label><input type="text" id="m_DEPARTMENT_ID" name="DEPARTMENT_ID" class="form-control" required' + (isEdit ? ' readonly style="background:var(--frs-surface-2);"' : '') + ' value="' + this.escapeHtml(data.DEPARTMENT_ID || '') + '" placeholder="เช่น DEP-001"></div>' +
           '<div><label class="form-label" for="m_DIVISION">ฝ่าย / สำนัก *</label><input type="text" id="m_DIVISION" name="DIVISION" class="form-control" required value="' + this.escapeHtml(data.DIVISION || '') + '" placeholder="เช่น ฝ่ายอำนวยการ"></div>' +
           '<div><label class="form-label" for="m_DEPARTMENT">แผนก / ส่วนงาน *</label><input type="text" id="m_DEPARTMENT" name="DEPARTMENT" class="form-control" required value="' + this.escapeHtml(data.DEPARTMENT || '') + '" placeholder="เช่น งานอาคารสถานที่"></div>' +
           '<div><label class="form-label" for="m_DESCRIPTION">คำอธิบายเพิ่มเติม</label><textarea id="m_DESCRIPTION" name="DESCRIPTION" class="form-control" rows="2" placeholder="รายละเอียดหรือขอบเขตหน่วยงาน">' + this.escapeHtml(data.DESCRIPTION || '') + '</textarea></div>' +
-          '<div><label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="m_ACTIVE" name="ACTIVE"' + (isActive ? ' checked' : '') + ' style="width:18px;height:18px;"> <span>เปิดใช้งาน (Active)</span></label></div>';
+          activeToggleHtml;
       } else if (cat === 'sla') {
         fieldsHtml =
           '<div><label class="form-label" for="m_PRIORITY_CODE">รหัสระดับความเร่งด่วน (Priority Code) *</label><input type="text" id="m_PRIORITY_CODE" name="PRIORITY_CODE" class="form-control" required' + (isEdit ? ' readonly style="background:var(--frs-surface-2);"' : '') + ' value="' + this.escapeHtml(data.PRIORITY_CODE || '') + '" placeholder="เช่น HIGH, NORMAL, LOW"></div>' +
@@ -1539,7 +1624,7 @@
             '<div><label class="form-label" for="m_SLA_TEXT">ข้อความ SLA *</label><input type="text" id="m_SLA_TEXT" name="SLA_TEXT" class="form-control" required value="' + this.escapeHtml(data.SLA_TEXT || '') + '" placeholder="เช่น ภายใน 1-3 วัน"></div>' +
           '</div>' +
           '<div><label class="form-label" for="m_DESCRIPTION">คำอธิบายเพิ่มเติม</label><textarea id="m_DESCRIPTION" name="DESCRIPTION" class="form-control" rows="2" placeholder="เกณฑ์การพิจารณาความเร่งด่วน">' + this.escapeHtml(data.DESCRIPTION || '') + '</textarea></div>' +
-          '<div><label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="m_ACTIVE" name="ACTIVE"' + (isActive ? ' checked' : '') + ' style="width:18px;height:18px;"> <span>เปิดใช้งาน (Active)</span></label></div>';
+          activeToggleHtml;
       } else if (cat === 'status') {
         fieldsHtml =
           '<div><label class="form-label" for="m_STATUS_CODE">รหัสสถานะงาน (Status Code) *</label><input type="text" id="m_STATUS_CODE" name="STATUS_CODE" class="form-control" required' + (isEdit ? ' readonly style="background:var(--frs-surface-2);"' : '') + ' value="' + this.escapeHtml(data.STATUS_CODE || '') + '" placeholder="เช่น IN_PROGRESS, DONE"></div>' +
@@ -1547,7 +1632,7 @@
           '<div><label class="form-label" for="m_STATUS_NAME_EN">ชื่อสถานะ (English)</label><input type="text" id="m_STATUS_NAME_EN" name="STATUS_NAME_EN" class="form-control" value="' + this.escapeHtml(data.STATUS_NAME_EN || '') + '" placeholder="เช่น In Progress"></div>' +
           '<div><label class="form-label" for="m_SORT_ORDER">ลำดับการแสดงผล (Sort Order) *</label><input type="number" id="m_SORT_ORDER" name="SORT_ORDER" class="form-control" required min="1" step="1" value="' + this.escapeHtml(data.SORT_ORDER != null ? data.SORT_ORDER : '') + '" placeholder="เช่น 1, 2, 3"></div>' +
           '<div><label class="form-label" for="m_DESCRIPTION">คำอธิบายเพิ่มเติม</label><textarea id="m_DESCRIPTION" name="DESCRIPTION" class="form-control" rows="2" placeholder="ความหมายของสถานะนี้">' + this.escapeHtml(data.DESCRIPTION || '') + '</textarea></div>' +
-          '<div><label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="m_ACTIVE" name="ACTIVE"' + (isActive ? ' checked' : '') + ' style="width:18px;height:18px;"> <span>เปิดใช้งาน (Active)</span></label></div>';
+          activeToggleHtml;
       }
 
       formFields.innerHTML = fieldsHtml;
