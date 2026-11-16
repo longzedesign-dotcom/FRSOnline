@@ -385,9 +385,18 @@
         <div id="newRequestTab" class="tab-panel hidden">
           <div class="section-title frs-title-with-icon"><svg class="frs-ui-icon frs-title-icon" aria-hidden="true"><use href="#frs-icon-plus"></use></svg><span>แจ้งซ่อมใหม่</span></div>
           <form id="requestForm" class="card-form" onsubmit="App.submitRequest(event)">
-            <div class="form-group"><label for="SYSTEM_CODE">ระบบ/อุปกรณ์ <span class="required">*</span></label><div class="select-search-wrap"><input id="SYSTEM_CODE_SEARCH" class="select-search-input" type="search" autocomplete="off" placeholder="ค้นหาระบบหรืออุปกรณ์" data-select-filter="SYSTEM_CODE" data-match-count="SYSTEM_CODE_MATCH_COUNT" aria-label="ค้นหาระบบหรืออุปกรณ์"><span id="SYSTEM_CODE_MATCH_COUNT" class="select-match-count" aria-live="polite"></span></div><select id="SYSTEM_CODE" required></select></div>
-            <div class="form-group"><label for="LOCATION_ID">สถานที่ <span class="required">*</span></label><div class="select-search-wrap"><input id="LOCATION_ID_SEARCH" class="select-search-input" type="search" autocomplete="off" placeholder="ค้นหาอาคาร ชั้น หรือห้อง" data-select-filter="LOCATION_ID" data-match-count="LOCATION_ID_MATCH_COUNT" aria-label="ค้นหาสถานที่"><span id="LOCATION_ID_MATCH_COUNT" class="select-match-count" aria-live="polite"></span></div><select id="LOCATION_ID" required></select></div>
-            <div class="form-group"><label for="PRIORITY_CODE">ความเร่งด่วน <span class="required">*</span></label><select id="PRIORITY_CODE" required></select></div>
+            <div class="form-group">
+              <label for="SYSTEM_CODE">ระบบ/อุปกรณ์ <span class="required">*</span></label>
+              <select id="SYSTEM_CODE" required></select>
+            </div>
+            <div class="form-group">
+              <label for="LOCATION_ID">สถานที่ <span class="required">*</span></label>
+              <select id="LOCATION_ID" required></select>
+            </div>
+            <div class="form-group">
+              <label for="PRIORITY_CODE">ความเร่งด่วน <span class="required">*</span></label>
+              <select id="PRIORITY_CODE" required></select>
+            </div>
             <div class="form-group"><label for="PROBLEM_DETAIL">รายละเอียดปัญหา <span class="required">*</span></label><textarea id="PROBLEM_DETAIL" rows="4" maxlength="3000" required></textarea><div class="field-help">ระบุอาการที่พบ ตำแหน่ง และผลกระทบให้ชัดเจน</div></div>
             <div class="form-group"><label for="PHONE">เบอร์โทรติดต่อ</label><div class="thai-phone-control" data-phone-control>
                 <div class="thai-phone-country" aria-label="ประเทศไทย รหัสประเทศบวกหกหก" title="ประเทศไทย">
