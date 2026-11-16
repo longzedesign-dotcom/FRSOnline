@@ -884,24 +884,8 @@
       this.clearThaiPhoneError('PHONE');
 
       const role = (this.currentUser && this.currentUser.ROLE) || '';
-      const fullName = (this.currentUser && this.currentUser.FULL_NAME) || 'ผู้ใช้งาน';
-      const firstName = String(fullName).trim().split(/\s+/)[0] || 'ผู้ใช้งาน';
-      const currentUserText = document.getElementById('currentUserText');
-      if (currentUserText) currentUserText.textContent = fullName + ' | ' + role;
-      const headerUserName = document.getElementById('headerUserName');
-      const headerUserRole = document.getElementById('headerUserRole');
-      const headerAvatar = document.getElementById('headerAvatar');
-      const sidebarUserName = document.getElementById('sidebarUserName');
-      const sidebarUserRole = document.getElementById('sidebarUserRole');
-      const sidebarAvatar = document.getElementById('sidebarAvatar');
-      const greeting = document.getElementById('dashboardGreeting');
-      if (headerUserName) headerUserName.textContent = firstName;
-      if (headerUserRole) headerUserRole.textContent = role;
-      if (headerAvatar) headerAvatar.textContent = firstName.charAt(0).toUpperCase();
-      if (sidebarUserName) sidebarUserName.textContent = firstName;
-      if (sidebarUserRole) sidebarUserRole.textContent = role;
-      if (sidebarAvatar) sidebarAvatar.textContent = firstName.charAt(0).toUpperCase();
-      if (greeting) greeting.textContent = 'สวัสดีครับ, ' + firstName;
+      this.updateUserDisplay();
+
       const requestListTitle = document.getElementById('requestListTitle');
       if (requestListTitle) {
         requestListTitle.textContent = role === 'USER'
@@ -1939,6 +1923,13 @@
       if (name === 'reports') this.loadReports();
       if (name === 'data') this.renderDataManagement();
       if (name === 'settings') this.applyTheme(document.documentElement.getAttribute('data-theme') || 'light', false);
+      if (name === 'newRequest' && this.currentUser && this.currentUser.PHONE) {
+        const ph = document.getElementById('PHONE');
+        if (ph && !ph.value) {
+          ph.value = this.currentUser.PHONE;
+          if (typeof this.syncThaiPhoneControl === 'function') this.syncThaiPhoneControl('PHONE');
+        }
+      }
       this.toggleSidebar(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
@@ -1983,15 +1974,59 @@
       }
     },
 
+    updateUserDisplay() {
+      const role = (this.currentUser && this.currentUser.ROLE) || '';
+      const fullName = (this.currentUser && this.currentUser.FULL_NAME) || 'ผู้ใช้งาน';
+      const firstName = String(fullName).trim().split(/\s+/)[0] || 'ผู้ใช้งาน';
+      const currentUserText = document.getElementById('currentUserText');
+      if (currentUserText) currentUserText.textContent = fullName + ' | ' + role;
+      const headerUserName = document.getElementById('headerUserName');
+      const headerUserRole = document.getElementById('headerUserRole');
+      const headerAvatar = document.getElementById('headerAvatar');
+      const sidebarUserName = document.getElementById('sidebarUserName');
+      const sidebarUserRole = document.getElementById('sidebarUserRole');
+      const sidebarAvatar = document.getElementById('sidebarAvatar');
+      const greeting = document.getElementById('dashboardGreeting');
+      if (headerUserName) headerUserName.textContent = firstName;
+      if (headerUserRole) headerUserRole.textContent = role;
+      if (headerAvatar) headerAvatar.textContent = firstName.charAt(0).toUpperCase();
+      if (sidebarUserName) sidebarUserName.textContent = firstName;
+      if (sidebarUserRole) sidebarUserRole.textContent = role;
+      if (sidebarAvatar) sidebarAvatar.textContent = firstName.charAt(0).toUpperCase();
+      if (greeting) greeting.textContent = 'สวัสดีครับ, ' + firstName;
+    },
+
     renderProfile() {
       const user = this.currentUser || {};
+      const deptText = [user.DIVISION, user.DEPARTMENT].filter(Boolean).join(' / ') || '-';
       document.getElementById('profileSummary').innerHTML =
+        '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--frs-border); padding-bottom:12px; flex-wrap:wrap; gap:10px;">' +
+          '<div style="display:flex; align-items:center; gap:12px;">' +
+            '<div class="frs-avatar" style="width:50px; height:50px; font-size:22px; font-weight:800; background:linear-gradient(135deg,#2563eb,#1d4ed8); color:#fff; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 4px 10px rgba(37,99,235,0.25);">' +
+              this.escapeHtml((user.FULL_NAME || user.USERNAME || 'U').charAt(0).toUpperCase()) +
+            '</div>' +
+            '<div>' +
+              '<h3 style="margin:0; font-size:17px; font-weight:800; color:var(--frs-text);">' + this.escapeHtml(user.FULL_NAME || user.USERNAME || '-') + '</h3>' +
+              '<div style="display:flex; gap:6px; align-items:center; margin-top:4px; flex-wrap:wrap;">' +
+                '<span class="badge" style="background:rgba(23,124,232,0.12); color:#177ce8; font-size:11px; font-weight:700;">' + this.escapeHtml(user.ROLE || 'USER') + '</span>' +
+                (user.EMPLOYEE_ID ? '<span class="badge" style="background:rgba(16,185,129,0.12); color:#059669; font-size:11px; font-weight:700;">รหัสพนักงาน: ' + this.escapeHtml(user.EMPLOYEE_ID) + '</span>' : '') +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<button type="button" class="btn btn-primary btn-small frs-button-with-icon" onclick="App.openEditProfileModal()">' +
+            '<svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-edit"></use></svg>' +
+            '<span>แก้ไขข้อมูล</span>' +
+          '</button>' +
+        '</div>' +
         '<div class="detail-grid">' +
-        '<div><span>ชื่อผู้ใช้งาน</span><strong>' + this.escapeHtml(user.USERNAME || '-') + '</strong></div>' +
+        '<div><span>Username</span><strong>' + this.escapeHtml(user.USERNAME || '-') + '</strong></div>' +
+        '<div><span>รหัสพนักงาน</span><strong>' + this.escapeHtml(user.EMPLOYEE_ID || 'ยังไม่ได้ระบุ') + '</strong></div>' +
         '<div><span>ชื่อ-นามสกุล</span><strong>' + this.escapeHtml(user.FULL_NAME || '-') + '</strong></div>' +
+        '<div><span>เบอร์โทรศัพท์</span><strong>' + (user.PHONE ? ('<a href="tel:' + this.escapeAttr(user.PHONE) + '" style="color:var(--frs-primary); text-decoration:none; font-weight:700;">' + this.escapeHtml(this.formatThaiPhone(user.PHONE)) + ' 📞</a>') : 'ยังไม่ได้ระบุ') + '</strong></div>' +
         '<div><span>อีเมล</span><strong>' + this.escapeHtml(user.EMAIL || '-') + '</strong></div>' +
-        '<div><span>หน่วยงาน</span><strong>' + this.escapeHtml([user.DIVISION, user.DEPARTMENT].filter(Boolean).join(' / ') || '-') + '</strong></div>' +
-        '<div><span>Role</span><strong>' + this.escapeHtml(user.ROLE || '-') + '</strong></div>' +
+        '<div><span>ฝ่าย / สำนัก</span><strong>' + this.escapeHtml(user.DIVISION || '-') + '</strong></div>' +
+        '<div><span>แผนก / ส่วนงาน</span><strong>' + this.escapeHtml(user.DEPARTMENT || '-') + '</strong></div>' +
+        '<div><span>ตำแหน่งงาน</span><strong>' + this.escapeHtml(user.POSITION || '-') + '</strong></div>' +
         '</div>';
 
       const container = document.getElementById('identityList');
@@ -2040,6 +2075,133 @@
         await this.notify(res.message, 'success');
       } catch (err) {
         this.notify((err && err.message) || 'ยกเลิกการเชื่อมไม่สำเร็จ', 'error');
+      } finally {
+        this.showLoading(false);
+      }
+    },
+
+    openEditProfileModal() {
+      const user = this.currentUser || {};
+      const modal = document.getElementById('editProfileModal');
+      if (!modal) return;
+
+      const unEl = document.getElementById('ep_USERNAME');
+      const roleEl = document.getElementById('ep_ROLE');
+      const fnEl = document.getElementById('ep_FULL_NAME');
+      const empEl = document.getElementById('ep_EMPLOYEE_ID');
+      const phEl = document.getElementById('ep_PHONE');
+      const emEl = document.getElementById('ep_EMAIL');
+      const divEl = document.getElementById('ep_DIVISION');
+      const depEl = document.getElementById('ep_DEPARTMENT');
+      const posEl = document.getElementById('ep_POSITION');
+
+      if (unEl) unEl.value = user.USERNAME || '';
+      if (roleEl) roleEl.value = user.ROLE || 'USER';
+      if (fnEl) fnEl.value = user.FULL_NAME || '';
+      if (empEl) empEl.value = user.EMPLOYEE_ID || '';
+      if (phEl) phEl.value = user.PHONE || '';
+      if (emEl) emEl.value = user.EMAIL || '';
+      if (divEl) divEl.value = user.DIVISION || '';
+      if (depEl) depEl.value = user.DEPARTMENT || '';
+      if (posEl) posEl.value = user.POSITION || '';
+
+      // Populate department select options from master
+      const deptSelect = document.getElementById('ep_DEPARTMENT_SELECT');
+      if (deptSelect) {
+        const departments = (this.master && this.master.departments) || [];
+        const currentPair = (user.DIVISION || '') + '||' + (user.DEPARTMENT || '');
+        let optionsHtml = '<option value="">-- เลือกฝ่าย/แผนก --</option>';
+        departments.forEach((d) => {
+          const div = String(d.DIVISION || '').trim();
+          const dep = String(d.DEPARTMENT || '').trim();
+          const val = div + '||' + dep;
+          const label = div ? (div + ' — ' + dep) : dep;
+          const selected = val === currentPair ? ' selected' : '';
+          optionsHtml += '<option value="' + this.escapeAttr(val) + '"' + selected + '>' + this.escapeHtml(label) + '</option>';
+        });
+        deptSelect.innerHTML = optionsHtml;
+      }
+
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    },
+
+    closeEditProfileModal() {
+      const modal = document.getElementById('editProfileModal');
+      if (modal) modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    },
+
+    handleProfileDeptSelectChange(val) {
+      const divEl = document.getElementById('ep_DIVISION');
+      const depEl = document.getElementById('ep_DEPARTMENT');
+      if (!val) {
+        if (divEl) divEl.value = '';
+        if (depEl) depEl.value = '';
+        return;
+      }
+      const parts = val.split('||');
+      if (divEl) divEl.value = parts[0] || '';
+      if (depEl) depEl.value = parts[1] || '';
+    },
+
+    async submitEditProfile(event) {
+      if (event) event.preventDefault();
+
+      const fullName = (document.getElementById('ep_FULL_NAME').value || '').trim();
+      const employeeId = (document.getElementById('ep_EMPLOYEE_ID').value || '').trim();
+      const phone = (document.getElementById('ep_PHONE').value || '').trim();
+      const email = (document.getElementById('ep_EMAIL').value || '').trim();
+      const division = (document.getElementById('ep_DIVISION').value || '').trim();
+      const department = (document.getElementById('ep_DEPARTMENT').value || '').trim();
+      const position = (document.getElementById('ep_POSITION').value || '').trim();
+
+      if (!fullName) {
+        this.notify('กรุณากรอกชื่อ - นามสกุล', 'warning');
+        return;
+      }
+      if (!phone) {
+        this.notify('กรุณากรอกเบอร์โทรศัพท์ติดต่อ', 'warning');
+        return;
+      }
+      if (!email) {
+        this.notify('กรุณากรอกอีเมล', 'warning');
+        return;
+      }
+      if (!department) {
+        this.notify('กรุณาเลือกฝ่าย/แผนก', 'warning');
+        return;
+      }
+
+      const payload = {
+        FULL_NAME: fullName,
+        EMPLOYEE_ID: employeeId,
+        PHONE: phone,
+        EMAIL: email,
+        DIVISION: division,
+        DEPARTMENT: department,
+        POSITION: position
+      };
+
+      this.showLoading(true);
+      try {
+        const res = await this.serverCall((runner) => runner.apiUpdateUserProfile(this.token, payload));
+        if (!res || !res.ok) {
+          this.handleApiError(res);
+          return;
+        }
+
+        // Update local currentUser
+        if (res.data) {
+          this.currentUser = Object.assign({}, this.currentUser, res.data);
+          this.updateUserDisplay();
+        }
+
+        this.closeEditProfileModal();
+        this.renderProfile();
+        await this.notify(res.message || 'บันทึกข้อมูลส่วนตัวเรียบร้อยแล้ว', 'success', 'สำเร็จ');
+      } catch (err) {
+        this.notify((err && err.message) || 'บันทึกข้อมูลส่วนตัวไม่สำเร็จ', 'error', 'เกิดข้อผิดพลาด');
       } finally {
         this.showLoading(false);
       }

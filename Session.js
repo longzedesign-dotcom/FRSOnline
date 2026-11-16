@@ -110,12 +110,14 @@ const SessionService = {
   toSessionUser_(user) {
     return {
       USER_ID: user.USER_ID,
+      EMPLOYEE_ID: user.EMPLOYEE_ID || '',
       USERNAME: user.USERNAME,
       FULL_NAME: user.FULL_NAME,
       EMAIL: user.EMAIL,
       PHONE: user.PHONE,
       DIVISION: user.DIVISION,
       DEPARTMENT: user.DEPARTMENT,
+      POSITION: user.POSITION || '',
       ROLE: String(user.ROLE || '').toUpperCase()
     };
   }

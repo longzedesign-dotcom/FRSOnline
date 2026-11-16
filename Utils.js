@@ -270,6 +270,13 @@ const Utils = {
     return digits.slice(0, 2) + ' ' + digits.slice(2, 5) + ' ' + digits.slice(5);
   },
 
+  isValidPhone(phone) {
+    if (!phone) return false;
+    let digits = String(phone).replace(/\D/g, '');
+    if (digits.indexOf('66') === 0) digits = '0' + digits.slice(2);
+    return /^0[0-9]{8,9}$/.test(digits);
+  },
+
   isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || '').trim());
   },

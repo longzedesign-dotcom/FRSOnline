@@ -9,7 +9,7 @@
 
 const APP_CONFIG = Object.freeze({
   APP_NAME: 'Facility Repair System (FRS)',
-  APP_VERSION: '2.3.07',
+  APP_VERSION: '2.3.08',
   TIMEZONE: 'Asia/Bangkok',
 
   // IDs for newly cloned FRS project

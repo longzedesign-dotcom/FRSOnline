@@ -19,7 +19,10 @@ const AuthService = {
         return Utils.jsonError('มีการพยายามเข้าสู่ระบบหลายครั้ง กรุณารอสักครู่แล้วลองใหม่');
       }
 
-      const user = DataService.findOneCaseInsensitive(APP_CONFIG.SHEETS.USERS, 'USERNAME', username);
+      let user = DataService.findOneCaseInsensitive(APP_CONFIG.SHEETS.USERS, 'USERNAME', username);
+      if (!user) {
+        user = DataService.findOneCaseInsensitive(APP_CONFIG.SHEETS.USERS, 'EMPLOYEE_ID', username);
+      }
 
       if (!user) {
         this.bumpUnknownUserRate_(username);
@@ -105,6 +108,71 @@ const AuthService = {
     const user = SessionService.get(token);
     if (!user) return Utils.jsonError('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่');
     return Utils.jsonSuccess(user);
+  },
+
+  updateUserProfile(token, payload) {
+    try {
+      const user = this.requireLogin(token);
+      const input = payload || {};
+
+      const fullName = Utils.normalizeText(input.FULL_NAME || input.fullName, 120);
+      const email = String(input.EMAIL || input.email || '').trim().toLowerCase();
+      const phone = String(input.PHONE || input.phone || '').trim();
+      const division = Utils.normalizeText(input.DIVISION || input.division, 100);
+      const department = Utils.normalizeText(input.DEPARTMENT || input.department, 100);
+      const position = Utils.normalizeText(input.POSITION || input.position, 100);
+      const employeeId = Utils.normalizeText(input.EMPLOYEE_ID || input.employeeId, 50);
+
+      if (!fullName) throw new Error('กรุณาระบุชื่อ - นามสกุล');
+
+      if (phone && !Utils.isValidPhone(phone)) {
+        throw new Error('เบอร์โทรติดต่อไม่ถูกต้อง (ต้องเป็นตัวเลข 9-10 หลัก เช่น 0812345678)');
+      }
+
+      if (email) {
+        if (!Utils.isValidEmail(email)) {
+          throw new Error('รูปแบบอีเมลไม่ถูกต้อง');
+        }
+        if (!this.isAllowedDomain_(email)) {
+          throw new Error('โดเมนอีเมลนี้ไม่ได้รับอนุญาตให้ใช้งานในระบบ');
+        }
+      }
+
+      if (employeeId) {
+        const existingEmp = DataService.findOneCaseInsensitive(APP_CONFIG.SHEETS.USERS, 'EMPLOYEE_ID', employeeId);
+        if (existingEmp && String(existingEmp.USER_ID) !== String(user.USER_ID)) {
+          throw new Error('รหัสพนักงาน ' + employeeId + ' นี้ถูกใช้งานโดยบัญชีอื่นแล้ว');
+        }
+      }
+
+      const updateData = {
+        FULL_NAME: fullName,
+        EMAIL: email,
+        PHONE: phone,
+        DIVISION: division,
+        DEPARTMENT: department,
+        POSITION: position,
+        UPDATED_AT: Utils.now()
+      };
+
+      if (employeeId) {
+        updateData.EMPLOYEE_ID = employeeId;
+      }
+
+      DataService.updateRowByKey(APP_CONFIG.SHEETS.USERS, 'USER_ID', user.USER_ID, updateData);
+
+      // Invalidate session cache & master user cache
+      const tokenHash = Utils.sha256(token);
+      CacheService.getScriptCache().remove(APP_CONFIG.SESSION_CACHE_PREFIX + tokenHash);
+      DataService.invalidate(APP_CONFIG.SHEETS.USERS);
+
+      const refreshed = DataService.findOne(APP_CONFIG.SHEETS.USERS, 'USER_ID', user.USER_ID);
+      const sessionUser = SessionService.toSessionUser_(refreshed);
+
+      return Utils.jsonSuccess(sessionUser, 'อัปเดตข้อมูลส่วนตัวเรียบร้อยแล้ว');
+    } catch (err) {
+      return Utils.jsonError(err.message);
+    }
   },
 
   requireLogin(token) {

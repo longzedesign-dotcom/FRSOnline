@@ -83,6 +83,10 @@ function apiGetCurrentUser(token) {
   return AuthService.getCurrentUser(token);
 }
 
+function apiUpdateUserProfile(token, payload) {
+  return AuthService.updateUserProfile(token, payload);
+}
+
 function apiBootstrap(token) {
   const user = AuthService.requireLogin(token);
   return BootstrapService.get(user);
