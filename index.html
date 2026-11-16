@@ -706,7 +706,7 @@
         <div class="modal-body">
           <form id="editProfileForm" onsubmit="App.submitEditProfile(event)">
             <div style="display:grid; gap:14px;">
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+              <div class="form-row-2col">
                 <div>
                   <label class="form-label" for="ep_USERNAME">Username</label>
                   <input type="text" id="ep_USERNAME" class="form-control" readonly style="background:var(--frs-surface-2); font-weight:700;">
@@ -728,7 +728,7 @@
                 <small class="muted" style="font-size:11px; margin-top:3px; display:block;">ใช้ยืนยันตัวตนและเข้าสู่ระบบแทน Username ได้</small>
               </div>
 
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+              <div class="form-row-2col">
                 <div>
                   <label class="form-label" for="ep_PHONE">เบอร์โทรศัพท์ <span class="required">*</span></label>
                   <input type="tel" id="ep_PHONE" name="PHONE" class="form-control" required placeholder="08x-xxx-xxxx" maxlength="12">
