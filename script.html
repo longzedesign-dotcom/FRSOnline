@@ -299,6 +299,10 @@
       return digits.slice(0, 9);
     },
 
+    formatThaiPhone(value) {
+      return this.formatThaiPhoneDisplay(value);
+    },
+
     formatThaiPhoneDisplay(value) {
       const digits = this.normalizeThaiPhoneDigits(value);
       if (!digits) return '';
@@ -461,19 +465,21 @@
       const registrationEnabled = Boolean(cfg.registrationEnabled);
       const socialEnabled = googleEnabled || lineEnabled;
 
-      ['googleLoginButton', 'googleRegisterButton', 'linkGoogleButton'].forEach((id) => {
-        const el = document.getElementById(id);
-        if (el) el.classList.toggle('hidden', !googleEnabled);
-      });
-      ['lineLoginButton', 'lineRegisterButton', 'linkLineButton'].forEach((id) => {
-        const el = document.getElementById(id);
-        if (el) el.classList.toggle('hidden', !lineEnabled);
-      });
-
+      // Keep social login & register buttons visible (similar to Time Attendance systems)
       const socialLogin = document.getElementById('socialLoginButtons');
+      if (socialLogin) socialLogin.classList.remove('hidden');
+      const googleLogin = document.getElementById('googleLoginButton');
+      if (googleLogin) googleLogin.classList.remove('hidden');
+      const lineLogin = document.getElementById('lineLoginButton');
+      if (lineLogin) lineLogin.classList.remove('hidden');
+
       const socialRegister = document.getElementById('registerSocialButtons');
-      if (socialLogin) socialLogin.classList.toggle('hidden', !socialEnabled);
-      if (socialRegister) socialRegister.classList.toggle('hidden', !socialEnabled);
+      if (socialRegister) socialRegister.classList.remove('hidden');
+      const googleReg = document.getElementById('googleRegisterButton');
+      if (googleReg) googleReg.classList.remove('hidden');
+      const lineReg = document.getElementById('lineRegisterButton');
+      if (lineReg) lineReg.classList.remove('hidden');
+
       const linkWrap = document.getElementById('registrationLinkWrap');
       if (linkWrap) linkWrap.classList.toggle('hidden', !registrationEnabled);
 
@@ -519,11 +525,19 @@
       const normalizedIntent = String(intent || 'LOGIN').toUpperCase();
       const cfg = (this.publicRegistrationData && this.publicRegistrationData.config) || {};
       if (provider === 'GOOGLE' && !cfg.googleEnabled) {
-        this.notify('Google Login ยังไม่ได้ตั้งค่าในระบบ', 'warning');
+        this.messageBox({
+          title: 'Google Login',
+          message: 'ระบบ Google Login ยังไม่ได้กำหนดค่า GOOGLE_CLIENT_ID ใน Script Properties กรุณาเข้าสู่ระบบด้วย Username/รหัสพนักงาน หรือติดต่อผู้ดูแลระบบ',
+          type: 'info'
+        });
         return;
       }
       if (provider === 'LINE' && !cfg.lineEnabled) {
-        this.notify('LINE Login ยังไม่ได้ตั้งค่าในระบบ', 'warning');
+        this.messageBox({
+          title: 'LINE Login',
+          message: 'ระบบ LINE Login ยังไม่ได้กำหนดค่า LINE_CHANNEL_ID ใน Script Properties กรุณาเข้าสู่ระบบด้วย Username/รหัสพนักงาน หรือติดต่อผู้ดูแลระบบ',
+          type: 'info'
+        });
         return;
       }
 

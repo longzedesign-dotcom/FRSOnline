@@ -6,6 +6,25 @@
 
 ---
 
+## [V2.3.09 Mobile Full Option] — 2026-11-16 📱✨ (ITSD Release Standard)
+
+### 🔑 ปรับปรุงปุ่มเข้าสู่ระบบ LINE & Google สไตล์ Time Stamp Attendance
+- **ปุ่ม Sign-In สไตล์โมเดิร์น พร้อม Official Vector Icons:**
+  - เพิ่มปุ่มเข้าสู่ระบบด้วย **LINE** (สีเขียวทางการ `#06C755`, ไอคอน Speech Bubble Vector ชัดเจน)
+  - เพิ่มปุ่มเข้าสู่ระบบด้วย **Google** (การ์ดพื้นหลังสีขาว กรอบบางเงาละมุน พร้อมไอคอน 4 สีทางการ Google 'G' Vector)
+  - ปรับดีไซน์ตามมาตรฐานระบบ Time Stamp / Attendance บันทึกเวลาทำงานชั้นนำ
+- **แสดงปุ่มเสมอ พร้อมระบบแนะนำการตั้งค่า (Graceful Fallback & Setup Guide):**
+  - แสดงปุ่มเข้าสู่ระบบและสมัครสมาชิกด้วย LINE / Google บนหน้าจอตลอดเวลา
+  - เมื่อผู้ใช้งานคลิกปุ่ม หากระบบยังไม่ได้ระบุ `GOOGLE_CLIENT_ID` หรือ `LINE_CHANNEL_ID` ใน Script Properties ระบบจะแสดงกล่องข้อความแจ้งเตือนคำแนะนำที่เป็นมิตร ไม่เกิดข้อผิดพลาดค้าง
+- **รองรับการระบุ Username หรือ รหัสพนักงาน:**
+  - ปรับข้อความ Label และ Placeholder ช่องระบุตัวตนเป็น `Username หรือ รหัสพนักงาน` ชัดเจน เข้าใจง่าย
+
+### 🐛 แก้ไขข้อผิดพลาด (Bug Fixes)
+- **แก้ไขข้อผิดพลาด `this.formatThaiPhone is not a function`:**
+  - สร้าง Alias Method `formatThaiPhone(value)` บน App Controller เชื่อมโยงกับฟังก์ชันจัดรูปแบบเบอร์โทรศัพท์ไทย `formatThaiPhoneDisplay(value)` เพื่อป้องกันข้อผิดพลาดเวลาเรนเดอร์ข้อมูลโปรไฟล์ผู้ใช้งาน
+
+---
+
 ## [V2.3.08 Mobile Full Option] — 2026-11-16 👤✨ (ITSD Release Standard)
 
 ### 👤 ระบบจัดการและอัปเดตข้อมูลส่วนตัว (User Profile Management)

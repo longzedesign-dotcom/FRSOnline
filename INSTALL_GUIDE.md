@@ -1,6 +1,6 @@
 # 🛠️ คู่มือการติดตั้งและตั้งค่าระบบฉบับสมบูรณ์ (Installation Guide)
 ### FRS : Facility Repair System (ระบบแจ้งซ่อมบำรุงออนไลน์ — Mobile Full Option)
-**Version: FRS V2.3.08 Mobile Full Option | Developer: LongZe Design**
+**Version: FRS V2.3.09 Mobile Full Option | Developer: LongZe Design**
 
 คู่มือนี้จัดทำขึ้นเพื่อให้ผู้ดูแลระบบ (System Administrator) และนักพัฒนา สามารถติดตั้ง เชื่อมต่อ Google Drive, Google Sheets, Google Apps Script, GitHub และ Deploy ระบบขึ้นใช้งานจริงได้อย่างถูกต้อง 100%
 
@@ -74,7 +74,7 @@ clasp login
 ```javascript
 const APP_CONFIG = Object.freeze({
   APP_NAME: 'Facility Repair System (FRS)',
-  APP_VERSION: '2.3.08',
+  APP_VERSION: '2.3.09',
   TIMEZONE: 'Asia/Bangkok',
 
   SPREADSHEET_ID: '1eI2xZjGpmKHhhpl3TIucxFbSe_aXzy3am2H-KieQjCk',
