@@ -6,7 +6,7 @@
 
 ---
 
-## [V2.4.0] — 2026-11-16 (Mobile Full Option Release) 📱🌟
+## [V2.3.05 Mobile Full Option] — 2026-11-16 📱🌟
 
 ### 🌟 ฟีเจอร์ใหม่ระดับ Mobile-First Experience
 - **Mobile Bottom Navigation Bar:** ออกแบบแถบเมนูล่างจอแบบ Floating Glassmorphism รองรับ Safe Area Insets (`env(safe-area-inset-bottom)`) สำหรับ iPhone (Dynamic Island / Notch) และ Android
@@ -28,7 +28,7 @@
 
 ### 📚 การยกระดับเอกสารมาตรฐาน GitHub (ITSD Standard)
 - ปรับโครงสร้าง `README.md` เป็นมาตรฐานเดียวกับระบบ ITSD พร้อมชุด Badges, ลิงก์ทรัพยากร, ผังสถาปัตยกรรม Mermaid และตารางข้อมูล
-- เพิ่มเอกสารคู่มือครบชุด: `INSTALL_GUIDE.md`, `DATA_DIAGRAM_AND_WORKFLOW.md`, `MANUAL_USER.md` และ `PATCH_NOTES.md`
+- เพิ่มเอกสารคู่มือครบชุด: `INSTALL_GUIDE.md`, `DATA_DIAGRAM_AND_WORKFLOW.md`, `MANUAL_USER.md` และ `PATCH_NOTES.md` (Version FRS V2.3.05 Mobile Full Option)
 
 ---
 

@@ -1,6 +1,6 @@
 # 🛠️ คู่มือการติดตั้งและตั้งค่าระบบฉบับสมบูรณ์ (Installation Guide)
 ### FRS : Facility Repair System (ระบบแจ้งซ่อมบำรุงออนไลน์ — Mobile Full Option)
-**Version: FRS V2.4.0 Mobile Full Option | Developer: LongZe Design**
+**Version: FRS V2.3.05 Mobile Full Option | Developer: LongZe Design**
 
 คู่มือนี้จัดทำขึ้นเพื่อให้ผู้ดูแลระบบ (System Administrator) และนักพัฒนา สามารถติดตั้ง เชื่อมต่อ Google Drive, Google Sheets, Google Apps Script, GitHub และ Deploy ระบบขึ้นใช้งานจริงได้อย่างถูกต้อง 100%
 
@@ -74,7 +74,7 @@ clasp login
 ```javascript
 const APP_CONFIG = Object.freeze({
   APP_NAME: 'Facility Repair System (FRS)',
-  APP_VERSION: '2.4.05',
+  APP_VERSION: '2.3.05',
   TIMEZONE: 'Asia/Bangkok',
 
   SPREADSHEET_ID: '1eI2xZjGpmKHhhpl3TIucxFbSe_aXzy3am2H-KieQjCk',
@@ -145,7 +145,7 @@ clasp deploy --description "FRS Mobile Full Option Production"
 1. ที่มุมขวาบนของ Apps Script Editor ให้คลิกปุ่ม **"การทำให้ใช้งานได้" (Deploy) > "การทำให้ใช้งานได้รายการใหม่" (New deployment)**
 2. คลิกไอคอนฟันเฟืองด้านซ้ายของ "เลือกประเภท" แล้วเลือก **"เว็บแอป" (Web app)**
 3. กำหนดการตั้งค่าดังนี้:
-   - **คำอธิบาย (Description):** `FRS Mobile Full Option Production V2.4.0`
+   - **คำอธิบาย (Description):** `FRS Mobile Full Option Production V2.3.05`
    - **เรียกใช้ในฐานะ (Execute as):** `ฉัน (อีเมลของผู้ดูแลระบบ)`
    - **ผู้ที่มีสิทธิ์เข้าถึง (Who has access):** `ทุกคน (Anyone)`
 4. คลิก **"ทำให้ใช้งานได้" (Deploy)**
