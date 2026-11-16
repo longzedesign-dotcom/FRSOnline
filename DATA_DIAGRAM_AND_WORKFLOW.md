@@ -200,9 +200,9 @@ erDiagram
 
 ```mermaid
 graph LR
-    A["NEW<br>(รอรับเรื่อง)"] -->|Admin/Manager| B["RECEIVED<br>(รับเรื่องแล้ว)"]
+    A["NEW<br>(แจ้งเรื่องใหม่)"] -->|Admin/Manager| B["RECEIVED<br>(รับเรื่องแล้ว)"]
     A -->|Admin/Manager/User| X["CANCELLED<br>(ยกเลิก)"]
-    B -->|Admin/Manager| C["ASSIGNED<br>(มอบหมายช่าง)"]
+    B -->|Admin/Manager| C["ASSIGNED<br>(มอบหมายแล้ว)"]
     B -->|Technician Claim| C
     B -->|Admin/Manager| X
     C -->|Technician Start| D["IN_PROGRESS<br>(กำลังดำเนินการ)"]
@@ -210,20 +210,20 @@ graph LR
     D -->|Outsource| F["OUTSOURCE<br>(ส่งซ่อมภายนอก)"]
     E -->|Parts Arrived| D
     F -->|Return Unit| D
-    D -->|Technician Complete| G["DONE<br>(ดำเนินการเสร็จสิ้น)"]
-    G -->|Admin/Manager Close| H["CLOSED<br>(ปิดงานสมบูรณ์)"]
+    D -->|Technician Complete| G["DONE<br>(ซ่อมเสร็จแล้ว)"]
+    G -->|Admin/Manager Close| H["CLOSED<br>(ปิดงาน)"]
     G -->|Recheck Fail| D
 ```
 
 | รหัสสถานะ | ชื่อภาษาไทย | คำอธิบาย | Role ที่มีสิทธิ์เปลี่ยนเข้าสู่สถานะ |
 | :--- | :--- | :--- | :--- |
-| **`NEW`** | รอรับเรื่อง | ผู้ใช้ส่งคำขอแจ้งซ่อมเข้ามาใหม่ | `USER`, `ADMIN`, `MANAGER` |
+| **`NEW`** | แจ้งเรื่องใหม่ | ผู้ใช้ส่งคำขอแจ้งซ่อมเข้ามาใหม่ | `USER`, `ADMIN`, `MANAGER` |
 | **`RECEIVED`** | รับเรื่องแล้ว | แอดมินหรือหัวหน้างานตรวจสอบความถูกต้องของข้อมูล | `ADMIN`, `MANAGER` |
-| **`ASSIGNED`** | มอบหมายช่างแล้ว | กำหนดช่างผู้รับผิดชอบงาน หรือช่างกดรับงานเอง (Claim) | `ADMIN`, `MANAGER`, `TECHNICIAN` |
+| **`ASSIGNED`** | มอบหมายแล้ว | กำหนดช่างผู้รับผิดชอบงาน หรือช่างกดรับงานเอง (Claim) | `ADMIN`, `MANAGER`, `TECHNICIAN` |
 | **`IN_PROGRESS`** | กำลังดำเนินการ | ช่างเริ่มลงมือปฏิบัติงานหน้างาน | `TECHNICIAN`, `ADMIN` |
-| **`WAITING_PART`** | รออะไหล่/รอจัดซื้อ | งานติดปัญหาต้องรอเบิกหรือสั่งซื้ออุปกรณ์ | `TECHNICIAN`, `ADMIN` |
+| **`WAITING_PART`** | รออะไหล่ | งานติดปัญหาต้องรอเบิกหรือสั่งซื้ออุปกรณ์ | `TECHNICIAN`, `ADMIN` |
 | **`OUTSOURCE`** | ส่งซ่อมภายนอก | ส่งผู้รับเหมาหรือศูนย์บริการภายนอก | `TECHNICIAN`, `ADMIN` |
-| **`DONE`** | ดำเนินการแล้วเสร็จ | ช่างแก้ไขเสร็จสิ้น บันทึกผล แนบรูป และค่าใช้จ่าย | `TECHNICIAN`, `ADMIN` |
+| **`DONE`** | ซ่อมเสร็จแล้ว | ช่างแก้ไขเสร็จสิ้น บันทึกผล แนบรูป และค่าใช้จ่าย | `TECHNICIAN`, `ADMIN` |
 | **`CLOSED`** | ปิดงาน | แอดมินหรือหัวหน้างานตรวจสอบผลงานและปิดงาน | `ADMIN`, `MANAGER` |
 | **`CANCELLED`** | ยกเลิก | ยกเลิกคำขอพร้อมระบุเหตุผลประกอบ | `ADMIN`, `MANAGER`, `USER` (ก่อนรับเรื่อง) |
 

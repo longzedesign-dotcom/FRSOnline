@@ -285,14 +285,14 @@ function ensureSheetSchema_(ss, sheetName, expectedHeaders) {
 
 function seedMasterData_() {
   seedRowsByKey_(APP_CONFIG.SHEETS.MASTER_STATUS, 'STATUS_CODE', [
-    { STATUS_CODE: 'NEW', STATUS_NAME_TH: 'รอรับเรื่อง', STATUS_NAME_EN: 'New', SORT_ORDER: 1, ACTIVE: true, DESCRIPTION: 'ผู้ใช้ส่งเรื่องเข้ามาใหม่' },
-    { STATUS_CODE: 'RECEIVED', STATUS_NAME_TH: 'รับเรื่องแล้ว', STATUS_NAME_EN: 'Received', SORT_ORDER: 2, ACTIVE: true, DESCRIPTION: 'Admin ตรวจสอบและรับเรื่อง' },
-    { STATUS_CODE: 'ASSIGNED', STATUS_NAME_TH: 'มอบหมายช่างแล้ว', STATUS_NAME_EN: 'Assigned', SORT_ORDER: 3, ACTIVE: true, DESCRIPTION: 'มีผู้รับผิดชอบงาน' },
-    { STATUS_CODE: 'IN_PROGRESS', STATUS_NAME_TH: 'กำลังดำเนินการ', STATUS_NAME_EN: 'In Progress', SORT_ORDER: 4, ACTIVE: true, DESCRIPTION: 'ช่างเริ่มดำเนินการ' },
-    { STATUS_CODE: 'WAITING_PART', STATUS_NAME_TH: 'รออะไหล่/รอจัดซื้อ', STATUS_NAME_EN: 'Waiting Part', SORT_ORDER: 5, ACTIVE: true, DESCRIPTION: 'รออะไหล่หรือการจัดซื้อ' },
-    { STATUS_CODE: 'OUTSOURCE', STATUS_NAME_TH: 'ส่งซ่อมภายนอก', STATUS_NAME_EN: 'Outsource', SORT_ORDER: 6, ACTIVE: true, DESCRIPTION: 'ส่งผู้รับจ้างหรือศูนย์บริการภายนอก' },
-    { STATUS_CODE: 'DONE', STATUS_NAME_TH: 'ดำเนินการแล้วเสร็จ', STATUS_NAME_EN: 'Done', SORT_ORDER: 7, ACTIVE: true, DESCRIPTION: 'ช่างดำเนินการเสร็จ รอตรวจสอบ' },
-    { STATUS_CODE: 'CLOSED', STATUS_NAME_TH: 'ปิดงาน', STATUS_NAME_EN: 'Closed', SORT_ORDER: 8, ACTIVE: true, DESCRIPTION: 'Admin หรือ Manager ตรวจสอบและปิดงาน' },
+    { STATUS_CODE: 'NEW', STATUS_NAME_TH: 'แจ้งเรื่องใหม่', STATUS_NAME_EN: 'New Request', SORT_ORDER: 1, ACTIVE: true, DESCRIPTION: 'ผู้ใช้ส่งคำขอแจ้งซ่อมเข้ามาใหม่' },
+    { STATUS_CODE: 'RECEIVED', STATUS_NAME_TH: 'รับเรื่องแล้ว', STATUS_NAME_EN: 'Acknowledged', SORT_ORDER: 2, ACTIVE: true, DESCRIPTION: 'เจ้าหน้าที่ตรวจสอบและรับเรื่องเข้าคิว' },
+    { STATUS_CODE: 'ASSIGNED', STATUS_NAME_TH: 'มอบหมายแล้ว', STATUS_NAME_EN: 'Assigned', SORT_ORDER: 3, ACTIVE: true, DESCRIPTION: 'ระบุช่างผู้รับผิดชอบงานเรียบร้อยแล้ว' },
+    { STATUS_CODE: 'IN_PROGRESS', STATUS_NAME_TH: 'กำลังดำเนินการ', STATUS_NAME_EN: 'In Progress', SORT_ORDER: 4, ACTIVE: true, DESCRIPTION: 'ช่างเริ่มดำเนินการตรวจซ่อมหน้างาน' },
+    { STATUS_CODE: 'WAITING_PART', STATUS_NAME_TH: 'รออะไหล่', STATUS_NAME_EN: 'Waiting for Parts', SORT_ORDER: 5, ACTIVE: true, DESCRIPTION: 'รอเบิกอะไหล่ พัสดุ หรือรอจัดซื้อ' },
+    { STATUS_CODE: 'OUTSOURCE', STATUS_NAME_TH: 'ส่งซ่อมภายนอก', STATUS_NAME_EN: 'External Repair', SORT_ORDER: 6, ACTIVE: true, DESCRIPTION: 'ส่งศูนย์บริการหรือจ้างผู้รับเหมาภายนอก' },
+    { STATUS_CODE: 'DONE', STATUS_NAME_TH: 'ซ่อมเสร็จแล้ว', STATUS_NAME_EN: 'Resolved', SORT_ORDER: 7, ACTIVE: true, DESCRIPTION: 'ช่างซ่อมเสร็จ อยู่ระหว่างรอตรวจรับ' },
+    { STATUS_CODE: 'CLOSED', STATUS_NAME_TH: 'ปิดงาน', STATUS_NAME_EN: 'Closed', SORT_ORDER: 8, ACTIVE: true, DESCRIPTION: 'ตรวจสอบผลงานและปิดงานสมบูรณ์' },
     { STATUS_CODE: 'CANCELLED', STATUS_NAME_TH: 'ยกเลิก', STATUS_NAME_EN: 'Cancelled', SORT_ORDER: 9, ACTIVE: true, DESCRIPTION: 'ยกเลิกรายการพร้อมระบุเหตุผล' }
   ]);
 

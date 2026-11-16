@@ -362,7 +362,7 @@
                 <div class="frs-overview-legend">
                   <div><i class="legend-dot done"></i><span>เสร็จสิ้น</span><strong id="overviewDone">0</strong></div>
                   <div><i class="legend-dot active"></i><span>กำลังดำเนินการ</span><strong id="overviewActive">0</strong></div>
-                  <div><i class="legend-dot waiting"></i><span>รอรับเรื่อง</span><strong id="overviewWaiting">0</strong></div>
+                  <div><i class="legend-dot waiting"></i><span>แจ้งเรื่องใหม่</span><strong id="overviewWaiting">0</strong></div>
                   <div><i class="legend-dot risk"></i><span>เกิน SLA</span><strong id="overviewOverSla">0</strong></div>
                 </div>
               </div>
@@ -435,12 +435,13 @@
           <div class="mobile-filter-chips-scroll" role="region" aria-label="ตัวกรองสถานะด่วน">
             <div class="mobile-filter-chips">
               <button type="button" class="mobile-chip active" data-status="" onclick="App.selectFilterChip('')">ทั้งหมด</button>
-              <button type="button" class="mobile-chip" data-status="NEW" onclick="App.selectFilterChip('NEW')">รอรับเรื่อง</button>
+              <button type="button" class="mobile-chip" data-status="NEW" onclick="App.selectFilterChip('NEW')">แจ้งเรื่องใหม่</button>
               <button type="button" class="mobile-chip" data-status="RECEIVED" onclick="App.selectFilterChip('RECEIVED')">รับเรื่องแล้ว</button>
-              <button type="button" class="mobile-chip" data-status="ASSIGNED" onclick="App.selectFilterChip('ASSIGNED')">มอบหมาย</button>
+              <button type="button" class="mobile-chip" data-status="ASSIGNED" onclick="App.selectFilterChip('ASSIGNED')">มอบหมายแล้ว</button>
               <button type="button" class="mobile-chip" data-status="IN_PROGRESS" onclick="App.selectFilterChip('IN_PROGRESS')">กำลังดำเนินการ</button>
               <button type="button" class="mobile-chip" data-status="WAITING_PART" onclick="App.selectFilterChip('WAITING_PART')">รออะไหล่</button>
-              <button type="button" class="mobile-chip" data-status="DONE" onclick="App.selectFilterChip('DONE')">เสร็จสิ้น</button>
+              <button type="button" class="mobile-chip" data-status="OUTSOURCE" onclick="App.selectFilterChip('OUTSOURCE')">ส่งซ่อมภายนอก</button>
+              <button type="button" class="mobile-chip" data-status="DONE" onclick="App.selectFilterChip('DONE')">ซ่อมเสร็จแล้ว</button>
               <button type="button" class="mobile-chip" data-status="CLOSED" onclick="App.selectFilterChip('CLOSED')">ปิดงาน</button>
             </div>
           </div>
