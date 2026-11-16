@@ -1263,22 +1263,388 @@
       }).join('');
     },
 
+    currentMasterCategory: 'overview',
+    currentMasterRows: [],
+
+    isAdminUser() {
+      return String((this.currentUser && this.currentUser.ROLE) || '').toUpperCase() === 'ADMIN';
+    },
+
     renderDataManagement() {
-      const container = document.getElementById('masterDataOverview');
+      const isAdmin = this.isAdminUser();
+      const overviewContainer = document.getElementById('masterDataOverview');
+      const detailContainer = document.getElementById('masterDataDetailView');
+      const addBtn = document.getElementById('masterDataAddBtn');
+
+      if (this.currentMasterCategory === 'overview' || !isAdmin) {
+        if (detailContainer) detailContainer.classList.add('hidden');
+        if (overviewContainer) overviewContainer.classList.remove('hidden');
+        if (addBtn) addBtn.classList.add('hidden');
+
+        if (overviewContainer) {
+          const master = this.master || {};
+          const groups = [
+            { key: 'systems', label: 'ระบบ/อุปกรณ์', rows: master.systems || [], field: 'SYSTEM_NAME_TH', icon: 'layers' },
+            { key: 'locations', label: 'สถานที่', rows: master.locations || [], field: 'LOCATION_FULL', icon: 'map-pin' },
+            { key: 'departments', label: 'ฝ่าย/แผนก', rows: master.departments || [], field: 'DEPARTMENT', icon: 'users' },
+            { key: 'sla', label: 'SLA (ระดับความเร่งด่วน)', rows: master.sla || [], field: 'PRIORITY_NAME_TH', icon: 'trend' },
+            { key: 'status', label: 'สถานะงาน', rows: master.status || [], field: 'STATUS_NAME_TH', icon: 'check-circle' }
+          ];
+
+          overviewContainer.innerHTML = groups.map((group) => {
+            const rows = group.rows;
+            const sample = rows.slice(0, 5).map((row) => '<li>' + this.escapeHtml(row[group.field] || '-') + '</li>').join('');
+            const clickAttr = isAdmin ? ' style="cursor:pointer;" onclick="App.switchMasterCategory(\'' + group.key + '\')"' : '';
+            const actionHint = isAdmin ? '<div style="margin-top:10px; font-size:12px; font-weight:700; color:#177ce8; display:flex; align-items:center; gap:4px;"><span>จัดการข้อมูล</span><svg class="frs-ui-icon" style="width:14px;height:14px;"><use href="#frs-icon-chevron-right"></use></svg></div>' : '';
+            return '<section class="frs-panel frs-master-card"' + clickAttr + '>' +
+              '<div class="frs-panel-head"><h2 class="frs-title-with-icon"><span class="frs-master-title-icon">' + this.iconSvg(group.icon) + '</span><span>' + this.escapeHtml(group.label) + '</span></h2><strong>' + rows.length + '</strong></div>' +
+              '<ul>' + (sample || '<li>ยังไม่มีข้อมูล</li>') + '</ul>' +
+              (rows.length > 5 ? '<small>และอีก ' + (rows.length - 5) + ' รายการ</small>' : '') +
+              actionHint +
+            '</section>';
+          }).join('');
+        }
+      } else {
+        this.switchMasterCategory(this.currentMasterCategory);
+      }
+    },
+
+    async switchMasterCategory(category) {
+      this.currentMasterCategory = category || 'overview';
+      const isAdmin = this.isAdminUser();
+
+      // Update pills
+      document.querySelectorAll('#masterDataCategoryNav .frs-pill-btn').forEach((btn) => {
+        btn.classList.toggle('active', btn.getAttribute('data-category') === this.currentMasterCategory);
+      });
+
+      const overviewContainer = document.getElementById('masterDataOverview');
+      const detailContainer = document.getElementById('masterDataDetailView');
+      const addBtn = document.getElementById('masterDataAddBtn');
+
+      if (this.currentMasterCategory === 'overview' || !isAdmin) {
+        if (detailContainer) detailContainer.classList.add('hidden');
+        if (overviewContainer) overviewContainer.classList.remove('hidden');
+        if (addBtn) addBtn.classList.add('hidden');
+        this.renderDataManagement();
+        return;
+      }
+
+      if (overviewContainer) overviewContainer.classList.add('hidden');
+      if (detailContainer) detailContainer.classList.remove('hidden');
+      if (addBtn) addBtn.classList.toggle('hidden', !isAdmin);
+
+      // Reset search
+      const searchInput = document.getElementById('masterDataSearchInput');
+      if (searchInput) searchInput.value = '';
+
+      // Load data
+      this.showLoading(true);
+      try {
+        const res = await this.serverCall((runner) => runner.apiGetAdminMasterCategory(this.token, this.currentMasterCategory));
+        if (res && res.ok && res.data) {
+          this.currentMasterRows = res.data.rows || [];
+        } else {
+          this.currentMasterRows = (this.master && this.master[this.currentMasterCategory]) || [];
+        }
+        this.renderMasterTable();
+      } catch (err) {
+        console.error('LOAD_MASTER_CATEGORY', err);
+        this.currentMasterRows = (this.master && this.master[this.currentMasterCategory]) || [];
+        this.renderMasterTable();
+      } finally {
+        this.showLoading(false);
+      }
+    },
+
+    filterMasterTable() {
+      this.renderMasterTable();
+    },
+
+    renderMasterTable() {
+      const container = document.getElementById('masterDataTableContainer');
+      const countBadge = document.getElementById('masterDataCountBadge');
       if (!container) return;
-      const master = this.master || {};
-      const groups = [
-        ['ระบบ/อุปกรณ์', master.systems || [], 'SYSTEM_NAME_TH', 'layers'],
-        ['สถานที่', master.locations || [], 'LOCATION_FULL', 'map-pin'],
-        ['ฝ่าย/แผนก', master.departments || [], 'DEPARTMENT', 'users'],
-        ['SLA', master.sla || [], 'PRIORITY_NAME_TH', 'trend'],
-        ['สถานะงาน', master.status || [], 'STATUS_NAME_TH', 'check-circle']
-      ];
-      container.innerHTML = groups.map((group) => {
-        const rows = group[1];
-        const sample = rows.slice(0, 5).map((row) => '<li>' + this.escapeHtml(row[group[2]] || '-') + '</li>').join('');
-        return '<section class="frs-panel frs-master-card"><div class="frs-panel-head"><h2 class="frs-title-with-icon"><span class="frs-master-title-icon">' + this.iconSvg(group[3]) + '</span><span>' + this.escapeHtml(group[0]) + '</span></h2><strong>' + rows.length + '</strong></div><ul>' + (sample || '<li>ยังไม่มีข้อมูล</li>') + '</ul>' + (rows.length > 5 ? '<small>และอีก ' + (rows.length - 5) + ' รายการ</small>' : '') + '</section>';
-      }).join('');
+
+      const searchInput = document.getElementById('masterDataSearchInput');
+      const query = String((searchInput && searchInput.value) || '').trim().toLowerCase();
+      const cat = this.currentMasterCategory;
+      const isAdmin = this.isAdminUser();
+
+      let rows = (this.currentMasterRows || []).slice();
+      if (query) {
+        rows = rows.filter((r) => {
+          return Object.values(r).some((val) => String(val || '').toLowerCase().includes(query));
+        });
+      }
+
+      if (countBadge) {
+        countBadge.textContent = rows.length + ' รายการ';
+      }
+
+      if (!rows.length) {
+        container.innerHTML = '<div class="empty-state" style="padding:40px; text-align:center; color:var(--frs-muted);">ไม่พบข้อมูล' + (query ? ' ที่ตรงกับคำค้นหา' : '') + '</div>';
+        return;
+      }
+
+      let html = '<table class="frs-master-table"><thead><tr>';
+      if (cat === 'systems') {
+        html += '<th>รหัสระบบ</th><th>ชื่อระบบ (ไทย / อังกฤษ)</th><th>SLA เริ่มต้น</th><th>สถานะ</th><th>คำอธิบาย</th>' + (isAdmin ? '<th>จัดการ</th>' : '') + '</tr></thead><tbody>';
+        html += rows.map((r) => {
+          const isActive = String(r.ACTIVE) === 'true' || r.ACTIVE === true || r.ACTIVE === 'TRUE';
+          const rJson = this.escapeHtml(JSON.stringify(r));
+          return '<tr>' +
+            '<td class="td-key"><strong>' + this.escapeHtml(r.SYSTEM_CODE || '-') + '</strong></td>' +
+            '<td class="td-title">' + this.escapeHtml(r.SYSTEM_NAME_TH || '-') + (r.SYSTEM_NAME_EN ? ' <small class="muted">(' + this.escapeHtml(r.SYSTEM_NAME_EN) + ')</small>' : '') + '</td>' +
+            '<td class="td-meta"><span class="badge">' + this.escapeHtml(r.DEFAULT_PRIORITY_CODE || '-') + '</span></td>' +
+            '<td><span class="' + (isActive ? 'frs-badge-active' : 'frs-badge-inactive') + '">' + (isActive ? 'ใช้งาน' : 'ไม่ใช้งาน') + '</span></td>' +
+            '<td class="td-meta">' + this.escapeHtml(r.DESCRIPTION || '-') + '</td>' +
+            (isAdmin ? '<td class="td-actions"><div class="frs-row-actions"><button type="button" class="frs-action-btn-sm" onclick=\'App.openMasterItemModal(' + rJson + ')\'>แก้ไข</button><button type="button" class="frs-action-btn-sm frs-action-btn-danger" onclick="App.deleteMasterItem(\'' + cat + '\', \'' + this.escapeHtml(r.SYSTEM_CODE) + '\', \'' + this.escapeHtml(r.SYSTEM_NAME_TH || r.SYSTEM_CODE) + '\')">ลบ</button></div></td>' : '') +
+          '</tr>';
+        }).join('');
+      } else if (cat === 'locations') {
+        html += '<th>รหัสสถานที่</th><th>สถานที่เต็ม</th><th>อาคาร/ชั้น/ห้อง</th><th>QR Code</th><th>สถานะ</th>' + (isAdmin ? '<th>จัดการ</th>' : '') + '</tr></thead><tbody>';
+        html += rows.map((r) => {
+          const isActive = String(r.ACTIVE) === 'true' || r.ACTIVE === true || r.ACTIVE === 'TRUE';
+          const rJson = this.escapeHtml(JSON.stringify(r));
+          const roomInfo = [r.BUILDING, r.FLOOR ? ('ชั้น ' + r.FLOOR) : '', r.ROOM].filter(Boolean).join(' / ');
+          return '<tr>' +
+            '<td class="td-key"><strong>' + this.escapeHtml(r.LOCATION_ID || '-') + '</strong></td>' +
+            '<td class="td-title">' + this.escapeHtml(r.LOCATION_FULL || '-') + '</td>' +
+            '<td class="td-meta">' + this.escapeHtml(roomInfo || '-') + '</td>' +
+            '<td class="td-meta"><small>' + this.escapeHtml(r.QR_CODE_REF || '-') + '</small></td>' +
+            '<td><span class="' + (isActive ? 'frs-badge-active' : 'frs-badge-inactive') + '">' + (isActive ? 'ใช้งาน' : 'ไม่ใช้งาน') + '</span></td>' +
+            (isAdmin ? '<td class="td-actions"><div class="frs-row-actions"><button type="button" class="frs-action-btn-sm" onclick=\'App.openMasterItemModal(' + rJson + ')\'>แก้ไข</button><button type="button" class="frs-action-btn-sm frs-action-btn-danger" onclick="App.deleteMasterItem(\'' + cat + '\', \'' + this.escapeHtml(r.LOCATION_ID) + '\', \'' + this.escapeHtml(r.LOCATION_FULL || r.LOCATION_ID) + '\')">ลบ</button></div></td>' : '') +
+          '</tr>';
+        }).join('');
+      } else if (cat === 'departments') {
+        html += '<th>รหัสฝ่าย/แผนก</th><th>ฝ่าย/สำนัก</th><th>แผนก/ส่วนงาน</th><th>คำอธิบาย</th><th>สถานะ</th>' + (isAdmin ? '<th>จัดการ</th>' : '') + '</tr></thead><tbody>';
+        html += rows.map((r) => {
+          const isActive = String(r.ACTIVE) === 'true' || r.ACTIVE === true || r.ACTIVE === 'TRUE';
+          const rJson = this.escapeHtml(JSON.stringify(r));
+          return '<tr>' +
+            '<td class="td-key"><strong>' + this.escapeHtml(r.DEPARTMENT_ID || '-') + '</strong></td>' +
+            '<td class="td-title">' + this.escapeHtml(r.DIVISION || '-') + '</td>' +
+            '<td class="td-title"><strong>' + this.escapeHtml(r.DEPARTMENT || '-') + '</strong></td>' +
+            '<td class="td-meta">' + this.escapeHtml(r.DESCRIPTION || '-') + '</td>' +
+            '<td><span class="' + (isActive ? 'frs-badge-active' : 'frs-badge-inactive') + '">' + (isActive ? 'ใช้งาน' : 'ไม่ใช้งาน') + '</span></td>' +
+            (isAdmin ? '<td class="td-actions"><div class="frs-row-actions"><button type="button" class="frs-action-btn-sm" onclick=\'App.openMasterItemModal(' + rJson + ')\'>แก้ไข</button><button type="button" class="frs-action-btn-sm frs-action-btn-danger" onclick="App.deleteMasterItem(\'' + cat + '\', \'' + this.escapeHtml(r.DEPARTMENT_ID) + '\', \'' + this.escapeHtml(r.DEPARTMENT || r.DEPARTMENT_ID) + '\')">ลบ</button></div></td>' : '') +
+          '</tr>';
+        }).join('');
+      } else if (cat === 'sla') {
+        html += '<th>รหัส SLA</th><th>ระดับความเร่งด่วน</th><th>SLA (ชั่วโมง)</th><th>ระยะเวลา</th><th>สถานะ</th>' + (isAdmin ? '<th>จัดการ</th>' : '') + '</tr></thead><tbody>';
+        html += rows.map((r) => {
+          const isActive = String(r.ACTIVE) === 'true' || r.ACTIVE === true || r.ACTIVE === 'TRUE';
+          const rJson = this.escapeHtml(JSON.stringify(r));
+          return '<tr>' +
+            '<td class="td-key"><strong>' + this.escapeHtml(r.PRIORITY_CODE || '-') + '</strong></td>' +
+            '<td class="td-title">' + this.escapeHtml(r.PRIORITY_NAME_TH || '-') + (r.PRIORITY_NAME_EN ? ' <small class="muted">(' + this.escapeHtml(r.PRIORITY_NAME_EN) + ')</small>' : '') + '</td>' +
+            '<td><strong>' + this.escapeHtml(r.SLA_HOURS != null ? r.SLA_HOURS : '-') + '</strong> ชม.</td>' +
+            '<td class="td-meta">' + this.escapeHtml(r.SLA_TEXT || '-') + '</td>' +
+            '<td><span class="' + (isActive ? 'frs-badge-active' : 'frs-badge-inactive') + '">' + (isActive ? 'ใช้งาน' : 'ไม่ใช้งาน') + '</span></td>' +
+            (isAdmin ? '<td class="td-actions"><div class="frs-row-actions"><button type="button" class="frs-action-btn-sm" onclick=\'App.openMasterItemModal(' + rJson + ')\'>แก้ไข</button><button type="button" class="frs-action-btn-sm frs-action-btn-danger" onclick="App.deleteMasterItem(\'' + cat + '\', \'' + this.escapeHtml(r.PRIORITY_CODE) + '\', \'' + this.escapeHtml(r.PRIORITY_NAME_TH || r.PRIORITY_CODE) + '\')">ลบ</button></div></td>' : '') +
+          '</tr>';
+        }).join('');
+      } else if (cat === 'status') {
+        html += '<th>รหัสสถานะ</th><th>ชื่อสถานะ</th><th>ลำดับ (Sort Order)</th><th>คำอธิบาย</th><th>สถานะ</th>' + (isAdmin ? '<th>จัดการ</th>' : '') + '</tr></thead><tbody>';
+        html += rows.map((r) => {
+          const isActive = String(r.ACTIVE) === 'true' || r.ACTIVE === true || r.ACTIVE === 'TRUE';
+          const rJson = this.escapeHtml(JSON.stringify(r));
+          return '<tr>' +
+            '<td class="td-key"><strong>' + this.escapeHtml(r.STATUS_CODE || '-') + '</strong></td>' +
+            '<td class="td-title">' + this.escapeHtml(r.STATUS_NAME_TH || '-') + (r.STATUS_NAME_EN ? ' <small class="muted">(' + this.escapeHtml(r.STATUS_NAME_EN) + ')</small>' : '') + '</td>' +
+            '<td><span class="badge">' + this.escapeHtml(r.SORT_ORDER != null ? r.SORT_ORDER : '-') + '</span></td>' +
+            '<td class="td-meta">' + this.escapeHtml(r.DESCRIPTION || '-') + '</td>' +
+            '<td><span class="' + (isActive ? 'frs-badge-active' : 'frs-badge-inactive') + '">' + (isActive ? 'ใช้งาน' : 'ไม่ใช้งาน') + '</span></td>' +
+            (isAdmin ? '<td class="td-actions"><div class="frs-row-actions"><button type="button" class="frs-action-btn-sm" onclick=\'App.openMasterItemModal(' + rJson + ')\'>แก้ไข</button><button type="button" class="frs-action-btn-sm frs-action-btn-danger" onclick="App.deleteMasterItem(\'' + cat + '\', \'' + this.escapeHtml(r.STATUS_CODE) + '\', \'' + this.escapeHtml(r.STATUS_NAME_TH || r.STATUS_CODE) + '\')">ลบ</button></div></td>' : '') +
+          '</tr>';
+        }).join('');
+      }
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    },
+
+    openMasterItemModal(item) {
+      const cat = this.currentMasterCategory;
+      if (cat === 'overview') return;
+
+      const modal = document.getElementById('masterDataModal');
+      const title = document.getElementById('masterDataModalTitle');
+      const subtitle = document.getElementById('masterDataModalSubtitle');
+      const formFields = document.getElementById('masterDataFormFields');
+      const formCategory = document.getElementById('masterFormCategory');
+      const formMode = document.getElementById('masterFormMode');
+
+      if (!modal || !formFields) return;
+
+      const isEdit = Boolean(item);
+      formCategory.value = cat;
+      formMode.value = isEdit ? 'edit' : 'create';
+
+      const catLabels = {
+        systems: 'ระบบ/อุปกรณ์',
+        locations: 'สถานที่',
+        departments: 'ฝ่าย/แผนก',
+        sla: 'ระดับความเร่งด่วน (SLA)',
+        status: 'สถานะงาน'
+      };
+
+      const catLabel = catLabels[cat] || 'ข้อมูลหลัก';
+      title.textContent = (isEdit ? 'แก้ไข' : 'เพิ่ม') + catLabel;
+      subtitle.textContent = isEdit ? 'แก้ไขข้อมูลและบันทึกการเปลี่ยนแปลง' : 'กรอกรายละเอียดข้อมูลใหม่ให้ครบถ้วน';
+
+      const data = item || {};
+      const isActive = data.ACTIVE !== undefined ? (String(data.ACTIVE) === 'true' || data.ACTIVE === true || data.ACTIVE === 'TRUE') : true;
+
+      let fieldsHtml = '';
+
+      if (cat === 'systems') {
+        const slaOptions = ((this.master && this.master.sla) || []).map((s) => {
+          const selected = String(data.DEFAULT_PRIORITY_CODE || 'NORMAL') === String(s.PRIORITY_CODE) ? ' selected' : '';
+          return '<option value="' + this.escapeHtml(s.PRIORITY_CODE) + '"' + selected + '>' + this.escapeHtml(s.PRIORITY_NAME_TH || s.PRIORITY_CODE) + '</option>';
+        }).join('');
+
+        fieldsHtml =
+          '<div><label class="form-label" for="m_SYSTEM_CODE">รหัสระบบ (System Code) *</label><input type="text" id="m_SYSTEM_CODE" name="SYSTEM_CODE" class="form-control" required' + (isEdit ? ' readonly style="background:var(--frs-surface-2);"' : '') + ' value="' + this.escapeHtml(data.SYSTEM_CODE || '') + '" placeholder="เช่น AC, EE, PL"></div>' +
+          '<div><label class="form-label" for="m_SYSTEM_NAME_TH">ชื่อระบบ (ภาษาไทย) *</label><input type="text" id="m_SYSTEM_NAME_TH" name="SYSTEM_NAME_TH" class="form-control" required value="' + this.escapeHtml(data.SYSTEM_NAME_TH || '') + '" placeholder="เช่น ระบบปรับอากาศ"></div>' +
+          '<div><label class="form-label" for="m_SYSTEM_NAME_EN">ชื่อระบบ (English)</label><input type="text" id="m_SYSTEM_NAME_EN" name="SYSTEM_NAME_EN" class="form-control" value="' + this.escapeHtml(data.SYSTEM_NAME_EN || '') + '" placeholder="เช่น Air Condition System"></div>' +
+          '<div><label class="form-label" for="m_DEFAULT_PRIORITY_CODE">ระดับความเร่งด่วนเริ่มต้น (Default SLA)</label><select id="m_DEFAULT_PRIORITY_CODE" name="DEFAULT_PRIORITY_CODE" class="form-control">' + slaOptions + '</select></div>' +
+          '<div><label class="form-label" for="m_DESCRIPTION">คำอธิบายเพิ่มเติม</label><textarea id="m_DESCRIPTION" name="DESCRIPTION" class="form-control" rows="2" placeholder="รายละเอียดหรือขอบเขตงาน">' + this.escapeHtml(data.DESCRIPTION || '') + '</textarea></div>' +
+          '<div><label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="m_ACTIVE" name="ACTIVE"' + (isActive ? ' checked' : '') + ' style="width:18px;height:18px;"> <span>เปิดใช้งาน (Active)</span></label></div>';
+      } else if (cat === 'locations') {
+        fieldsHtml =
+          '<div><label class="form-label" for="m_LOCATION_ID">รหัสสถานที่ (Location ID) *</label><input type="text" id="m_LOCATION_ID" name="LOCATION_ID" class="form-control" required' + (isEdit ? ' readonly style="background:var(--frs-surface-2);"' : '') + ' value="' + this.escapeHtml(data.LOCATION_ID || '') + '" placeholder="เช่น LOC-001"></div>' +
+          '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">' +
+            '<div><label class="form-label" for="m_BUILDING">อาคาร *</label><input type="text" id="m_BUILDING" name="BUILDING" class="form-control" required value="' + this.escapeHtml(data.BUILDING || '') + '" placeholder="เช่น อาคาร A"></div>' +
+            '<div><label class="form-label" for="m_FLOOR">ชั้น</label><input type="text" id="m_FLOOR" name="FLOOR" class="form-control" value="' + this.escapeHtml(data.FLOOR || '') + '" placeholder="เช่น 1, 2, G"></div>' +
+          '</div>' +
+          '<div><label class="form-label" for="m_ROOM">ห้อง / จุดติดตั้ง *</label><input type="text" id="m_ROOM" name="ROOM" class="form-control" required value="' + this.escapeHtml(data.ROOM || '') + '" placeholder="เช่น ห้องประชุม 101, โถงทางเดิน"></div>' +
+          '<div><label class="form-label" for="m_LOCATION_FULL">ชื่อสถานที่เต็ม (Location Full)</label><input type="text" id="m_LOCATION_FULL" name="LOCATION_FULL" class="form-control" value="' + this.escapeHtml(data.LOCATION_FULL || '') + '" placeholder="หากเว้นว่าง ระบบจะรวมชื่ออาคาร ชั้น และห้องให้อัตโนมัติ"></div>' +
+          '<div><label class="form-label" for="m_QR_CODE_REF">รหัสอ้างอิง QR Code</label><input type="text" id="m_QR_CODE_REF" name="QR_CODE_REF" class="form-control" value="' + this.escapeHtml(data.QR_CODE_REF || '') + '" placeholder="เช่น FRS-QR-LOC-001"></div>' +
+          '<div><label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="m_ACTIVE" name="ACTIVE"' + (isActive ? ' checked' : '') + ' style="width:18px;height:18px;"> <span>เปิดใช้งาน (Active)</span></label></div>';
+      } else if (cat === 'departments') {
+        fieldsHtml =
+          '<div><label class="form-label" for="m_DEPARTMENT_ID">รหัสฝ่าย/แผนก (Department ID) *</label><input type="text" id="m_DEPARTMENT_ID" name="DEPARTMENT_ID" class="form-control" required' + (isEdit ? ' readonly style="background:var(--frs-surface-2);"' : '') + ' value="' + this.escapeHtml(data.DEPARTMENT_ID || '') + '" placeholder="เช่น DEP-001"></div>' +
+          '<div><label class="form-label" for="m_DIVISION">ฝ่าย / สำนัก *</label><input type="text" id="m_DIVISION" name="DIVISION" class="form-control" required value="' + this.escapeHtml(data.DIVISION || '') + '" placeholder="เช่น ฝ่ายอำนวยการ"></div>' +
+          '<div><label class="form-label" for="m_DEPARTMENT">แผนก / ส่วนงาน *</label><input type="text" id="m_DEPARTMENT" name="DEPARTMENT" class="form-control" required value="' + this.escapeHtml(data.DEPARTMENT || '') + '" placeholder="เช่น งานอาคารสถานที่"></div>' +
+          '<div><label class="form-label" for="m_DESCRIPTION">คำอธิบายเพิ่มเติม</label><textarea id="m_DESCRIPTION" name="DESCRIPTION" class="form-control" rows="2" placeholder="รายละเอียดหรือขอบเขตหน่วยงาน">' + this.escapeHtml(data.DESCRIPTION || '') + '</textarea></div>' +
+          '<div><label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="m_ACTIVE" name="ACTIVE"' + (isActive ? ' checked' : '') + ' style="width:18px;height:18px;"> <span>เปิดใช้งาน (Active)</span></label></div>';
+      } else if (cat === 'sla') {
+        fieldsHtml =
+          '<div><label class="form-label" for="m_PRIORITY_CODE">รหัสระดับความเร่งด่วน (Priority Code) *</label><input type="text" id="m_PRIORITY_CODE" name="PRIORITY_CODE" class="form-control" required' + (isEdit ? ' readonly style="background:var(--frs-surface-2);"' : '') + ' value="' + this.escapeHtml(data.PRIORITY_CODE || '') + '" placeholder="เช่น HIGH, NORMAL, LOW"></div>' +
+          '<div><label class="form-label" for="m_PRIORITY_NAME_TH">ชื่อระดับความเร่งด่วน (ภาษาไทย) *</label><input type="text" id="m_PRIORITY_NAME_TH" name="PRIORITY_NAME_TH" class="form-control" required value="' + this.escapeHtml(data.PRIORITY_NAME_TH || '') + '" placeholder="เช่น ด่วน"></div>' +
+          '<div><label class="form-label" for="m_PRIORITY_NAME_EN">ชื่อระดับความเร่งด่วน (English)</label><input type="text" id="m_PRIORITY_NAME_EN" name="PRIORITY_NAME_EN" class="form-control" value="' + this.escapeHtml(data.PRIORITY_NAME_EN || '') + '" placeholder="เช่น High Priority"></div>' +
+          '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">' +
+            '<div><label class="form-label" for="m_SLA_HOURS">ระยะเวลา SLA (ชั่วโมง) *</label><input type="number" id="m_SLA_HOURS" name="SLA_HOURS" class="form-control" required min="1" step="1" value="' + this.escapeHtml(data.SLA_HOURS != null ? data.SLA_HOURS : '') + '" placeholder="เช่น 24, 72"></div>' +
+            '<div><label class="form-label" for="m_SLA_TEXT">ข้อความ SLA *</label><input type="text" id="m_SLA_TEXT" name="SLA_TEXT" class="form-control" required value="' + this.escapeHtml(data.SLA_TEXT || '') + '" placeholder="เช่น ภายใน 1-3 วัน"></div>' +
+          '</div>' +
+          '<div><label class="form-label" for="m_DESCRIPTION">คำอธิบายเพิ่มเติม</label><textarea id="m_DESCRIPTION" name="DESCRIPTION" class="form-control" rows="2" placeholder="เกณฑ์การพิจารณาความเร่งด่วน">' + this.escapeHtml(data.DESCRIPTION || '') + '</textarea></div>' +
+          '<div><label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="m_ACTIVE" name="ACTIVE"' + (isActive ? ' checked' : '') + ' style="width:18px;height:18px;"> <span>เปิดใช้งาน (Active)</span></label></div>';
+      } else if (cat === 'status') {
+        fieldsHtml =
+          '<div><label class="form-label" for="m_STATUS_CODE">รหัสสถานะงาน (Status Code) *</label><input type="text" id="m_STATUS_CODE" name="STATUS_CODE" class="form-control" required' + (isEdit ? ' readonly style="background:var(--frs-surface-2);"' : '') + ' value="' + this.escapeHtml(data.STATUS_CODE || '') + '" placeholder="เช่น IN_PROGRESS, DONE"></div>' +
+          '<div><label class="form-label" for="m_STATUS_NAME_TH">ชื่อสถานะ (ภาษาไทย) *</label><input type="text" id="m_STATUS_NAME_TH" name="STATUS_NAME_TH" class="form-control" required value="' + this.escapeHtml(data.STATUS_NAME_TH || '') + '" placeholder="เช่น กำลังดำเนินการ"></div>' +
+          '<div><label class="form-label" for="m_STATUS_NAME_EN">ชื่อสถานะ (English)</label><input type="text" id="m_STATUS_NAME_EN" name="STATUS_NAME_EN" class="form-control" value="' + this.escapeHtml(data.STATUS_NAME_EN || '') + '" placeholder="เช่น In Progress"></div>' +
+          '<div><label class="form-label" for="m_SORT_ORDER">ลำดับการแสดงผล (Sort Order) *</label><input type="number" id="m_SORT_ORDER" name="SORT_ORDER" class="form-control" required min="1" step="1" value="' + this.escapeHtml(data.SORT_ORDER != null ? data.SORT_ORDER : '') + '" placeholder="เช่น 1, 2, 3"></div>' +
+          '<div><label class="form-label" for="m_DESCRIPTION">คำอธิบายเพิ่มเติม</label><textarea id="m_DESCRIPTION" name="DESCRIPTION" class="form-control" rows="2" placeholder="ความหมายของสถานะนี้">' + this.escapeHtml(data.DESCRIPTION || '') + '</textarea></div>' +
+          '<div><label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="m_ACTIVE" name="ACTIVE"' + (isActive ? ' checked' : '') + ' style="width:18px;height:18px;"> <span>เปิดใช้งาน (Active)</span></label></div>';
+      }
+
+      formFields.innerHTML = fieldsHtml;
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    },
+
+    closeMasterDataModal() {
+      const modal = document.getElementById('masterDataModal');
+      if (modal) modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    },
+
+    async submitMasterForm(event) {
+      if (event) event.preventDefault();
+      const form = document.getElementById('masterDataForm');
+      if (!form) return;
+
+      const cat = document.getElementById('masterFormCategory').value;
+      const formData = new FormData(form);
+      const payload = {};
+      formData.forEach((val, key) => { payload[key] = val; });
+      payload.ACTIVE = document.getElementById('m_ACTIVE') ? document.getElementById('m_ACTIVE').checked : true;
+
+      this.showLoading(true);
+      try {
+        const res = await this.serverCall((runner) => runner.apiSaveMasterCategoryItem(this.token, cat, payload));
+        if (!res || !res.ok) {
+          this.handleApiError(res);
+          return;
+        }
+
+        this.closeMasterDataModal();
+        await this.notify(res.message || 'บันทึกข้อมูลเรียบร้อยแล้ว', 'success', 'สำเร็จ');
+
+        // Reload current category list
+        const refreshed = await this.serverCall((runner) => runner.apiGetAdminMasterCategory(this.token, cat));
+        if (refreshed && refreshed.ok && refreshed.data) {
+          this.currentMasterRows = refreshed.data.rows || [];
+          this.renderMasterTable();
+        }
+
+        // Refresh app master data in background
+        this.serverCall((runner) => runner.apiGetMasterData(this.token)).then((masterRes) => {
+          if (masterRes && masterRes.ok && masterRes.data) {
+            this.master = masterRes.data;
+          }
+        }).catch(() => {});
+
+      } catch (err) {
+        this.notify((err && err.message) || 'บันทึกข้อมูลไม่สำเร็จ', 'error', 'เกิดข้อผิดพลาด');
+      } finally {
+        this.showLoading(false);
+      }
+    },
+
+    async deleteMasterItem(category, keyValue, label) {
+      const confirmed = await this.confirmBox({
+        title: 'ยืนยันการลบข้อมูล?',
+        message: 'คุณต้องการลบ "' + label + '" (รหัส: ' + keyValue + ') ใช่หรือไม่?',
+        detail: 'หากข้อมูลนี้ถูกอ้างอิงอยู่ในประวัติงานซ่อม ระบบจะไม่อนุญาตให้ลบ เพื่อรักษาความถูกต้องของข้อมูล',
+        confirmText: 'ลบข้อมูล',
+        cancelText: 'ยกเลิก',
+        type: 'warning'
+      });
+
+      if (!confirmed) return;
+
+      this.showLoading(true);
+      try {
+        const res = await this.serverCall((runner) => runner.apiDeleteMasterCategoryItem(this.token, category, keyValue));
+        if (!res || !res.ok) {
+          this.handleApiError(res);
+          return;
+        }
+
+        await this.notify(res.message || 'ลบข้อมูลเรียบร้อยแล้ว', 'success', 'สำเร็จ');
+
+        // Reload category
+        const refreshed = await this.serverCall((runner) => runner.apiGetAdminMasterCategory(this.token, category));
+        if (refreshed && refreshed.ok && refreshed.data) {
+          this.currentMasterRows = refreshed.data.rows || [];
+          this.renderMasterTable();
+        }
+
+        // Refresh master in background
+        this.serverCall((runner) => runner.apiGetMasterData(this.token)).then((masterRes) => {
+          if (masterRes && masterRes.ok && masterRes.data) {
+            this.master = masterRes.data;
+          }
+        }).catch(() => {});
+
+      } catch (err) {
+        this.notify((err && err.message) || 'ลบข้อมูลไม่สำเร็จ', 'error', 'เกิดข้อผิดพลาด');
+      } finally {
+        this.showLoading(false);
+      }
     },
 
     exportRequestsCsv() {

@@ -321,7 +321,7 @@
               <h1 id="dashboardGreeting">สวัสดีครับ</h1>
               <p id="dashboardSubtitle" class="frs-lead">ติดตามความคืบหน้าและจัดการงานซ่อมได้ในหน้าจอเดียว</p>
             </div>
-            <button class="frs-primary-action" type="button" onclick="App.showTab('newRequest')"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-plus"></use></svg><span>แจ้งซ่อมใหม่</span>
+            <button class="frs-primary-action" id="welcomeNewRequestBtn" type="button" onclick="App.showTab('newRequest')"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-plus"></use></svg><span>แจ้งซ่อมใหม่</span>
             </button>
           </section>
 
@@ -456,8 +456,57 @@
         </div>
 
         <div id="dataTab" class="tab-panel hidden">
-          <div class="frs-page-heading"><div><p class="frs-eyebrow">Master Data</p><h1 class="frs-title-with-icon"><svg class="frs-ui-icon frs-title-icon" aria-hidden="true"><use href="#frs-icon-database"></use></svg><span>จัดการข้อมูล</span></h1><p>ตรวจสอบข้อมูลอ้างอิงที่ระบบใช้งาน โดย Candidate นี้ยังไม่แก้ Schema หรือ Master Data</p></div><button id="dataRegistrationButton" class="btn btn-primary hidden frs-button-with-icon" type="button" onclick="App.showTab('registrations')"><svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-users"></use></svg><span>คำขอสมาชิก</span></button></div>
+          <div class="frs-page-heading">
+            <div>
+              <p class="frs-eyebrow">Master Data</p>
+              <h1 class="frs-title-with-icon"><svg class="frs-ui-icon frs-title-icon" aria-hidden="true"><use href="#frs-icon-database"></use></svg><span>จัดการข้อมูล</span></h1>
+              <p>ตรวจสอบและจัดการข้อมูลอ้างอิงของระบบทั้งหมด (สำหรับผู้ดูแลระบบ)</p>
+            </div>
+            <div class="frs-heading-actions" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <button id="dataRegistrationButton" class="btn btn-primary hidden frs-button-with-icon" type="button" onclick="App.showTab('registrations')">
+                <svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-users"></use></svg><span>คำขอสมาชิก</span>
+              </button>
+              <button id="masterDataAddBtn" class="btn btn-primary hidden frs-button-with-icon" type="button" onclick="App.openMasterItemModal()">
+                <svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-plus"></use></svg><span>เพิ่มข้อมูลใหม่</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Category filter pills for Admin -->
+          <div id="masterDataCategoryNav" class="frs-category-nav">
+            <button type="button" class="frs-pill-btn active" data-category="overview" onclick="App.switchMasterCategory('overview')">
+              <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-database"></use></svg><span>ภาพรวม</span>
+            </button>
+            <button type="button" class="frs-pill-btn" data-category="systems" onclick="App.switchMasterCategory('systems')">
+              <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-layers"></use></svg><span>ระบบ/อุปกรณ์</span>
+            </button>
+            <button type="button" class="frs-pill-btn" data-category="locations" onclick="App.switchMasterCategory('locations')">
+              <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-map-pin"></use></svg><span>สถานที่</span>
+            </button>
+            <button type="button" class="frs-pill-btn" data-category="departments" onclick="App.switchMasterCategory('departments')">
+              <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-users"></use></svg><span>ฝ่าย/แผนก</span>
+            </button>
+            <button type="button" class="frs-pill-btn" data-category="sla" onclick="App.switchMasterCategory('sla')">
+              <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-trend"></use></svg><span>SLA</span>
+            </button>
+            <button type="button" class="frs-pill-btn" data-category="status" onclick="App.switchMasterCategory('status')">
+              <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-check-circle"></use></svg><span>สถานะงาน</span>
+            </button>
+          </div>
+
+          <!-- Overview View -->
           <div id="masterDataOverview" class="frs-master-grid"></div>
+
+          <!-- Category Detail CRUD View -->
+          <div id="masterDataDetailView" class="hidden">
+            <div class="frs-table-toolbar" style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px; flex-wrap:wrap;">
+              <div class="frs-search-box" style="flex:1 1 240px; max-width:360px;">
+                <input type="search" id="masterDataSearchInput" placeholder="ค้นหาข้อมูล..." oninput="App.filterMasterTable()" class="form-control" style="width:100%; border-radius:12px; padding:8px 14px; border:1px solid var(--frs-border); background:var(--frs-surface);">
+              </div>
+              <div id="masterDataCountBadge" class="badge" style="font-size:12px; color:var(--frs-muted);">0 รายการ</div>
+            </div>
+            <div id="masterDataTableContainer" class="frs-master-table-wrapper"></div>
+          </div>
         </div>
 
         <div id="settingsTab" class="tab-panel hidden">
@@ -561,6 +610,34 @@
         </button>
         <img id="photoViewerImg" class="photo-viewer-img" src="" alt="รูปภาพขนาดเต็ม">
         <div id="photoViewerCaption" class="photo-viewer-caption"></div>
+      </div>
+    </div>
+
+    <!-- Master Data Create/Edit Modal -->
+    <div id="masterDataModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="masterDataModalTitle">
+      <div class="modal-backdrop" onclick="App.closeMasterDataModal()"></div>
+      <div class="modal-panel" style="max-width:560px;">
+        <div class="mobile-bottom-sheet-handle" aria-hidden="true"></div>
+        <div class="modal-header">
+          <div>
+            <div id="masterDataModalTitle" class="modal-title">จัดการข้อมูล</div>
+            <div id="masterDataModalSubtitle" class="modal-subtitle">กรอกรายละเอียดข้อมูลให้ครบถ้วน</div>
+          </div>
+          <button type="button" class="modal-close" onclick="App.closeMasterDataModal()" aria-label="ปิด">
+            <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-x"></use></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="masterDataForm" onsubmit="App.submitMasterForm(event)">
+            <input type="hidden" id="masterFormCategory" value="">
+            <input type="hidden" id="masterFormMode" value="create">
+            <div id="masterDataFormFields" class="form-grid" style="display:grid; gap:14px;"></div>
+            <div class="modal-actions" style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
+              <button type="button" class="btn btn-outline" onclick="App.closeMasterDataModal()">ยกเลิก</button>
+              <button type="submit" id="masterDataSubmitBtn" class="btn btn-primary">บันทึกข้อมูล</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
 

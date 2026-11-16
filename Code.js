@@ -98,6 +98,21 @@ function apiGetMasterData(token) {
   return MasterService.getAllMasterData();
 }
 
+function apiGetAdminMasterCategory(token, category) {
+  AuthService.requireRole(token, [APP_CONFIG.ROLES.ADMIN]);
+  return MasterService.getAdminMasterCategory(category);
+}
+
+function apiSaveMasterCategoryItem(token, category, item) {
+  AuthService.requireRole(token, [APP_CONFIG.ROLES.ADMIN]);
+  return MasterService.saveMasterCategoryItem(category, item);
+}
+
+function apiDeleteMasterCategoryItem(token, category, keyId) {
+  AuthService.requireRole(token, [APP_CONFIG.ROLES.ADMIN]);
+  return MasterService.deleteMasterCategoryItem(category, keyId);
+}
+
 function apiCreateRequest(token, payload) {
   const user = AuthService.requireLogin(token);
   return RequestService.createRequest(user, payload);
