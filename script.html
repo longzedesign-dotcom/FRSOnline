@@ -40,10 +40,13 @@
       this.bindOAuthCallbackMessage();
       this.consumeOAuthStorage();
       this.bindPhotoInput();
+      this.bindPhotoDropAndPaste();
       this.bindSystemPriority();
       this.bindSearchableSelectFilters();
       this.bindPasswordVisibility();
       this.bindThaiPhoneInputs();
+      this.bindNetworkStatus();
+      this.initNewRequestDraft();
       document.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') return;
         const box = document.getElementById('messageBox');
@@ -51,12 +54,36 @@
           this.resolveMessageBox(false);
           return;
         }
+        const photo = document.getElementById('photoViewerModal');
+        if (photo && !photo.classList.contains('hidden')) {
+          this.closePhotoViewer();
+          return;
+        }
         const preview = document.getElementById('requestPreviewModal');
         if (preview && !preview.classList.contains('hidden')) {
           this.resolveRequestPreview(false);
           return;
         }
-        this.closeRequestModal();
+        const profile = document.getElementById('editProfileModal');
+        if (profile && !profile.classList.contains('hidden')) {
+          this.closeEditProfileModal();
+          return;
+        }
+        const master = document.getElementById('masterDataModal');
+        if (master && !master.classList.contains('hidden')) {
+          this.closeMasterDataModal();
+          return;
+        }
+        const req = document.getElementById('requestModal');
+        if (req && !req.classList.contains('hidden')) {
+          this.closeRequestModal();
+          return;
+        }
+        const sidebar = document.getElementById('appSidebar');
+        if (sidebar && sidebar.classList.contains('is-open')) {
+          this.toggleSidebar(false);
+          return;
+        }
       });
 
       if (!this.token) {
@@ -980,6 +1007,7 @@
         notificationBadge.textContent = notificationCount > 99 ? '99+' : String(notificationCount);
         notificationBadge.classList.toggle('hidden', notificationCount < 1);
       }
+      this.updateTabTitleNotification(notificationCount);
       const latest = Array.isArray(dashboard.latest) ? dashboard.latest : [];
       const activities = Array.isArray(dashboard.activities) ? dashboard.activities : [];
       this.renderDashboardTable(latest);
@@ -1944,6 +1972,9 @@
           if (typeof this.syncThaiPhoneControl === 'function') this.syncThaiPhoneControl('PHONE');
         }
       }
+      if (name === 'newRequest') {
+        this.restoreNewRequestDraft();
+      }
       this.toggleSidebar(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
@@ -2510,6 +2541,200 @@
       document.getElementById('photoPreview').classList.add('hidden');
       document.getElementById('photoPreview').style.backgroundImage = '';
       document.getElementById('photoInfo').textContent = '';
+      this.clearNewRequestDraft();
+    },
+
+    bindNetworkStatus() {
+      const banner = document.getElementById('networkStatusBanner');
+      if (!banner) return;
+      window.addEventListener('offline', () => {
+        this.haptic(25);
+        banner.className = 'network-status-banner offline';
+        banner.innerHTML = '<span>⚠️ ขาดการเชื่อมต่ออินเทอร์เน็ต — กำลังรอสัญญาณ... (ข้อมูลที่กำลังพิมพ์ถูกบันทึกอัตโนมัติ)</span>';
+        banner.classList.remove('hidden');
+      });
+      window.addEventListener('online', () => {
+        this.haptic(10);
+        banner.className = 'network-status-banner online';
+        banner.innerHTML = '<span>🟢 เชื่อมต่อสัญญาณอินเทอร์เน็ตแล้ว</span>';
+        banner.classList.remove('hidden');
+        setTimeout(() => {
+          banner.classList.add('hidden');
+        }, 3200);
+      });
+    },
+
+    updateTabTitleNotification(count) {
+      const base = 'FRS : Facility Repair System';
+      const num = Number(count || 0);
+      if (num > 0) {
+        document.title = '(' + num + ') ' + base;
+      } else {
+        document.title = base;
+      }
+    },
+
+    initNewRequestDraft() {
+      const form = document.getElementById('requestForm');
+      if (!form) return;
+      const saveDraft = () => {
+        const detail = (document.getElementById('PROBLEM_DETAIL') || {}).value || '';
+        const system = (document.getElementById('SYSTEM_CODE') || {}).value || '';
+        const loc = (document.getElementById('LOCATION_ID') || {}).value || '';
+        const prio = (document.getElementById('PRIORITY_CODE') || {}).value || '';
+        const phone = (document.getElementById('PHONE') || {}).value || '';
+        const remark = (document.getElementById('REMARK') || {}).value || '';
+
+        if (!detail.trim() && !remark.trim()) {
+          try { localStorage.removeItem('FRS_NEW_REQUEST_DRAFT'); } catch (_) {}
+          return;
+        }
+
+        const draft = {
+          detail, system, loc, prio, phone, remark,
+          timestamp: Date.now()
+        };
+        try {
+          localStorage.setItem('FRS_NEW_REQUEST_DRAFT', JSON.stringify(draft));
+        } catch (_) {}
+      };
+
+      let timer = null;
+      form.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(saveDraft, 400);
+      });
+      form.addEventListener('change', () => {
+        clearTimeout(timer);
+        timer = setTimeout(saveDraft, 400);
+      });
+    },
+
+    restoreNewRequestDraft() {
+      try {
+        const raw = localStorage.getItem('FRS_NEW_REQUEST_DRAFT');
+        if (!raw) return;
+        const draft = JSON.parse(raw);
+        if (!draft || !draft.timestamp) return;
+        if (Date.now() - draft.timestamp > 48 * 3600 * 1000) {
+          localStorage.removeItem('FRS_NEW_REQUEST_DRAFT');
+          return;
+        }
+
+        const detailInput = document.getElementById('PROBLEM_DETAIL');
+        if (detailInput && !detailInput.value.trim() && draft.detail) {
+          detailInput.value = draft.detail;
+          if (draft.system) (document.getElementById('SYSTEM_CODE') || {}).value = draft.system;
+          if (draft.loc) (document.getElementById('LOCATION_ID') || {}).value = draft.loc;
+          if (draft.prio) (document.getElementById('PRIORITY_CODE') || {}).value = draft.prio;
+          if (draft.phone) {
+            const ph = document.getElementById('PHONE');
+            if (ph) {
+              ph.value = draft.phone;
+              if (typeof this.syncThaiPhoneControl === 'function') this.syncThaiPhoneControl('PHONE');
+            }
+          }
+          if (draft.remark) (document.getElementById('REMARK') || {}).value = draft.remark;
+
+          const alert = document.getElementById('newRequestDraftAlert');
+          if (alert) alert.classList.remove('hidden');
+        }
+      } catch (_) {}
+    },
+
+    discardNewRequestDraft() {
+      try { localStorage.removeItem('FRS_NEW_REQUEST_DRAFT'); } catch (_) {}
+      const alert = document.getElementById('newRequestDraftAlert');
+      if (alert) alert.classList.add('hidden');
+      this.resetRequestForm();
+      this.notify('ล้างข้อความร่างเรียบร้อยแล้ว', 'info');
+    },
+
+    clearNewRequestDraft() {
+      try { localStorage.removeItem('FRS_NEW_REQUEST_DRAFT'); } catch (_) {}
+      const alert = document.getElementById('newRequestDraftAlert');
+      if (alert) alert.classList.add('hidden');
+    },
+
+    bindPhotoDropAndPaste() {
+      document.addEventListener('paste', async (event) => {
+        const newReqTab = document.getElementById('newRequestTab');
+        if (!newReqTab || newReqTab.classList.contains('hidden')) return;
+
+        const items = (event.clipboardData || window.clipboardData)?.items;
+        if (!items) return;
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type && items[i].type.indexOf('image') !== -1) {
+            const file = items[i].getAsFile();
+            if (file) {
+              event.preventDefault();
+              await this.handleDirectPhotoFile(file);
+              this.notify('วางรูปภาพจาก Clipboard สำเร็จ', 'success', 'เพิ่มรูปภาพแล้ว');
+              break;
+            }
+          }
+        }
+      });
+
+      const dropZone = document.getElementById('photoDropZone');
+      if (!dropZone) return;
+
+      ['dragenter', 'dragover'].forEach((eventName) => {
+        dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.add('drag-over');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach((eventName) => {
+        dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.remove('drag-over');
+        });
+      });
+
+      dropZone.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const file = e.dataTransfer?.files?.[0];
+        if (file && file.type && file.type.startsWith('image/')) {
+          await this.handleDirectPhotoFile(file);
+          this.notify('อัปโหลดรูปภาพด้วยการลากวางสำเร็จ', 'success', 'เพิ่มรูปภาพแล้ว');
+        }
+      });
+    },
+
+    async handleDirectPhotoFile(file) {
+      if (!file) return;
+      this.haptic(15);
+      const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+      if (allowed.indexOf(file.type) === -1) {
+        this.notify('รองรับเฉพาะ JPG, PNG และ WEBP หากเป็น HEIC ให้แปลงเป็น JPG ก่อน', 'warning', 'ชนิดไฟล์ไม่รองรับ');
+        return;
+      }
+      if (file.size > 15 * 1024 * 1024) {
+        this.notify('ไฟล์ต้นฉบับต้องไม่เกิน 15 MB', 'warning', 'ไฟล์มีขนาดใหญ่เกินไป');
+        return;
+      }
+
+      this.showLoading(true);
+      try {
+        const result = await this.compressImage(file, 1600, 0.82, 2 * 1024 * 1024);
+        const info = document.getElementById('photoInfo');
+        const preview = document.getElementById('photoPreview');
+        if (info) info.textContent = 'ขนาดหลังย่อ: ' + this.formatBytes(result.bytes) + ' (' + result.width + ' × ' + result.height + ' px)';
+        if (preview) {
+          preview.style.backgroundImage = 'url("' + result.dataUrl + '")';
+          preview.classList.remove('hidden');
+        }
+        this.photoBase64 = result.dataUrl;
+      } catch (err) {
+        this.notify(err.message || 'ไม่สามารถประมวลผลรูปภาพได้', 'error', 'ประมวลผลรูปภาพไม่สำเร็จ');
+      } finally {
+        this.showLoading(false);
+      }
     },
 
     bindPhotoInput() {

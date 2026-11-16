@@ -16,9 +16,11 @@
 </head>
 <body class="frs-v2303-root">
   <div id="app">
+    <div id="networkStatusBanner" class="network-status-banner hidden" role="status" aria-live="polite"></div>
 
     <svg class="frs-icon-sprite" aria-hidden="true" focusable="false">
       <defs>
+        <symbol id="frs-icon-printer" viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></symbol>
         <symbol id="frs-icon-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a4.5 4.5 0 0 0-5.8 5.8L3.6 17.4a2 2 0 0 0 2.8 2.8l5.3-5.3a4.5 4.5 0 0 0 5.8-5.8l-2.7 2.7-2.6-.7-.7-2.6z"/><path d="m14.2 14.2 5.4 5.4"/></symbol>
         <symbol id="frs-icon-home" viewBox="0 0 24 24"><path d="m3 10.5 9-7.5 9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-7h6v7"/></symbol>
         <symbol id="frs-icon-briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/><path d="M10 12v2h4v-2"/></symbol>
@@ -410,6 +412,10 @@
         <div id="newRequestTab" class="tab-panel hidden">
           <div class="section-title frs-title-with-icon"><svg class="frs-ui-icon frs-title-icon" aria-hidden="true"><use href="#frs-icon-plus"></use></svg><span>แจ้งซ่อมใหม่</span></div>
           <form id="requestForm" class="card-form" onsubmit="App.submitRequest(event)">
+            <div id="newRequestDraftAlert" class="draft-alert hidden">
+              <span class="draft-alert-text">📝 กู้คืนข้อความร่างที่บันทึกไว้ให้อัตโนมัติ</span>
+              <button type="button" class="btn btn-outline btn-small" onclick="App.discardNewRequestDraft()">ล้างร่าง</button>
+            </div>
             <div class="form-group">
               <label for="SYSTEM_CODE">ระบบ/อุปกรณ์ <span class="required">*</span></label>
               <select id="SYSTEM_CODE" required></select>
@@ -434,17 +440,20 @@
               <div id="PHONEError" class="field-error" role="alert"></div></div>
             <div class="form-group">
               <label for="PHOTO_FILE">แนบรูปภาพหน้างาน</label>
-              <div class="mobile-photo-actions">
-                <label class="mobile-photo-btn mobile-photo-camera" for="PHOTO_CAMERA_FILE">
-                  <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-camera"></use></svg>
-                  <span>ถ่ายรูปทันที</span>
-                  <input id="PHOTO_CAMERA_FILE" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onchange="App.handleMobilePhotoInput(this)">
-                </label>
-                <label class="mobile-photo-btn mobile-photo-gallery" for="PHOTO_FILE">
-                  <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-image"></use></svg>
-                  <span>เลือกจากเครื่อง</span>
-                  <input id="PHOTO_FILE" type="file" accept="image/jpeg,image/png,image/webp" onchange="App.handleMobilePhotoInput(this)">
-                </label>
+              <div id="photoDropZone" class="photo-drop-zone">
+                <div class="mobile-photo-actions">
+                  <label class="mobile-photo-btn mobile-photo-camera" for="PHOTO_CAMERA_FILE">
+                    <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-camera"></use></svg>
+                    <span>ถ่ายรูปทันที</span>
+                    <input id="PHOTO_CAMERA_FILE" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onchange="App.handleMobilePhotoInput(this)">
+                  </label>
+                  <label class="mobile-photo-btn mobile-photo-gallery" for="PHOTO_FILE">
+                    <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-image"></use></svg>
+                    <span>เลือกจากเครื่อง</span>
+                    <input id="PHOTO_FILE" type="file" accept="image/jpeg,image/png,image/webp" onchange="App.handleMobilePhotoInput(this)">
+                  </label>
+                </div>
+                <div class="photo-paste-hint"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-clipboard"></use></svg><span>ผู้ใช้ Desktop สามารถกด <strong>Ctrl + V</strong> หรือลากรูปมาวางเพื่อแนบรูปได้ทันที</span></div>
               </div>
               <div class="field-help">รองรับ JPG, PNG, WEBP ย่อและปรับขนาดอัตโนมัติก่อนส่ง</div>
               <div id="photoInfo" class="field-help"></div>
@@ -644,8 +653,45 @@
       <div class="modal-backdrop" onclick="App.closeRequestModal()"></div>
       <div class="modal-panel">
         <div class="mobile-bottom-sheet-handle" aria-hidden="true"></div>
-        <div class="modal-header"><div><div id="requestModalTitle" class="modal-title">รายละเอียดงาน</div><div id="requestModalSubtitle" class="modal-subtitle"></div></div><button type="button" class="modal-close" onclick="App.closeRequestModal()" aria-label="ปิด"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-x"></use></svg></button></div>
-        <div class="modal-body"><div id="requestDetailContent"></div><div id="workflowActions"></div><div class="section-title mt">ประวัติการดำเนินงาน</div><div id="statusTimeline" class="timeline"></div></div>
+        <div class="modal-header">
+          <div>
+            <div id="requestModalTitle" class="modal-title">รายละเอียดงาน</div>
+            <div id="requestModalSubtitle" class="modal-subtitle"></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button type="button" class="btn btn-outline btn-small frs-print-btn" onclick="window.print()" title="พิมพ์ใบงาน (Print Work Order)">
+              <svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-printer"></use></svg>
+              <span>พิมพ์ใบงาน</span>
+            </button>
+            <button type="button" class="modal-close" onclick="App.closeRequestModal()" aria-label="ปิด"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-x"></use></svg></button>
+          </div>
+        </div>
+        <div class="modal-body">
+          <div id="requestDetailContent"></div>
+          <div id="workflowActions"></div>
+          <div class="section-title mt">ประวัติการดำเนินงาน</div>
+          <div id="statusTimeline" class="timeline"></div>
+          <div class="print-signatures">
+            <div class="print-sig-box">
+              <div class="print-sig-line"></div>
+              <div>ลงชื่อ ....................................................</div>
+              <div>(ผู้แจ้งซ่อม)</div>
+              <div>วันที่ ....../....../......</div>
+            </div>
+            <div class="print-sig-box">
+              <div class="print-sig-line"></div>
+              <div>ลงชื่อ ....................................................</div>
+              <div>(ช่างผู้ปฏิบัติงาน)</div>
+              <div>วันที่ ....../....../......</div>
+            </div>
+            <div class="print-sig-box">
+              <div class="print-sig-line"></div>
+              <div>ลงชื่อ ....................................................</div>
+              <div>(ผู้ตรวจรับงาน / หัวหน้างาน)</div>
+              <div>วันที่ ....../....../......</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
