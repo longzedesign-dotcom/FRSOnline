@@ -106,7 +106,7 @@ stateDiagram-v2
 | **📞 One-Touch Calling** | แตะปุ่ม `โทรออก` บนรายละเอียดงานเพื่อต่อสายตรงหาผู้แจ้งซ่อมผ่านแอปโทรศัพท์บนสมาร์ตโฟนทันที |
 | **🖼️ Lightbox Photo Viewer** | แสดงการ์ดภาพ Thumbnail แตะขยายดูรูปก่อนซ่อมและหลังซ่อมแบบเต็มจอพร้อมซูมได้ |
 | **📋 Bottom Sheet Modal** | หน้าต่างแจ้งเตือนและรายละเอียดงานเลื่อนขึ้นจากขอบล่างจอ (Bottom Sheet) พร้อมบาร์จับปัด แตะปิดง่าย |
-| **⏱️ SLA Tracking & Analytics** | คำนวณ SLA อัตโนมัติตามประเภทความเร่งด่วน (LOW 240ชม., NORMAL 168ชม., HIGH 72ชม., CRITICAL 24ชม., PM 720ชม.) |
+| **⏱️ SLA Tracking & Analytics** | คำนวณ SLA อัตโนมัติตามมาตรฐานสากล (CRITICAL 4ชม., HIGH 8ชม., NORMAL 24ชม., LOW 72ชม., PM 168ชม.) |
 | **🔒 Role-Based Access Control** | แบ่งสิทธิ์ 4 ระดับ: `USER` (ผู้แจ้ง), `TECHNICIAN` (ช่างซ่อม), `MANAGER` (ผู้จัดการ), `ADMIN` (ผู้ดูแลระบบ) |
 
 ---

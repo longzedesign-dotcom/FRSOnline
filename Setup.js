@@ -297,11 +297,11 @@ function seedMasterData_() {
   ]);
 
   seedRowsByKey_(APP_CONFIG.SHEETS.MASTER_SLA, 'PRIORITY_CODE', [
-    { PRIORITY_CODE: 'LOW', PRIORITY_NAME_TH: 'ต่ำ', PRIORITY_NAME_EN: 'Low', SLA_HOURS: 240, SLA_TEXT: 'ภายใน 10 วัน', ACTIVE: true, DESCRIPTION: 'งานปรับปรุงหรืองานไม่เร่งด่วน' },
-    { PRIORITY_CODE: 'NORMAL', PRIORITY_NAME_TH: 'ปกติ', PRIORITY_NAME_EN: 'Normal', SLA_HOURS: 168, SLA_TEXT: 'ภายใน 5-7 วัน', ACTIVE: true, DESCRIPTION: 'งานทั่วไป ไม่กระทบการให้บริการหลัก' },
-    { PRIORITY_CODE: 'HIGH', PRIORITY_NAME_TH: 'ด่วน', PRIORITY_NAME_EN: 'High Priority', SLA_HOURS: 72, SLA_TEXT: 'ภายใน 1-3 วัน', ACTIVE: true, DESCRIPTION: 'กระทบผู้ใช้งานหลายคนหรือพื้นที่สำคัญ' },
-    { PRIORITY_CODE: 'CRITICAL', PRIORITY_NAME_TH: 'ด่วนที่สุด', PRIORITY_NAME_EN: 'Critical', SLA_HOURS: 24, SLA_TEXT: 'ภายใน 1 วัน', ACTIVE: true, DESCRIPTION: 'กระทบความปลอดภัยหรือระบบหลักหยุดทำงาน' },
-    { PRIORITY_CODE: 'PM', PRIORITY_NAME_TH: 'งาน PM', PRIORITY_NAME_EN: 'Preventive Maintenance', SLA_HOURS: 720, SLA_TEXT: 'ภายในรอบแผน PM', ACTIVE: true, DESCRIPTION: 'งานตรวจเชิงป้องกันตามรอบ' }
+    { PRIORITY_CODE: 'CRITICAL', PRIORITY_NAME_TH: 'ด่วนที่สุด (ฉุกเฉิน)', PRIORITY_NAME_EN: 'Critical / Emergency', SLA_HOURS: 4, SLA_TEXT: 'ภายใน 2-4 ชม. (24 ชม./ทุกวัน)', ACTIVE: true, DESCRIPTION: 'กระทบความปลอดภัย ชีวิต ทรัพย์สิน หรือระบบหลักหยุดทำงาน' },
+    { PRIORITY_CODE: 'HIGH', PRIORITY_NAME_TH: 'ด่วนมาก', PRIORITY_NAME_EN: 'High Priority', SLA_HOURS: 8, SLA_TEXT: 'ภายใน 4-8 ชม. (1 วันทำการ)', ACTIVE: true, DESCRIPTION: 'กระทบผู้ใช้กลุ่มใหญ่ ห้องประชุมสำคัญ หรือบริการลูกค้า' },
+    { PRIORITY_CODE: 'NORMAL', PRIORITY_NAME_TH: 'ปกติ', PRIORITY_NAME_EN: 'Standard', SLA_HOURS: 24, SLA_TEXT: 'ภายใน 24-48 ชม. (1-2 วันทำการ)', ACTIVE: true, DESCRIPTION: 'งานทั่วไป ไม่ส่งผลกระทบต่อการทำงานหลัก' },
+    { PRIORITY_CODE: 'LOW', PRIORITY_NAME_TH: 'ไม่เร่งด่วน', PRIORITY_NAME_EN: 'Low / Minor', SLA_HOURS: 72, SLA_TEXT: 'ภายใน 3-5 วันทำการ', ACTIVE: true, DESCRIPTION: 'งานปรับปรุง งานตกแต่ง หรืองานย่อยที่มีอุปกรณ์ทดแทน' },
+    { PRIORITY_CODE: 'PM', PRIORITY_NAME_TH: 'แผนบำรุงรักษา', PRIORITY_NAME_EN: 'Preventive Maintenance', SLA_HOURS: 168, SLA_TEXT: 'ภายใน 7 วันทำการ', ACTIVE: true, DESCRIPTION: 'งานตรวจเช็กบำรุงรักษาเชิงป้องกันตามรอบ' }
   ]);
 
   seedRowsByKey_(APP_CONFIG.SHEETS.MASTER_SYSTEMS, 'SYSTEM_CODE', [
