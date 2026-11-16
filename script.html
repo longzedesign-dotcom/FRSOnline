@@ -1265,6 +1265,26 @@
 
     currentMasterCategory: 'overview',
     currentMasterRows: [],
+    currentMasterNextId: '',
+
+    getNextMasterId(category) {
+      if ((category === 'departments' || category === 'locations') && this.currentMasterNextId && this.currentMasterCategory === category) {
+        return this.currentMasterNextId;
+      }
+      const prefix = category === 'departments' ? 'DEP' : (category === 'locations' ? 'LOC' : '');
+      if (!prefix) return '';
+      const pkField = category === 'departments' ? 'DEPARTMENT_ID' : 'LOCATION_ID';
+      let maxNum = 0;
+      (this.currentMasterRows || []).forEach((row) => {
+        const val = String(row[pkField] || '').trim();
+        const match = val.match(new RegExp('^' + prefix + '-(\\d+)$', 'i'));
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (!isNaN(num) && num > maxNum) maxNum = num;
+        }
+      });
+      return prefix + '-' + String(maxNum + 1).padStart(3, '0');
+    },
 
     isAdminUser() {
       return String((this.currentUser && this.currentUser.ROLE) || '').toUpperCase() === 'ADMIN';
@@ -1344,13 +1364,16 @@
         const res = await this.serverCall((runner) => runner.apiGetAdminMasterCategory(this.token, this.currentMasterCategory));
         if (res && res.ok && res.data) {
           this.currentMasterRows = res.data.rows || [];
+          this.currentMasterNextId = res.data.nextId || '';
         } else {
           this.currentMasterRows = (this.master && this.master[this.currentMasterCategory]) || [];
+          this.currentMasterNextId = '';
         }
         this.renderMasterTable();
       } catch (err) {
         console.error('LOAD_MASTER_CATEGORY', err);
         this.currentMasterRows = (this.master && this.master[this.currentMasterCategory]) || [];
+        this.currentMasterNextId = '';
         this.renderMasterTable();
       } finally {
         this.showLoading(false);
@@ -1597,19 +1620,21 @@
           '<div><label class="form-label" for="m_DESCRIPTION">คำอธิบายเพิ่มเติม</label><textarea id="m_DESCRIPTION" name="DESCRIPTION" class="form-control" rows="2" placeholder="รายละเอียดหรือขอบเขตงาน">' + this.escapeHtml(data.DESCRIPTION || '') + '</textarea></div>' +
           activeToggleHtml;
       } else if (cat === 'locations') {
+        const nextLocId = isEdit ? (data.LOCATION_ID || '') : this.getNextMasterId('locations');
         fieldsHtml =
-          '<div><label class="form-label" for="m_LOCATION_ID">รหัสสถานที่ (Location ID) *</label><input type="text" id="m_LOCATION_ID" name="LOCATION_ID" class="form-control" required' + (isEdit ? ' readonly style="background:var(--frs-surface-2);"' : '') + ' value="' + this.escapeHtml(data.LOCATION_ID || '') + '" placeholder="เช่น LOC-001"></div>' +
+          '<div><label class="form-label" for="m_LOCATION_ID">รหัสสถานที่ (Location ID)' + (!isEdit ? ' <span class="badge" style="background:rgba(23,124,232,0.12); color:#177ce8; font-size:11px; margin-left:6px; font-weight:700;">รันอัตโนมัติ</span>' : ' *') + '</label><input type="text" id="m_LOCATION_ID" name="LOCATION_ID" class="form-control" readonly style="background:var(--frs-surface-2); font-weight:700; color:#177ce8;" value="' + this.escapeHtml(nextLocId) + '"><small class="muted" style="font-size:11px; margin-top:3px; display:block;">ระบบสร้างรหัสให้อัตโนมัติ โดยเรียงลำดับตัวเลขต่อเนื่อง</small></div>' +
           '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">' +
             '<div><label class="form-label" for="m_BUILDING">อาคาร *</label><input type="text" id="m_BUILDING" name="BUILDING" class="form-control" required value="' + this.escapeHtml(data.BUILDING || '') + '" placeholder="เช่น อาคาร A"></div>' +
             '<div><label class="form-label" for="m_FLOOR">ชั้น</label><input type="text" id="m_FLOOR" name="FLOOR" class="form-control" value="' + this.escapeHtml(data.FLOOR || '') + '" placeholder="เช่น 1, 2, G"></div>' +
           '</div>' +
           '<div><label class="form-label" for="m_ROOM">ห้อง / จุดติดตั้ง *</label><input type="text" id="m_ROOM" name="ROOM" class="form-control" required value="' + this.escapeHtml(data.ROOM || '') + '" placeholder="เช่น ห้องประชุม 101, โถงทางเดิน"></div>' +
           '<div><label class="form-label" for="m_LOCATION_FULL">ชื่อสถานที่เต็ม (Location Full)</label><input type="text" id="m_LOCATION_FULL" name="LOCATION_FULL" class="form-control" value="' + this.escapeHtml(data.LOCATION_FULL || '') + '" placeholder="หากเว้นว่าง ระบบจะรวมชื่ออาคาร ชั้น และห้องให้อัตโนมัติ"></div>' +
-          '<div><label class="form-label" for="m_QR_CODE_REF">รหัสอ้างอิง QR Code</label><input type="text" id="m_QR_CODE_REF" name="QR_CODE_REF" class="form-control" value="' + this.escapeHtml(data.QR_CODE_REF || '') + '" placeholder="เช่น FRS-QR-LOC-001"></div>' +
+          '<div><label class="form-label" for="m_QR_CODE_REF">รหัสอ้างอิง QR Code</label><input type="text" id="m_QR_CODE_REF" name="QR_CODE_REF" class="form-control" value="' + this.escapeHtml(data.QR_CODE_REF || (!isEdit ? ('FRS-QR-' + nextLocId) : '')) + '" placeholder="FRS-QR-' + this.escapeHtml(nextLocId) + '"></div>' +
           activeToggleHtml;
       } else if (cat === 'departments') {
+        const nextDeptId = isEdit ? (data.DEPARTMENT_ID || '') : this.getNextMasterId('departments');
         fieldsHtml =
-          '<div><label class="form-label" for="m_DEPARTMENT_ID">รหัสฝ่าย/แผนก (Department ID) *</label><input type="text" id="m_DEPARTMENT_ID" name="DEPARTMENT_ID" class="form-control" required' + (isEdit ? ' readonly style="background:var(--frs-surface-2);"' : '') + ' value="' + this.escapeHtml(data.DEPARTMENT_ID || '') + '" placeholder="เช่น DEP-001"></div>' +
+          '<div><label class="form-label" for="m_DEPARTMENT_ID">รหัสฝ่าย/แผนก (Department ID)' + (!isEdit ? ' <span class="badge" style="background:rgba(23,124,232,0.12); color:#177ce8; font-size:11px; margin-left:6px; font-weight:700;">รันอัตโนมัติ</span>' : ' *') + '</label><input type="text" id="m_DEPARTMENT_ID" name="DEPARTMENT_ID" class="form-control" readonly style="background:var(--frs-surface-2); font-weight:700; color:#177ce8;" value="' + this.escapeHtml(nextDeptId) + '"><small class="muted" style="font-size:11px; margin-top:3px; display:block;">ระบบสร้างรหัสให้อัตโนมัติ โดยเรียงลำดับตัวเลขต่อเนื่อง</small></div>' +
           '<div><label class="form-label" for="m_DIVISION">ฝ่าย / สำนัก *</label><input type="text" id="m_DIVISION" name="DIVISION" class="form-control" required value="' + this.escapeHtml(data.DIVISION || '') + '" placeholder="เช่น ฝ่ายอำนวยการ"></div>' +
           '<div><label class="form-label" for="m_DEPARTMENT">แผนก / ส่วนงาน *</label><input type="text" id="m_DEPARTMENT" name="DEPARTMENT" class="form-control" required value="' + this.escapeHtml(data.DEPARTMENT || '') + '" placeholder="เช่น งานอาคารสถานที่"></div>' +
           '<div><label class="form-label" for="m_DESCRIPTION">คำอธิบายเพิ่มเติม</label><textarea id="m_DESCRIPTION" name="DESCRIPTION" class="form-control" rows="2" placeholder="รายละเอียดหรือขอบเขตหน่วยงาน">' + this.escapeHtml(data.DESCRIPTION || '') + '</textarea></div>' +
@@ -1672,6 +1697,7 @@
         const refreshed = await this.serverCall((runner) => runner.apiGetAdminMasterCategory(this.token, cat));
         if (refreshed && refreshed.ok && refreshed.data) {
           this.currentMasterRows = refreshed.data.rows || [];
+          this.currentMasterNextId = refreshed.data.nextId || '';
           this.renderMasterTable();
         }
 

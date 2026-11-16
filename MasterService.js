@@ -134,15 +134,44 @@ const MasterService = {
     }
   },
 
+  getNextSequenceId(category) {
+    const cfg = this.MASTER_CATEGORIES[category];
+    if (!cfg) throw new Error('ไม่พบหมวดหมู่ข้อมูล: ' + category);
+
+    const sheetName = APP_CONFIG.SHEETS[cfg.sheet];
+    const pkField = cfg.pk;
+    const prefix = category === 'departments' ? 'DEP' : (category === 'locations' ? 'LOC' : '');
+    if (!prefix) return '';
+
+    const rows = DataService.getRows(sheetName);
+    let maxNum = 0;
+
+    rows.forEach(function(row) {
+      const val = String(row[pkField] || '').trim();
+      const match = val.match(new RegExp('^' + prefix + '-(\\d+)$', 'i'));
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (!isNaN(num) && num > maxNum) maxNum = num;
+      }
+    });
+
+    const nextNum = maxNum + 1;
+    return prefix + '-' + String(nextNum).padStart(3, '0');
+  },
+
   getAdminMasterCategory(category) {
     const cfg = this.MASTER_CATEGORIES[category];
     if (!cfg) throw new Error('ไม่พบหมวดหมู่ข้อมูล: ' + category);
     const sheetName = APP_CONFIG.SHEETS[cfg.sheet];
     const rows = DataService.getRows(sheetName);
+    const nextId = (category === 'departments' || category === 'locations')
+      ? this.getNextSequenceId(category)
+      : '';
     return Utils.jsonSuccess({
       category: category,
       label: cfg.label,
       pk: cfg.pk,
+      nextId: nextId,
       rows: rows
     });
   },
@@ -154,7 +183,11 @@ const MasterService = {
 
     const sheetName = APP_CONFIG.SHEETS[cfg.sheet];
     const pkField = cfg.pk;
-    const pkValue = String(item[pkField] || '').trim();
+    let pkValue = String(item[pkField] || '').trim();
+
+    if (!pkValue && (category === 'departments' || category === 'locations')) {
+      pkValue = this.getNextSequenceId(category);
+    }
     if (!pkValue) throw new Error('กรุณาระบุรหัส ' + pkField);
 
     const cleanItem = Object.assign({}, item);
@@ -177,7 +210,7 @@ const MasterService = {
           cleanItem.ROOM
         ].filter(Boolean).join(' ');
       }
-      cleanItem.QR_CODE_REF = String(cleanItem.QR_CODE_REF || '').trim();
+      cleanItem.QR_CODE_REF = String(cleanItem.QR_CODE_REF || '').trim() || ('FRS-QR-' + pkValue);
     } else if (category === 'departments') {
       cleanItem.DIVISION = String(cleanItem.DIVISION || '').trim();
       cleanItem.DEPARTMENT = String(cleanItem.DEPARTMENT || '').trim();
