@@ -2044,7 +2044,17 @@
       }
       if (name === 'reports') this.loadReports();
       if (name === 'data') this.renderDataManagement();
-      if (name === 'settings') this.applyTheme(document.documentElement.getAttribute('data-theme') || 'light', false);
+      if (name === 'settings') {
+        this.applyTheme(document.documentElement.getAttribute('data-theme') || 'light', false);
+        const isAdmin = String((this.currentUser && this.currentUser.ROLE) || '').toUpperCase() === 'ADMIN';
+        const adminSection = document.getElementById('adminSettingsSection');
+        if (adminSection) {
+          adminSection.classList.toggle('hidden', !isAdmin);
+          if (isAdmin && !this.adminSettingsLoaded) {
+            this.loadSystemSettings();
+          }
+        }
+      }
       if (name === 'newRequest' && this.currentUser && this.currentUser.PHONE) {
         const ph = document.getElementById('PHONE');
         if (ph && !ph.value) {
@@ -2409,6 +2419,256 @@
         this.notify((err && err.message) || 'บันทึกข้อมูลส่วนตัวไม่สำเร็จ', 'error', 'เกิดข้อผิดพลาด');
       } finally {
         this.showLoading(false);
+      }
+    },
+
+    switchAdminSettingsTab(tabKey) {
+      const tabs = ['sec_security', 'sec_workflow', 'sec_notifications', 'sec_general', 'sec_health'];
+      const buttons = document.querySelectorAll('.admin-tab-btn');
+      buttons.forEach((btn) => {
+        btn.classList.toggle('active', btn.getAttribute('data-admin-tab') === tabKey);
+      });
+      tabs.forEach((t) => {
+        const panel = document.getElementById('adminPanel_' + t);
+        if (panel) panel.classList.toggle('hidden', t !== tabKey);
+      });
+      if (tabKey === 'sec_health') {
+        this.checkSystemHealth();
+      }
+    },
+
+    async loadSystemSettings(showLoader = true) {
+      if (showLoader) this.showLoading(true);
+      try {
+        const res = await this.serverCall((runner) => runner.apiGetSystemSettings(this.token));
+        if (!res || !res.ok) {
+          this.handleApiError(res);
+          return;
+        }
+        const s = res.data || {};
+        this.adminSettingsData = s;
+        this.adminSettingsLoaded = true;
+
+        // Security
+        const sec = s.SECURITY || {};
+        const regEl = document.getElementById('cfg_reg_enabled');
+        const autoEl = document.getElementById('cfg_auto_approve');
+        const domEl = document.getElementById('cfg_allowed_domains');
+        const sessEl = document.getElementById('cfg_session_timeout');
+        const attEl = document.getElementById('cfg_max_attempts');
+        if (regEl) regEl.checked = sec.REGISTRATION_ENABLED !== false;
+        if (autoEl) autoEl.checked = Boolean(sec.AUTO_APPROVE_REGISTRATION);
+        if (domEl) domEl.value = sec.ALLOWED_EMAIL_DOMAINS || '';
+        if (sessEl) sessEl.value = sec.SESSION_TIMEOUT_HOURS || 6;
+        if (attEl) attEl.value = sec.MAX_LOGIN_ATTEMPTS || 5;
+
+        // Workflow
+        const wf = s.WORKFLOW || {};
+        const slaCrit = document.getElementById('cfg_sla_critical');
+        const slaHigh = document.getElementById('cfg_sla_high');
+        const slaNorm = document.getElementById('cfg_sla_normal');
+        const phBefore = document.getElementById('cfg_photo_before');
+        const phAfter = document.getElementById('cfg_photo_after');
+        const costLim = document.getElementById('cfg_max_cost_limit');
+        if (slaCrit) slaCrit.value = wf.SLA_HOURS_CRITICAL || 4;
+        if (slaHigh) slaHigh.value = wf.SLA_HOURS_HIGH || 24;
+        if (slaNorm) slaNorm.value = wf.SLA_HOURS_NORMAL || 72;
+        if (phBefore) phBefore.checked = Boolean(wf.REQUIRE_PHOTO_BEFORE);
+        if (phAfter) phAfter.checked = Boolean(wf.REQUIRE_PHOTO_AFTER);
+        if (costLim) costLim.value = wf.MAX_COST_APPROVAL_LIMIT || 5000;
+
+        // Notifications
+        const notif = s.NOTIFICATIONS || {};
+        const tokEl = document.getElementById('cfg_line_token');
+        const notifNew = document.getElementById('cfg_notify_line_new');
+        const notifClose = document.getElementById('cfg_notify_line_close');
+        const notifMail = document.getElementById('cfg_notify_email_close');
+        const googLog = document.getElementById('cfg_google_login');
+        const lineLog = document.getElementById('cfg_line_login');
+        if (tokEl) tokEl.value = notif.LINE_NOTIFY_TOKEN || '';
+        if (notifNew) notifNew.checked = Boolean(notif.NOTIFY_LINE_ON_NEW);
+        if (notifClose) notifClose.checked = Boolean(notif.NOTIFY_LINE_ON_CLOSE);
+        if (notifMail) notifMail.checked = Boolean(notif.NOTIFY_EMAIL_ON_CLOSE);
+        if (googLog) googLog.checked = notif.GOOGLE_LOGIN_ENABLED !== false;
+        if (lineLog) lineLog.checked = notif.LINE_LOGIN_ENABLED !== false;
+
+        // General
+        const gen = s.GENERAL || {};
+        const orgEl = document.getElementById('cfg_org_name');
+        const subEl = document.getElementById('cfg_system_subtitle');
+        const phoneEl = document.getElementById('cfg_support_phone');
+        const emailEl = document.getElementById('cfg_support_email');
+        if (orgEl) orgEl.value = gen.ORG_NAME || '';
+        if (subEl) subEl.value = gen.SYSTEM_SUBTITLE || '';
+        if (phoneEl) phoneEl.value = gen.SUPPORT_PHONE || '';
+        if (emailEl) emailEl.value = gen.SUPPORT_EMAIL || '';
+
+      } catch (err) {
+        this.notify((err && err.message) || 'โหลดการตั้งค่าระบบไม่สำเร็จ', 'error');
+      } finally {
+        if (showLoader) this.showLoading(false);
+      }
+    },
+
+    async saveAdminSettings(event, section) {
+      if (event) event.preventDefault();
+      const sec = String(section || '').toUpperCase();
+      let payload = {};
+
+      if (sec === 'SECURITY') {
+        payload = {
+          REGISTRATION_ENABLED: document.getElementById('cfg_reg_enabled').checked,
+          AUTO_APPROVE_REGISTRATION: document.getElementById('cfg_auto_approve').checked,
+          ALLOWED_EMAIL_DOMAINS: (document.getElementById('cfg_allowed_domains').value || '').trim(),
+          SESSION_TIMEOUT_HOURS: Number(document.getElementById('cfg_session_timeout').value) || 6,
+          MAX_LOGIN_ATTEMPTS: Number(document.getElementById('cfg_max_attempts').value) || 5
+        };
+      } else if (sec === 'WORKFLOW') {
+        payload = {
+          SLA_HOURS_CRITICAL: Number(document.getElementById('cfg_sla_critical').value) || 4,
+          SLA_HOURS_HIGH: Number(document.getElementById('cfg_sla_high').value) || 24,
+          SLA_HOURS_NORMAL: Number(document.getElementById('cfg_sla_normal').value) || 72,
+          REQUIRE_PHOTO_BEFORE: document.getElementById('cfg_photo_before').checked,
+          REQUIRE_PHOTO_AFTER: document.getElementById('cfg_photo_after').checked,
+          MAX_COST_APPROVAL_LIMIT: Number(document.getElementById('cfg_max_cost_limit').value) || 5000
+        };
+      } else if (sec === 'NOTIFICATIONS') {
+        payload = {
+          LINE_NOTIFY_TOKEN: (document.getElementById('cfg_line_token').value || '').trim(),
+          NOTIFY_LINE_ON_NEW: document.getElementById('cfg_notify_line_new').checked,
+          NOTIFY_LINE_ON_CLOSE: document.getElementById('cfg_notify_line_close').checked,
+          NOTIFY_EMAIL_ON_CLOSE: document.getElementById('cfg_notify_email_close').checked,
+          GOOGLE_LOGIN_ENABLED: document.getElementById('cfg_google_login').checked,
+          LINE_LOGIN_ENABLED: document.getElementById('cfg_line_login').checked
+        };
+      } else if (sec === 'GENERAL') {
+        payload = {
+          ORG_NAME: (document.getElementById('cfg_org_name').value || '').trim(),
+          SYSTEM_SUBTITLE: (document.getElementById('cfg_system_subtitle').value || '').trim(),
+          SUPPORT_PHONE: (document.getElementById('cfg_support_phone').value || '').trim(),
+          SUPPORT_EMAIL: (document.getElementById('cfg_support_email').value || '').trim()
+        };
+      }
+
+      this.showLoading(true);
+      try {
+        const res = await this.serverCall((runner) => runner.apiSaveSystemSettings(this.token, sec, payload));
+        if (!res || !res.ok) {
+          this.handleApiError(res);
+          return;
+        }
+        await this.notify(res.message || 'บันทึกการตั้งค่าเรียบร้อยแล้ว', 'success', 'สำเร็จ');
+        await this.loadSystemSettings(false);
+      } catch (err) {
+        this.notify((err && err.message) || 'บันทึกการตั้งค่าไม่สำเร็จ', 'error', 'เกิดข้อผิดพลาด');
+      } finally {
+        this.showLoading(false);
+      }
+    },
+
+    async flushSystemCache() {
+      if (!confirm('ต้องการล้างแคชระบบและหน่วยความจำทั้งหมดใช่หรือไม่? (ระบบจะโหลดข้อมูลสดจาก Sheets ทันที)')) return;
+      this.showLoading(true);
+      try {
+        const res = await this.serverCall((runner) => runner.apiFlushSystemCache(this.token));
+        if (!res || !res.ok) {
+          this.handleApiError(res);
+          return;
+        }
+        this.lastLoaded = {};
+        await this.notify(res.message || 'ล้างแคชระบบสำเร็จ', 'success', 'สำเร็จ');
+        this.checkSystemHealth();
+      } catch (err) {
+        this.notify((err && err.message) || 'ล้างแคชไม่สำเร็จ', 'error', 'เกิดข้อผิดพลาด');
+      } finally {
+        this.showLoading(false);
+      }
+    },
+
+    async checkSystemHealth() {
+      const container = document.getElementById('systemHealthContent');
+      if (!container) return;
+      container.innerHTML = '<div class="empty-state">กำลังตรวจสอบความพร้อมใช้งานของระบบ...</div>';
+
+      try {
+        const res = await this.serverCall((runner) => runner.apiGetSystemHealth(this.token));
+        if (!res || !res.ok) {
+          container.innerHTML = '<div class="alert alert-danger">ตรวจสอบสถานะไม่สำเร็จ: ' + this.escapeHtml((res && res.error) || 'เกิดข้อผิดพลาด') + '</div>';
+          return;
+        }
+        const h = res.data || {};
+        const ss = h.spreadsheet || {};
+        const dr = h.drive || {};
+
+        const ssBadge = ss.ok
+          ? '<span class="badge" style="background:#ecfdf5; color:#059669; font-weight:700;">🟢 เชื่อมต่อสมบูรณ์</span>'
+          : '<span class="badge" style="background:#fef2f2; color:#dc2626; font-weight:700;">🔴 ไม่สามารถเข้าถึง</span>';
+
+        const drBadge = dr.ok
+          ? '<span class="badge" style="background:#ecfdf5; color:#059669; font-weight:700;">🟢 เชื่อมต่อสมบูรณ์</span>'
+          : '<span class="badge" style="background:#fef2f2; color:#dc2626; font-weight:700;">🔴 ไม่สามารถเข้าถึง</span>';
+
+        const sheetsHtml = (ss.sheets || []).map((s) => {
+          return '<tr>' +
+            '<td><strong>' + this.escapeHtml(s.name) + '</strong></td>' +
+            '<td><code>' + this.escapeHtml(s.key) + '</code></td>' +
+            '<td>' + (s.exists ? '<span style="color:#059669; font-weight:700;">พร้อมใช้งาน</span>' : '<span style="color:#dc2626; font-weight:700;">ไม่พบตาราง</span>') + '</td>' +
+            '<td><strong>' + Number(s.rows || 0).toLocaleString() + '</strong> แถว</td>' +
+            '<td>' + Number(s.cols || 0) + ' คอลัมน์</td>' +
+          '</tr>';
+        }).join('');
+
+        container.innerHTML =
+          '<div class="health-summary-grid">' +
+            '<div class="health-metric-box">' +
+              '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">' +
+                '<span style="font-weight:700; font-size:14px; color:var(--frs-text);">Google Sheets (Database)</span>' +
+                ssBadge +
+              '</div>' +
+              '<div style="font-size:13px; color:var(--frs-muted); margin-bottom:6px;"><strong>ชื่อ:</strong> ' + this.escapeHtml(ss.name || '-') + '</div>' +
+              (ss.url ? ('<div style="margin-top:8px;"><a href="' + this.escapeAttr(ss.url) + '" target="_blank" style="font-size:12px; color:var(--frs-primary); text-decoration:none; font-weight:700;">เปิดดู Google Sheets ↗</a></div>') : '') +
+            '</div>' +
+
+            '<div class="health-metric-box">' +
+              '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">' +
+                '<span style="font-weight:700; font-size:14px; color:var(--frs-text);">Google Drive (Storage)</span>' +
+                drBadge +
+              '</div>' +
+              '<div style="font-size:13px; color:var(--frs-muted); margin-bottom:6px;"><strong>โฟลเดอร์:</strong> ' + this.escapeHtml(dr.name || '-') + '</div>' +
+              (dr.url ? ('<div style="margin-top:8px;"><a href="' + this.escapeAttr(dr.url) + '" target="_blank" style="font-size:12px; color:var(--frs-primary); text-decoration:none; font-weight:700;">เปิดดูโฟลเดอร์ Drive ↗</a></div>') : '') +
+            '</div>' +
+
+            '<div class="health-metric-box">' +
+              '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">' +
+                '<span style="font-weight:700; font-size:14px; color:var(--frs-text);">ระบบ & สภาพแวดล้อม</span>' +
+                '<span class="badge" style="background:#eef2ff; color:#3730a3; font-weight:700;">v' + this.escapeHtml(h.appVersion || '-') + '</span>' +
+              '</div>' +
+              '<div style="font-size:13px; color:var(--frs-muted); margin-bottom:4px;"><strong>Timezone:</strong> ' + this.escapeHtml(h.timezone || 'Asia/Bangkok') + '</div>' +
+              '<div style="font-size:12px; color:var(--frs-muted);"><strong>Server Time:</strong> ' + this.escapeHtml(h.serverTime || '-') + '</div>' +
+            '</div>' +
+          '</div>' +
+
+          '<div style="margin-top:16px;">' +
+            '<div style="font-weight:800; font-size:15px; margin-bottom:10px; color:var(--frs-text);">ตารางฐานข้อมูลทั้งหมดในระบบ (13 Tables)</div>' +
+            '<div style="overflow-x:auto; border:1px solid var(--frs-border); border-radius:12px;">' +
+              '<table class="health-table">' +
+                '<thead>' +
+                  '<tr>' +
+                    '<th>ชื่อตาราง (Sheet Name)</th>' +
+                    '<th>Config Key</th>' +
+                    '<th>สถานะ</th>' +
+                    '<th>จำนวนแถวข้อมูล</th>' +
+                    '<th>คอลัมน์</th>' +
+                  '</tr>' +
+                '</thead>' +
+                '<tbody>' +
+                  sheetsHtml +
+                '</tbody>' +
+              '</table>' +
+            '</div>' +
+          '</div>';
+      } catch (err) {
+        container.innerHTML = '<div class="alert alert-danger">ตรวจสอบสถานะไม่สำเร็จ: ' + this.escapeHtml((err && err.message) || 'เกิดข้อผิดพลาด') + '</div>';
       }
     },
 

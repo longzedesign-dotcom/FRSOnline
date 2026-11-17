@@ -214,10 +214,15 @@ const AuthService = {
   },
 
   isAllowedDomain_(email) {
-    const allowed = APP_CONFIG.ALLOWED_EMAIL_DOMAINS || [];
+    const dynAllowed = PropertiesService.getScriptProperties().getProperty('CFG_ALLOWED_EMAIL_DOMAINS');
+    let allowed = [];
+    if (dynAllowed) {
+      allowed = dynAllowed.split(',').map(function(s) { return s.trim().toLowerCase(); }).filter(Boolean);
+    } else {
+      allowed = (APP_CONFIG.ALLOWED_EMAIL_DOMAINS || []).map(function(s) { return String(s).trim().toLowerCase(); }).filter(Boolean);
+    }
     if (allowed.length === 0) return true;
-    return allowed.map(function(item) { return String(item).toLowerCase(); })
-      .indexOf(Utils.getEmailDomain(email)) !== -1;
+    return allowed.indexOf(Utils.getEmailDomain(email)) !== -1;
   },
 
   rateKey_(username) {

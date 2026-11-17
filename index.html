@@ -618,11 +618,315 @@
         </div>
 
         <div id="settingsTab" class="tab-panel hidden">
-          <div class="frs-page-heading"><div><p class="frs-eyebrow">Preferences</p><h1 class="frs-title-with-icon"><svg class="frs-ui-icon frs-title-icon" aria-hidden="true"><use href="#frs-icon-settings"></use></svg><span>ตั้งค่าระบบ</span></h1><p>ปรับหน้าตาและการใช้งานส่วนบุคคล</p></div></div>
+          <div class="frs-page-heading">
+            <div>
+              <p class="frs-eyebrow">Preferences & System Configuration</p>
+              <h1 class="frs-title-with-icon"><svg class="frs-ui-icon frs-title-icon" aria-hidden="true"><use href="#frs-icon-settings"></use></svg><span>ตั้งค่าระบบ</span></h1>
+              <p>ปรับแต่งการใช้งานส่วนบุคคล และการจัดการระบบสำหรับผู้ดูแลระบบ</p>
+            </div>
+          </div>
+
+          <!-- Section 1: User Preferences (Visible to Everyone) -->
+          <div class="section-title mt" style="font-size:16px;">
+            <svg class="frs-ui-icon" style="width:18px; height:18px; color:var(--frs-primary);"><use href="#frs-icon-user"></use></svg>
+            <span>การตั้งค่าส่วนบุคคล (Personal Preferences)</span>
+          </div>
           <div class="frs-settings-grid">
             <section class="frs-panel"><div class="frs-panel-head"><h2 class="frs-title-with-icon"><svg class="frs-ui-icon frs-panel-title-icon" aria-hidden="true"><use href="#frs-icon-palette"></use></svg><span>ธีมหน้าจอ</span></h2></div><p class="muted">เลือกโหมดสว่างหรือโหมดมืด ระบบจะจำค่าบนอุปกรณ์นี้</p><div class="frs-theme-choice"><button type="button" onclick="App.setTheme('light')"><svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-sun"></use></svg><span>โหมดสว่าง</span></button><button type="button" onclick="App.setTheme('dark')"><svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-moon"></use></svg><span>โหมดมืด</span></button></div></section>
             <section class="frs-panel"><div class="frs-panel-head"><h2 class="frs-title-with-icon"><svg class="frs-ui-icon frs-panel-title-icon" aria-hidden="true"><use href="#frs-icon-user"></use></svg><span>บัญชีผู้ใช้</span></h2></div><p class="muted">ตรวจสอบข้อมูลบัญชีและวิธีเข้าสู่ระบบที่เชื่อมไว้</p><button class="btn btn-outline frs-button-with-icon" type="button" onclick="App.showTab('profile')"><svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-user"></use></svg><span>เปิดบัญชีของฉัน</span></button></section>
             <section class="frs-panel"><div class="frs-panel-head"><h2 class="frs-title-with-icon"><svg class="frs-ui-icon frs-panel-title-icon" aria-hidden="true"><use href="#frs-icon-info"></use></svg><span>เวอร์ชันระบบ</span></h2></div><div class="frs-version-card"><strong>FRS v<?= appVersion ?></strong><span>Facility Repair System</span></div></section>
+          </div>
+
+          <!-- Section 2: Admin System Suite (Visible ONLY to ADMIN / Super Admin) -->
+          <div id="adminSettingsSection" class="hidden" style="margin-top:32px;">
+            <div class="section-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <svg class="frs-ui-icon" style="width:20px; height:20px; color:var(--frs-primary);"><use href="#frs-icon-wrench"></use></svg>
+                <span>ศูนย์ควบคุมระบบองค์กร (Administrator Control Suite)</span>
+              </div>
+              <button type="button" class="btn btn-outline btn-small frs-button-with-icon" onclick="App.loadSystemSettings()">
+                <svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-refresh"></use></svg>
+                <span>รีโหลดการตั้งค่า</span>
+              </button>
+            </div>
+
+            <!-- Sub Nav Tabs for Admin Settings -->
+            <div class="admin-settings-tabs" role="tablist">
+              <button type="button" class="admin-tab-btn active" data-admin-tab="sec_security" onclick="App.switchAdminSettingsTab('sec_security')">
+                <svg class="frs-ui-icon" style="width:16px; height:16px;"><use href="#frs-icon-lock"></use></svg>
+                <span>ความปลอดภัย & การเข้าถึง</span>
+              </button>
+              <button type="button" class="admin-tab-btn" data-admin-tab="sec_workflow" onclick="App.switchAdminSettingsTab('sec_workflow')">
+                <svg class="frs-ui-icon" style="width:16px; height:16px;"><use href="#frs-icon-clock"></use></svg>
+                <span>กฎงานซ่อม & SLA</span>
+              </button>
+              <button type="button" class="admin-tab-btn" data-admin-tab="sec_notifications" onclick="App.switchAdminSettingsTab('sec_notifications')">
+                <svg class="frs-ui-icon" style="width:16px; height:16px;"><use href="#frs-icon-bell"></use></svg>
+                <span>การแจ้งเตือน & เชื่อมต่อ</span>
+              </button>
+              <button type="button" class="admin-tab-btn" data-admin-tab="sec_general" onclick="App.switchAdminSettingsTab('sec_general')">
+                <svg class="frs-ui-icon" style="width:16px; height:16px;"><use href="#frs-icon-home"></use></svg>
+                <span>ข้อมูลระบบ & องค์กร</span>
+              </button>
+              <button type="button" class="admin-tab-btn" data-admin-tab="sec_health" onclick="App.switchAdminSettingsTab('sec_health')">
+                <svg class="frs-ui-icon" style="width:16px; height:16px;"><use href="#frs-icon-database"></use></svg>
+                <span>สุขภาพระบบ & บำรุงรักษา</span>
+              </button>
+            </div>
+
+            <!-- Panel 1: Security & Access -->
+            <div id="adminPanel_sec_security" class="admin-settings-panel">
+              <div class="admin-settings-card">
+                <div class="admin-card-head">
+                  <div>
+                    <h3 style="margin:0; font-size:16px; font-weight:800; color:var(--frs-text);">นโยบายความปลอดภัยและการรับสมาชิก</h3>
+                    <p style="margin:4px 0 0; font-size:13px; color:var(--frs-muted);">ควบคุมการเปิดรับสมัครสมาชิกใหม่ โดเมนอีเมล และการควบคุม Session</p>
+                  </div>
+                </div>
+                <form onsubmit="App.saveAdminSettings(event, 'SECURITY')" style="display:grid; gap:16px; margin-top:16px;">
+                  <div class="settings-toggle-row">
+                    <div>
+                      <div style="font-weight:700; font-size:14px; color:var(--frs-text);">เปิดรับสมัครสมาชิกใหม่ (Self-Registration)</div>
+                      <div style="font-size:12px; color:var(--frs-muted);">หากปิด ผู้ใช้ใหม่จะไม่สามารถสมัครสมาชิกเองได้ (เฉพาะผู้ดูแลระบบสร้างให้)</div>
+                    </div>
+                    <label class="frs-switch">
+                      <input type="checkbox" id="cfg_reg_enabled">
+                      <span class="frs-slider round"></span>
+                    </label>
+                  </div>
+                  <div class="settings-toggle-row">
+                    <div>
+                      <div style="font-weight:700; font-size:14px; color:var(--frs-text);">อนุมัติคำขอสมัครสมาชิกอัตโนมัติ (Auto-Approve)</div>
+                      <div style="font-size:12px; color:var(--frs-muted);">หากเปิด ผู้สมัครจะได้รับสิทธิ์เข้าใช้งานทันทีโดยไม่ต้องรอ Admin อนุมัติ</div>
+                    </div>
+                    <label class="frs-switch">
+                      <input type="checkbox" id="cfg_auto_approve">
+                      <span class="frs-slider round"></span>
+                    </label>
+                  </div>
+                  <div class="form-group" style="margin:0;">
+                    <label for="cfg_allowed_domains" style="font-weight:700; font-size:14px;">โดเมนอีเมลที่อนุญาต (Allowed Email Domains)</label>
+                    <input type="text" id="cfg_allowed_domains" class="form-control" placeholder="เช่น company.go.th, mail.org (เว้นว่างเพื่ออนุญาตทุกโดเมน)">
+                    <div class="field-help">ระบุคั่นด้วยเครื่องหมายจุลภาค (,) หากเว้นว่างจะสามารถใช้อีเมลทั่วไปได้ทุกโดเมน</div>
+                  </div>
+                  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px;">
+                    <div class="form-group" style="margin:0;">
+                      <label for="cfg_session_timeout" style="font-weight:700; font-size:14px;">Session Timeout (ชั่วโมง)</label>
+                      <input type="number" id="cfg_session_timeout" class="form-control" min="1" max="72" value="6">
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                      <label for="cfg_max_attempts" style="font-weight:700; font-size:14px;">รหัสผิดได้สูงสุดก่อนล็อค (ครั้ง)</label>
+                      <input type="number" id="cfg_max_attempts" class="form-control" min="3" max="10" value="5">
+                    </div>
+                  </div>
+                  <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+                    <button type="submit" class="btn btn-primary frs-button-with-icon">
+                      <svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-check-circle"></use></svg>
+                      <span>บันทึกการตั้งค่าความปลอดภัย</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- Panel 2: Workflow & SLA -->
+            <div id="adminPanel_sec_workflow" class="admin-settings-panel hidden">
+              <div class="admin-settings-card">
+                <div class="admin-card-head">
+                  <div>
+                    <h3 style="margin:0; font-size:16px; font-weight:800; color:var(--frs-text);">กฎเกณฑ์การแจ้งซ่อมและ SLA เป้าหมาย</h3>
+                    <p style="margin:4px 0 0; font-size:13px; color:var(--frs-muted);">กำหนดกรอบเวลาการปิดงานตามระดับความเร่งด่วน และเงื่อนไขการส่งงาน</p>
+                  </div>
+                </div>
+                <form onsubmit="App.saveAdminSettings(event, 'WORKFLOW')" style="display:grid; gap:16px; margin-top:16px;">
+                  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:14px;">
+                    <div class="form-group" style="margin:0;">
+                      <label for="cfg_sla_critical" style="font-weight:700; font-size:14px; color:#ef4444;">🚨 ด่วนที่สุด (ชั่วโมง)</label>
+                      <input type="number" id="cfg_sla_critical" class="form-control" min="1" value="4">
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                      <label for="cfg_sla_high" style="font-weight:700; font-size:14px; color:#f59e0b;">⚡ ด่วน (ชั่วโมง)</label>
+                      <input type="number" id="cfg_sla_high" class="form-control" min="1" value="24">
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                      <label for="cfg_sla_normal" style="font-weight:700; font-size:14px; color:#10b981;">📋 ปกติ (ชั่วโมง)</label>
+                      <input type="number" id="cfg_sla_normal" class="form-control" min="1" value="72">
+                    </div>
+                  </div>
+                  <div class="settings-toggle-row">
+                    <div>
+                      <div style="font-weight:700; font-size:14px; color:var(--frs-text);">บังคับแนบรูปถ่ายก่อนแจ้งซ่อม (Photo Required)</div>
+                      <div style="font-size:12px; color:var(--frs-muted);">ผู้แจ้งซ่อมจะต้องแนบภาพหน้างานอย่างน้อย 1 รูปจึงจะสามารถส่งคำขอได้</div>
+                    </div>
+                    <label class="frs-switch">
+                      <input type="checkbox" id="cfg_photo_before">
+                      <span class="frs-slider round"></span>
+                    </label>
+                  </div>
+                  <div class="settings-toggle-row">
+                    <div>
+                      <div style="font-weight:700; font-size:14px; color:var(--frs-text);">บังคับแนบรูปถ่ายผลการซ่อมก่อนปิดงาน</div>
+                      <div style="font-size:12px; color:var(--frs-muted);">ช่างซ่อมบำรุงจะต้องแนบภาพผลงานการซ่อมเสร็จสิ้นก่อนกดปิดงาน</div>
+                    </div>
+                    <label class="frs-switch">
+                      <input type="checkbox" id="cfg_photo_after">
+                      <span class="frs-slider round"></span>
+                    </label>
+                  </div>
+                  <div class="form-group" style="margin:0;">
+                    <label for="cfg_max_cost_limit" style="font-weight:700; font-size:14px;">เพดานค่าซ่อมที่ต้องขออนุมัติหัวหน้างาน (บาท)</label>
+                    <input type="number" id="cfg_max_cost_limit" class="form-control" min="0" value="5000">
+                    <div class="field-help">หากค่าอะไหล่/ประเมินงานซ่อมเกินจำนวนนี้ ระบบจะกำหนดให้ต้องผ่านการอนุมัติก่อน</div>
+                  </div>
+                  <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+                    <button type="submit" class="btn btn-primary frs-button-with-icon">
+                      <svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-check-circle"></use></svg>
+                      <span>บันทึกกฎเกณฑ์งานซ่อม & SLA</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- Panel 3: Notifications & Integrations -->
+            <div id="adminPanel_sec_notifications" class="admin-settings-panel hidden">
+              <div class="admin-settings-card">
+                <div class="admin-card-head">
+                  <div>
+                    <h3 style="margin:0; font-size:16px; font-weight:800; color:var(--frs-text);">การแจ้งเตือนและการเชื่อมต่อ Social Auth</h3>
+                    <p style="margin:4px 0 0; font-size:13px; color:var(--frs-muted);">ตั้งค่า Token การแจ้งเตือน LINE Notify และการเปิดใช้งาน Social Login</p>
+                  </div>
+                </div>
+                <form onsubmit="App.saveAdminSettings(event, 'NOTIFICATIONS')" style="display:grid; gap:16px; margin-top:16px;">
+                  <div class="form-group" style="margin:0;">
+                    <label for="cfg_line_token" style="font-weight:700; font-size:14px;">LINE Notify / Messaging Token</label>
+                    <input type="password" id="cfg_line_token" class="form-control" placeholder="วาง LINE Token สำหรับส่งแจ้งเตือนกลุ่มช่าง">
+                    <div class="field-help">Token สำหรับส่งแจ้งเตือนเข้ากลุ่มงานช่างเมื่อมีรายการแจ้งซ่อมใหม่ (จะถูกบันทึกลงใน Script Properties อย่างปลอดภัย)</div>
+                  </div>
+                  <div class="settings-toggle-row">
+                    <div>
+                      <div style="font-weight:700; font-size:14px; color:var(--frs-text);">ส่งแจ้งเตือนเข้า LINE เมื่องานแจ้งซ่อมใหม่เข้า</div>
+                      <div style="font-size:12px; color:var(--frs-muted);">ระบบจะส่งข้อความแจ้งเตือนรายละเอียดงานไปยัง LINE กลุ่มช่างทันที</div>
+                    </div>
+                    <label class="frs-switch">
+                      <input type="checkbox" id="cfg_notify_line_new">
+                      <span class="frs-slider round"></span>
+                    </label>
+                  </div>
+                  <div class="settings-toggle-row">
+                    <div>
+                      <div style="font-weight:700; font-size:14px; color:var(--frs-text);">ส่งแจ้งเตือนเข้า LINE เมื่อปิดงานซ่อมเรียบร้อย</div>
+                      <div style="font-size:12px; color:var(--frs-muted);">สรุปผลการซ่อมและค่าใช้จ่ายไปยังกลุ่มช่างเมื่อปิดงาน</div>
+                    </div>
+                    <label class="frs-switch">
+                      <input type="checkbox" id="cfg_notify_line_close">
+                      <span class="frs-slider round"></span>
+                    </label>
+                  </div>
+                  <div class="settings-toggle-row">
+                    <div>
+                      <div style="font-weight:700; font-size:14px; color:var(--frs-text);">ส่งอีเมลแจ้งผู้ส่งคำขอเมื่องานซ่อมเสร็จสิ้น</div>
+                      <div style="font-size:12px; color:var(--frs-muted);">ส่งข้อความแจ้งเตือนอัตโนมัติไปยังอีเมลของผู้แจ้งซ่อมเพื่อให้ทราบสถานะ</div>
+                    </div>
+                    <label class="frs-switch">
+                      <input type="checkbox" id="cfg_notify_email_close">
+                      <span class="frs-slider round"></span>
+                    </label>
+                  </div>
+                  <div class="settings-toggle-row">
+                    <div>
+                      <div style="font-weight:700; font-size:14px; color:var(--frs-text);">เปิดใช้งานปุ่มล็อกอินด้วย Google</div>
+                      <div style="font-size:12px; color:var(--frs-muted);">อนุญาตให้ผู้ใช้เข้าสู่ระบบด้วยบัญชี Google</div>
+                    </div>
+                    <label class="frs-switch">
+                      <input type="checkbox" id="cfg_google_login">
+                      <span class="frs-slider round"></span>
+                    </label>
+                  </div>
+                  <div class="settings-toggle-row">
+                    <div>
+                      <div style="font-weight:700; font-size:14px; color:var(--frs-text);">เปิดใช้งานปุ่มล็อกอินด้วย LINE</div>
+                      <div style="font-size:12px; color:var(--frs-muted);">อนุญาตให้ผู้ใช้เข้าสู่ระบบด้วยบัญชี LINE</div>
+                    </div>
+                    <label class="frs-switch">
+                      <input type="checkbox" id="cfg_line_login">
+                      <span class="frs-slider round"></span>
+                    </label>
+                  </div>
+                  <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+                    <button type="submit" class="btn btn-primary frs-button-with-icon">
+                      <svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-check-circle"></use></svg>
+                      <span>บันทึกการตั้งค่าการแจ้งเตือน</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- Panel 4: General & Organization -->
+            <div id="adminPanel_sec_general" class="admin-settings-panel hidden">
+              <div class="admin-settings-card">
+                <div class="admin-card-head">
+                  <div>
+                    <h3 style="margin:0; font-size:16px; font-weight:800; color:var(--frs-text);">ข้อมูลระบบและหน่วยงาน</h3>
+                    <p style="margin:4px 0 0; font-size:13px; color:var(--frs-muted);">กำหนดชื่อระบบ ข้อมูลติดต่อสายด่วน และอีเมลช่วยเหลือ</p>
+                  </div>
+                </div>
+                <form onsubmit="App.saveAdminSettings(event, 'GENERAL')" style="display:grid; gap:16px; margin-top:16px;">
+                  <div class="form-group" style="margin:0;">
+                    <label for="cfg_org_name" style="font-weight:700; font-size:14px;">ชื่อระบบ / หน่วยงานหลัก</label>
+                    <input type="text" id="cfg_org_name" class="form-control" placeholder="Facility Repair System (FRS)">
+                  </div>
+                  <div class="form-group" style="margin:0;">
+                    <label for="cfg_system_subtitle" style="font-weight:700; font-size:14px;">คำโปรย / คำบรรยายระบบ</label>
+                    <input type="text" id="cfg_system_subtitle" class="form-control" placeholder="ระบบแจ้งซ่อมบำรุงออนไลน์">
+                  </div>
+                  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px;">
+                    <div class="form-group" style="margin:0;">
+                      <label for="cfg_support_phone" style="font-weight:700; font-size:14px;">เบอร์โทรสายด่วน / ช่างเวร</label>
+                      <input type="text" id="cfg_support_phone" class="form-control" placeholder="เช่น 02-xxx-xxxx หรือเบอร์ภายใน">
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                      <label for="cfg_support_email" style="font-weight:700; font-size:14px;">อีเมลติดต่อศูนย์ไอที / งานซ่อม</label>
+                      <input type="email" id="cfg_support_email" class="form-control" placeholder="itsd@company.go.th">
+                    </div>
+                  </div>
+                  <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+                    <button type="submit" class="btn btn-primary frs-button-with-icon">
+                      <svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-check-circle"></use></svg>
+                      <span>บันทึกข้อมูลทั่วไป</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- Panel 5: Health & Maintenance -->
+            <div id="adminPanel_sec_health" class="admin-settings-panel hidden">
+              <div class="admin-settings-card">
+                <div class="admin-card-head" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                  <div>
+                    <h3 style="margin:0; font-size:16px; font-weight:800; color:var(--frs-text);">สถานะสุขภาพระบบและฐานข้อมูล</h3>
+                    <p style="margin:4px 0 0; font-size:13px; color:var(--frs-muted);">ตรวจสอบความพร้อมใช้งานของ Google Sheets (13 ตาราง) และ Google Drive</p>
+                  </div>
+                  <div style="display:flex; gap:8px;">
+                    <button type="button" class="btn btn-outline btn-small frs-button-with-icon" onclick="App.checkSystemHealth()">
+                      <svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-refresh"></use></svg>
+                      <span>ตรวจสอบสถานะ</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-small frs-button-with-icon" onclick="App.flushSystemCache()">
+                      <svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-wrench"></use></svg>
+                      <span>ล้างแคชระบบ (Flush Cache)</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div id="systemHealthContent" style="margin-top:16px;">
+                  <div class="empty-state">กำลังตรวจสอบสถานะระบบ...</div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 

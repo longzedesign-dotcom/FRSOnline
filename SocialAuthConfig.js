@@ -71,11 +71,17 @@ const SocialAuthConfig = {
   },
 
   publicStatus() {
+    const props = this.props_();
+    const regProp = props.getProperty('CFG_REGISTRATION_ENABLED');
+    const isRegEnabled = regProp !== null && regProp !== undefined ? (regProp !== 'false') : Boolean(APP_CONFIG.REGISTRATION_ENABLED);
+    const googleLoginAllowed = props.getProperty('CFG_GOOGLE_LOGIN_ENABLED') !== 'false';
+    const lineLoginAllowed = props.getProperty('CFG_LINE_LOGIN_ENABLED') !== 'false';
+
     return {
       socialAuthEnabled: Boolean(APP_CONFIG.SOCIAL_AUTH_ENABLED),
-      registrationEnabled: Boolean(APP_CONFIG.REGISTRATION_ENABLED),
-      googleEnabled: this.isGoogleReady(),
-      lineEnabled: this.isLineReady()
+      registrationEnabled: isRegEnabled,
+      googleEnabled: this.isGoogleReady() && googleLoginAllowed,
+      lineEnabled: this.isLineReady() && lineLoginAllowed
     };
   },
 

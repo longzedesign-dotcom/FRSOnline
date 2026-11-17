@@ -122,6 +122,26 @@ function apiDeleteMasterCategoryItem(token, category, keyId) {
   return MasterService.deleteMasterCategoryItem(category, keyId);
 }
 
+function apiGetSystemSettings(token) {
+  const user = AuthService.requireRole(token, [APP_CONFIG.ROLES.ADMIN]);
+  return Utils.jsonSuccess(SystemService.getAllSettings(user));
+}
+
+function apiSaveSystemSettings(token, section, payload) {
+  const user = AuthService.requireRole(token, [APP_CONFIG.ROLES.ADMIN]);
+  return SystemService.saveSectionSettings(user, section, payload);
+}
+
+function apiFlushSystemCache(token) {
+  const user = AuthService.requireRole(token, [APP_CONFIG.ROLES.ADMIN]);
+  return SystemService.flushCache(user);
+}
+
+function apiGetSystemHealth(token) {
+  const user = AuthService.requireRole(token, [APP_CONFIG.ROLES.ADMIN]);
+  return SystemService.getSystemHealth(user);
+}
+
 function apiCreateRequest(token, payload) {
   const user = AuthService.requireLogin(token);
   return RequestService.createRequest(user, payload);

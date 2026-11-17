@@ -870,6 +870,156 @@
   .registration-details { display: grid; grid-template-columns: 1fr; gap: 5px; margin-top: 10px; color: #475569; font-size: 13px; line-height: 1.45; }
   .info-banner { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; font-size: 13px; font-weight: 700; }
 
+  /* Switch Toggles */
+  .settings-toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--frs-border, #f1f5f9);
+  }
+  .frs-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 26px;
+    flex-shrink: 0;
+  }
+  .frs-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .frs-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: #cbd5e1;
+    transition: .3s;
+  }
+  .frs-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  .frs-switch input:checked + .frs-slider {
+    background-color: var(--frs-primary, #2563eb);
+  }
+  .frs-switch input:checked + .frs-slider:before {
+    transform: translateX(22px);
+  }
+  .frs-slider.round {
+    border-radius: 34px;
+  }
+  .frs-slider.round:before {
+    border-radius: 50%;
+  }
+
+  /* Admin Settings Tabs & Panels */
+  .admin-settings-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px 2px 12px;
+    margin: 14px 0 20px;
+    border-bottom: 1px solid var(--frs-border, #e2e8f0);
+    -webkit-overflow-scrolling: touch;
+  }
+  .admin-tab-btn {
+    padding: 9px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--frs-border, #e2e8f0);
+    background: var(--frs-surface, #fff);
+    color: var(--frs-muted, #64748b);
+    font-size: 13px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+  }
+  .admin-tab-btn:hover {
+    background: var(--frs-border, #f1f5f9);
+    color: var(--frs-text, #0f172a);
+  }
+  .admin-tab-btn.active {
+    background: var(--frs-primary, #2563eb);
+    color: #ffffff;
+    border-color: var(--frs-primary, #2563eb);
+    box-shadow: 0 4px 10px rgba(37,99,235,0.25);
+  }
+  .admin-settings-card {
+    background: var(--frs-surface, #fff);
+    border: 1px solid var(--frs-border, #e2e8f0);
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  }
+  .admin-card-head {
+    border-bottom: 1px solid var(--frs-border, #f1f5f9);
+    padding-bottom: 14px;
+  }
+
+  /* Health check grid and tables */
+  .health-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .health-metric-box {
+    background: var(--frs-bg, #f8fafc);
+    border: 1px solid var(--frs-border, #e2e8f0);
+    border-radius: 14px;
+    padding: 16px;
+  }
+  .health-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .health-table th, .health-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--frs-border, #e2e8f0);
+    text-align: left;
+  }
+  .health-table th {
+    background: var(--frs-bg, #f8fafc);
+    color: var(--frs-muted, #64748b);
+    font-weight: 700;
+  }
+  html[data-theme="dark"] .admin-tab-btn {
+    background: #1e293b;
+    border-color: #334155;
+    color: #94a3b8;
+  }
+  html[data-theme="dark"] .admin-tab-btn:hover {
+    background: #334155;
+    color: #f8fafc;
+  }
+  html[data-theme="dark"] .admin-tab-btn.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+  }
+  html[data-theme="dark"] .health-metric-box {
+    background: #0f172a;
+    border-color: #334155;
+  }
+  html[data-theme="dark"] .health-table th {
+    background: #0f172a;
+    color: #94a3b8;
+  }
+
   .modal { position: fixed; inset: 0; z-index: 100; }
   .modal-backdrop { position: absolute; inset: 0; background: rgba(15, 23, 42, .58); }
   .modal-panel {

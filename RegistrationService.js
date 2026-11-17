@@ -5,6 +5,12 @@
  */
 
 const RegistrationService = {
+  isRegistrationEnabled() {
+    const prop = PropertiesService.getScriptProperties().getProperty('CFG_REGISTRATION_ENABLED');
+    if (prop !== null && prop !== undefined) return prop !== 'false';
+    return Boolean(APP_CONFIG.REGISTRATION_ENABLED);
+  },
+
   publicMasterData() {
     const status = SocialAuthConfig.publicStatus();
     const departments = status.registrationEnabled
@@ -23,7 +29,7 @@ const RegistrationService = {
   },
 
   createSocialDraft(profile) {
-    if (!APP_CONFIG.REGISTRATION_ENABLED) throw new Error('ระบบสมัครสมาชิกถูกปิดใช้งาน');
+    if (!this.isRegistrationEnabled()) throw new Error('ระบบสมัครสมาชิกถูกปิดใช้งานชั่วคราว');
     this.cleanupExpiredDrafts();
     const provider = Utils.normalizeProvider(profile.provider);
     if ([APP_CONFIG.IDENTITY_PROVIDERS.GOOGLE, APP_CONFIG.IDENTITY_PROVIDERS.LINE].indexOf(provider) === -1) {
@@ -107,7 +113,7 @@ const RegistrationService = {
 
   completeSocialRegistration(token, payload) {
     try {
-      if (!APP_CONFIG.REGISTRATION_ENABLED) throw new Error('ระบบสมัครสมาชิกถูกปิดใช้งาน');
+      if (!this.isRegistrationEnabled()) throw new Error('ระบบสมัครสมาชิกถูกปิดใช้งานชั่วคราว');
       const row = this.requireDraftToken_(token);
       const input = this.normalizeRegistrationInput_(payload, false);
       const verifiedProviderEmail = String(row.PROVIDER_EMAIL || '').trim().toLowerCase();
@@ -142,7 +148,7 @@ const RegistrationService = {
 
   registerPassword(payload) {
     try {
-      if (!APP_CONFIG.REGISTRATION_ENABLED) throw new Error('ระบบสมัครสมาชิกถูกปิดใช้งาน');
+      if (!this.isRegistrationEnabled()) throw new Error('ระบบสมัครสมาชิกถูกปิดใช้งานชั่วคราว');
       const input = this.normalizeRegistrationInput_(payload, true);
       if (input.website) throw new Error('ไม่สามารถส่งคำขอสมัครสมาชิกได้');
       this.checkRateLimit_(input.username + '|' + input.email);
