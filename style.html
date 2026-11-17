@@ -35,21 +35,265 @@
 
   .page-login {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
-    padding: 32px 18px;
-    background: radial-gradient(circle at top, #e0edff 0, #f4f7fb 42%, #eef2f7 100%);
+    min-height: 100vh;
+    padding: 32px 16px;
+    background: #fdfbf7;
+    position: relative;
+    overflow-x: hidden;
+  }
+  .page-login::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 280px;
+    background: linear-gradient(180deg, #eaf2ff 0%, #fdfbf7 100%);
+    z-index: 0;
+    pointer-events: none;
+  }
+  .page-login::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: -10%;
+    right: -10%;
+    height: 130px;
+    background: #2563eb;
+    border-top-left-radius: 50% 100%;
+    border-top-right-radius: 50% 100%;
+    z-index: 0;
+    opacity: 0.95;
+    pointer-events: none;
+  }
+  html[data-theme="dark"] .page-login {
+    background: #0b1320;
+  }
+  html[data-theme="dark"] .page-login::before {
+    background: linear-gradient(180deg, #17253e 0%, #0b1320 100%);
+  }
+  html[data-theme="dark"] .page-login::after {
+    background: #1d4ed8;
   }
 
-  .auth-shell { width: 100%; max-width: 480px; }
+  .auth-shell {
+    width: 100%;
+    max-width: 440px;
+    position: relative;
+    z-index: 1;
+  }
   .login-card {
     width: 100%;
     background: var(--card);
     border: 1px solid rgba(226, 232, 240, .9);
-    border-radius: 24px;
-    padding: 28px;
-    box-shadow: 0 18px 50px rgba(15, 23, 42, .12);
+    border-radius: 26px;
+    padding: 28px 24px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, .12);
   }
+  @media (min-width: 640px) {
+    .login-card { padding: 34px 30px; }
+  }
+
+  /* Auth Hero Header (from Screen 1 & 2 in sample) */
+  .auth-hero {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .auth-hero-illustration {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+  .auth-hero-circle {
+    width: 76px;
+    height: 76px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 2px solid #bfdbfe;
+    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .hero-lock-icon {
+    width: 36px;
+    height: 36px;
+    color: #2563eb;
+  }
+  .hero-user-badge {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #f59e0b;
+    border: 2px solid #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+  }
+  .hero-user-icon {
+    width: 16px;
+    height: 16px;
+    color: #ffffff;
+  }
+
+  .auth-welcome-title {
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    margin: 0 0 6px;
+  }
+  .auth-welcome-subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.45;
+  }
+  .auth-card-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text);
+    margin: 0 0 18px;
+    text-align: center;
+  }
+
+  /* Inputs with Left Icon Group */
+  .input-icon-wrap {
+    position: relative;
+    width: 100%;
+  }
+  .input-icon-prefix {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: #94a3b8;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+    z-index: 2;
+  }
+  .input-icon-prefix .frs-ui-icon {
+    width: 18px;
+    height: 18px;
+  }
+  .input-icon-wrap input,
+  .input-icon-wrap select {
+    padding-left: 42px !important;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+  }
+  html[data-theme="dark"] .input-icon-wrap input,
+  html[data-theme="dark"] .input-icon-wrap select {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+  }
+  .input-icon-wrap input:focus,
+  .input-icon-wrap select:focus {
+    background: #ffffff;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  }
+  html[data-theme="dark"] .input-icon-wrap input:focus,
+  html[data-theme="dark"] .input-icon-wrap select:focus {
+    background: #0f172a;
+  }
+  .input-icon-wrap:focus-within .input-icon-prefix {
+    color: #2563eb;
+  }
+
+  /* Utility Row: Remember Me & Forgot Password */
+  .auth-util-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 12px 0 18px;
+    font-size: 13px;
+  }
+  .remember-me-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .remember-me-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #2563eb;
+    cursor: pointer;
+  }
+  .forgot-password-btn {
+    color: #2563eb;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  .forgot-password-btn:hover {
+    text-decoration: underline;
+  }
+
+  /* Submit Button & Footer Link */
+  .auth-submit-btn {
+    min-height: 48px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 800;
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.25);
+    margin-top: 4px;
+  }
+  .auth-footer {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .auth-footer-link {
+    color: #2563eb !important;
+    font-weight: 800 !important;
+    cursor: pointer;
+  }
+
+  /* Modal Hero Badge in Screen 3 (Contact Address style) */
+  .modal-hero-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #fef3c7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .hero-pin-icon { width: 18px; height: 18px; color: #d97706; }
+  .hero-home-icon { width: 18px; height: 18px; color: #2563eb; }
+
   .auth-panel-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 18px; }
   .auth-panel-header h1 { text-align: left; margin: 0 0 4px; font-size: 24px; }
   .auth-panel-header .muted { text-align: left; margin: 0; }

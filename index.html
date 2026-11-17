@@ -20,6 +20,8 @@
 
     <svg class="frs-icon-sprite" aria-hidden="true" focusable="false">
       <defs>
+        <symbol id="frs-icon-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+        <symbol id="frs-icon-mail" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></symbol>
         <symbol id="frs-icon-printer" viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></symbol>
         <symbol id="frs-icon-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a4.5 4.5 0 0 0-5.8 5.8L3.6 17.4a2 2 0 0 0 2.8 2.8l5.3-5.3a4.5 4.5 0 0 0 5.8-5.8l-2.7 2.7-2.6-.7-.7-2.6z"/><path d="m14.2 14.2 5.4 5.4"/></symbol>
         <symbol id="frs-icon-home" viewBox="0 0 24 24"><path d="m3 10.5 9-7.5 9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-7h6v7"/></symbol>
@@ -74,59 +76,87 @@
       </button>
       <div class="auth-shell">
         <div id="loginPanel" class="login-card auth-panel">
-          <div class="brand-icon frs-brand-icon-svg" aria-hidden="true"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-wrench"></use></svg></div>
-          <h1>เข้าสู่ระบบ FRS</h1>
-          <p class="muted">Facility Repair System</p>
-
-          <div id="socialLoginButtons" class="social-login-stack">
-            <button id="lineLoginButton" class="social-button line-button" type="button" onclick="App.beginSocialAuth('LINE', 'LOGIN')">
-              <span class="social-btn-icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFFFFF">
-                  <path d="M24 10.3C24 4.6 18.6 0 12 0S0 4.6 0 10.3c0 5.1 4.5 9.3 10.6 10.1.4.1.9.3 1.1.7.1.3.1.8 0 1.2l-.4 2.5c-.1.6.2.9.7.6 2.4-1.5 6.5-4.5 8.9-7.7 2-2 3.1-4.4 3.1-7.4z"/>
-                  <path fill="#06C755" d="M6.5 12.8h-1c-.3 0-.5-.2-.5-.5V8.5c0-.3.2-.5.5-.5s.5.2.5.5v3.3h1c.3 0 .5.2.5.5s-.2.5-.5.5zm2.8 0c-.3 0-.5-.2-.5-.5V8.5c0-.3.2-.5.5-.5s.5.2.5.5v3.8c0 .3-.2.5-.5.5zm5.3 0c-.2 0-.4-.1-.5-.3l-1.9-2.6v2.4c0 .3-.2.5-.5.5s-.5-.2-.5-.5V8.5c0-.2.1-.4.3-.5.2-.1.4 0 .5.1l1.9 2.7V8.5c0-.3.2-.5.5-.5s.5.2.5.5v3.8c0 .3-.2.5-.5.5zm4-2.8h-1.5v.9h1.5c.3 0 .5.2.5.5s-.2.5-.5.5h-2c-.3 0-.5-.2-.5-.5V8.5c0-.3.2-.5.5-.5h2c.3 0 .5.2.5.5s-.2.5-.5.5h-1.5v.9h1.5c.3 0 .5.2.5.5s-.2.5-.5.5z"/>
-                </svg>
-              </span>
-              <span>เข้าสู่ระบบด้วย LINE</span>
-            </button>
-            <button id="googleLoginButton" class="social-button google-button" type="button" onclick="App.beginSocialAuth('GOOGLE', 'LOGIN')">
-              <span class="social-btn-icon" aria-hidden="true">
-                <svg width="20" height="20" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                </svg>
-              </span>
-              <span>เข้าสู่ระบบด้วย Google</span>
-            </button>
-            <div class="auth-divider"><span>หรือ เข้าสู่ระบบด้วย Username / รหัสพนักงาน</span></div>
-          </div>
-
-          <form id="loginForm" onsubmit="App.login(event)">
-            <div class="form-group">
-              <label for="loginUsername">Username หรือ รหัสพนักงาน</label>
-              <input id="loginUsername" type="text" autocomplete="username" maxlength="80" placeholder="กรอก Username หรือ รหัสพนักงาน" required>
-            </div>
-            <div class="form-group">
-              <label for="loginPassword">Password</label>
-              <div class="password-input-wrap">
-                <input id="loginPassword" type="password" autocomplete="current-password" maxlength="256" placeholder="รหัสผ่าน" required>
-                <button class="password-toggle" type="button" data-password-target="loginPassword" aria-label="แสดงรหัสผ่าน" aria-pressed="false">
-                  <span class="password-icon password-icon-eye" aria-hidden="true">
-                    <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-eye"></use></svg>
-                  </span>
-                  <span class="password-icon password-icon-eye-off hidden" aria-hidden="true">
-                    <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-eye-off"></use></svg>
-                  </span>
-                </button>
+          <!-- Hero Illustration & Header inspired by UI/UX Sample Screen 1 -->
+          <div class="auth-hero">
+            <div class="auth-hero-illustration" aria-hidden="true">
+              <div class="auth-hero-circle">
+                <svg class="frs-ui-icon hero-lock-icon" aria-hidden="true"><use href="#frs-icon-lock"></use></svg>
+                <div class="hero-user-badge">
+                  <svg class="frs-ui-icon hero-user-icon" aria-hidden="true"><use href="#frs-icon-user"></use></svg>
+                </div>
               </div>
             </div>
-            <button class="btn btn-primary btn-full" type="submit">เข้าสู่ระบบ</button>
-          </form>
+            <h1 class="auth-welcome-title">Welcome Back!</h1>
+            <p class="auth-welcome-subtitle">เข้าสู่ระบบเพื่อจัดการและติดตามงานแจ้งซ่อมบำรุง FRS</p>
+          </div>
 
-          <div id="registrationLinkWrap" class="auth-footer hidden">
-            ยังไม่มีบัญชี FRS?
-            <button class="text-button" type="button" onclick="App.showAuthPanel('manualRegister')">สมัครสมาชิก</button>
+          <div class="auth-card-inner">
+            <h2 class="auth-card-title">Login Account</h2>
+
+            <form id="loginForm" onsubmit="App.login(event)">
+              <div class="form-group">
+                <label for="loginUsername">Username หรือ รหัสพนักงาน</label>
+                <div class="input-icon-wrap">
+                  <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-user"></use></svg></span>
+                  <input id="loginUsername" type="text" autocomplete="username" maxlength="80" placeholder="กรอก Username หรือ รหัสพนักงาน" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <div class="input-icon-wrap password-input-wrap">
+                  <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-lock"></use></svg></span>
+                  <input id="loginPassword" type="password" autocomplete="current-password" maxlength="256" placeholder="รหัสผ่าน" required>
+                  <button class="password-toggle" type="button" data-password-target="loginPassword" aria-label="แสดงรหัสผ่าน" aria-pressed="false">
+                    <span class="password-icon password-icon-eye" aria-hidden="true">
+                      <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-eye"></use></svg>
+                    </span>
+                    <span class="password-icon password-icon-eye-off hidden" aria-hidden="true">
+                      <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-eye-off"></use></svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Save Password & Forgot Password Row (from sample UX) -->
+              <div class="auth-util-row">
+                <label class="remember-me-label">
+                  <input id="rememberMeCheckbox" type="checkbox">
+                  <span>Save Password (จดจำฉัน)</span>
+                </label>
+                <button type="button" class="text-button forgot-password-btn" onclick="App.showForgotPasswordDialog()">Forgot Password?</button>
+              </div>
+
+              <button class="btn btn-primary btn-full auth-submit-btn" type="submit">Login Account (เข้าสู่ระบบ)</button>
+            </form>
+
+            <div id="socialLoginButtons" class="social-login-stack">
+              <div class="auth-divider"><span>Or, Login with</span></div>
+              <button id="lineLoginButton" class="social-button line-button" type="button" onclick="App.beginSocialAuth('LINE', 'LOGIN')">
+                <span class="social-btn-icon" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFFFFF">
+                    <path d="M24 10.3C24 4.6 18.6 0 12 0S0 4.6 0 10.3c0 5.1 4.5 9.3 10.6 10.1.4.1.9.3 1.1.7.1.3.1.8 0 1.2l-.4 2.5c-.1.6.2.9.7.6 2.4-1.5 6.5-4.5 8.9-7.7 2-2 3.1-4.4 3.1-7.4z"/>
+                    <path fill="#06C755" d="M6.5 12.8h-1c-.3 0-.5-.2-.5-.5V8.5c0-.3.2-.5.5-.5s.5.2.5.5v3.3h1c.3 0 .5.2.5.5s-.2.5-.5.5zm2.8 0c-.3 0-.5-.2-.5-.5V8.5c0-.3.2-.5.5-.5s.5.2.5.5v3.8c0 .3-.2.5-.5.5zm5.3 0c-.2 0-.4-.1-.5-.3l-1.9-2.6v2.4c0 .3-.2.5-.5.5s-.5-.2-.5-.5V8.5c0-.2.1-.4.3-.5.2-.1.4 0 .5.1l1.9 2.7V8.5c0-.3.2-.5.5-.5s.5.2.5.5v3.8c0 .3-.2.5-.5.5zm4-2.8h-1.5v.9h1.5c.3 0 .5.2.5.5s-.2.5-.5.5h-2c-.3 0-.5-.2-.5-.5V8.5c0-.3.2-.5.5-.5h2c.3 0 .5.2.5.5s-.2.5-.5.5h-1.5v.9h1.5c.3 0 .5.2.5.5s-.2.5-.5.5z"/>
+                  </svg>
+                </span>
+                <span>เข้าสู่ระบบด้วย LINE</span>
+              </button>
+              <button id="googleLoginButton" class="social-button google-button" type="button" onclick="App.beginSocialAuth('GOOGLE', 'LOGIN')">
+                <span class="social-btn-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                  </svg>
+                </span>
+                <span>เข้าสู่ระบบด้วย Google</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="registrationLinkWrap" class="auth-footer">
+            <span>Don't Have an Account?</span>
+            <button class="text-button auth-footer-link" type="button" onclick="App.showAuthPanel('manualRegister')">Create Account (สมัครสมาชิก)</button>
           </div>
           <div class="security-note">บัญชีใหม่ต้องผ่านการอนุมัติจากผู้ดูแลระบบก่อนใช้งาน</div>
           <div class="version-text">Version <?= appVersion ?></div>
@@ -136,8 +166,8 @@
           <div class="auth-panel-header">
             <button class="back-button" type="button" onclick="App.showAuthPanel('login')" aria-label="กลับ">←</button>
             <div>
-              <h1>สมัครสมาชิก</h1>
-              <p class="muted">สมัครด้วย Username และ Password</p>
+              <h1 class="auth-welcome-title">Join Us</h1>
+              <p class="auth-welcome-subtitle">สร้างบัญชีผู้ใช้งานระบบแจ้งซ่อมบำรุง FRS</p>
             </div>
           </div>
 
@@ -168,18 +198,32 @@
           <form id="manualRegisterForm" onsubmit="App.submitManualRegistration(event)">
             <input id="registerWebsite" class="honeypot" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
             <div class="form-group">
+              <label for="registerFullName">ชื่อ-นามสกุล <span class="required">*</span></label>
+              <div class="input-icon-wrap">
+                <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-user"></use></svg></span>
+                <input id="registerFullName" type="text" maxlength="200" placeholder="ชื่อและนามสกุลจริง" required>
+              </div>
+            </div>
+            <div class="form-group">
               <label for="registerEmail">อีเมล <span class="required">*</span></label>
-              <input id="registerEmail" type="email" autocomplete="email" maxlength="200" required>
+              <div class="input-icon-wrap">
+                <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-mail"></use></svg></span>
+                <input id="registerEmail" type="email" autocomplete="email" maxlength="200" placeholder="name@company.com" required>
+              </div>
             </div>
             <div class="form-group">
               <label for="registerUsername">Username <span class="required">*</span></label>
-              <input id="registerUsername" type="text" autocomplete="username" maxlength="80" pattern="[a-zA-Z0-9._-]{4,80}" required>
+              <div class="input-icon-wrap">
+                <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-user"></use></svg></span>
+                <input id="registerUsername" type="text" autocomplete="username" maxlength="80" pattern="[a-zA-Z0-9._-]{4,80}" placeholder="ระบุ username สำหรับเข้าระบบ" required>
+              </div>
               <div class="field-help">ใช้ a-z, 0-9, จุด, ขีดกลาง หรือขีดล่าง จำนวน 4-80 ตัว</div>
             </div>
             <div class="form-group">
               <label for="registerPassword">Password <span class="required">*</span></label>
-              <div class="password-input-wrap">
-                <input id="registerPassword" type="password" autocomplete="new-password" maxlength="256" required>
+              <div class="input-icon-wrap password-input-wrap">
+                <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-lock"></use></svg></span>
+                <input id="registerPassword" type="password" autocomplete="new-password" maxlength="256" placeholder="รหัสผ่านอย่างน้อย 10 ตัว" required>
                 <button class="password-toggle" type="button" data-password-target="registerPassword" aria-label="แสดงรหัสผ่าน" aria-pressed="false">
                   <span class="password-icon password-icon-eye" aria-hidden="true">
                     <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-eye"></use></svg>
@@ -192,17 +236,13 @@
               <div class="field-help">อย่างน้อย 10 ตัว พร้อมตัวพิมพ์เล็ก พิมพ์ใหญ่ ตัวเลข และอักขระพิเศษ</div>
             </div>
             <div class="form-group">
-              <label for="registerFullName">ชื่อ-นามสกุล <span class="required">*</span></label>
-              <input id="registerFullName" type="text" maxlength="200" required>
-            </div>
-            <div class="form-group">
               <label for="registerPhone">เบอร์โทร</label>
               <div class="thai-phone-control" data-phone-control>
                 <div class="thai-phone-country" aria-label="ประเทศไทย รหัสประเทศบวกหกหก" title="ประเทศไทย">
                   <span class="thai-phone-flag" aria-hidden="true">🇹🇭</span>
                   <span class="thai-phone-country-code">+66</span>
                 </div>
-                <input id="registerPhone" type="tel" inputmode="numeric" autocomplete="off" maxlength="12" data-thai-phone>
+                <input id="registerPhone" type="tel" inputmode="numeric" autocomplete="off" maxlength="12" data-thai-phone placeholder="08x-xxx-xxxx">
               </div>
               <div class="field-help">กรอกหมายเลขโทรศัพท์ไทย ระบบจะจัดรูปแบบและบันทึกเป็น +66 อัตโนมัติ</div>
               <div id="registerPhoneError" class="field-error" role="alert"></div>
@@ -213,15 +253,22 @@
             </div>
             <div class="form-group">
               <label for="registerPosition">ตำแหน่ง</label>
-              <input id="registerPosition" type="text" maxlength="200">
+              <div class="input-icon-wrap">
+                <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-layers"></use></svg></span>
+                <input id="registerPosition" type="text" maxlength="200" placeholder="เช่น เจ้าหน้าที่, วิศวกรไฟฟ้า">
+              </div>
             </div>
             <label class="consent-row">
               <input id="registerConsent" type="checkbox" required>
-              <span>ยืนยันว่าข้อมูลถูกต้องและยินยอมให้ใช้ข้อมูลเพื่อบริหารบัญชี FRS</span>
+              <span>Terms & Agreements (ยืนยันข้อมูลและยินยอมการใช้งาน FRS)</span>
             </label>
             <button class="text-button privacy-link" type="button" onclick="App.showPrivacyNotice()">อ่านรายละเอียดการใช้ข้อมูล</button>
-            <button class="btn btn-primary btn-full" type="submit">ส่งคำขอสมัครสมาชิก</button>
+            <button class="btn btn-primary btn-full auth-submit-btn" type="submit">Create Account (ส่งคำขอสมัครสมาชิก)</button>
           </form>
+          <div class="auth-footer">
+            <span>Already Have an Account?</span>
+            <button class="text-button auth-footer-link" type="button" onclick="App.showAuthPanel('login')">Back to Login (เข้าสู่ระบบ)</button>
+          </div>
         </div>
 
         <div id="socialRegisterPanel" class="login-card auth-panel hidden">
@@ -735,15 +782,21 @@
       </div>
     </div>
 
-    <!-- Edit Profile Modal -->
+    <!-- Edit Profile Modal (Adapted from Screen 3 Contact Address Style) -->
     <div id="editProfileModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="editProfileModalTitle">
       <div class="modal-backdrop" onclick="App.closeEditProfileModal()"></div>
       <div class="modal-panel" style="max-width:540px;">
         <div class="mobile-bottom-sheet-handle" aria-hidden="true"></div>
         <div class="modal-header">
-          <div>
-            <div id="editProfileModalTitle" class="modal-title">แก้ไขข้อมูลส่วนตัว</div>
-            <div class="modal-subtitle">อัปเดตข้อมูลการติดต่อและสังกัดเพื่อความสะดวกในการติดตามงาน</div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div class="modal-hero-badge" aria-hidden="true">
+              <svg class="frs-ui-icon hero-pin-icon"><use href="#frs-icon-map-pin"></use></svg>
+              <svg class="frs-ui-icon hero-home-icon"><use href="#frs-icon-home"></use></svg>
+            </div>
+            <div>
+              <div id="editProfileModalTitle" class="modal-title">Contact & Workplace (ข้อมูลติดต่อและสังกัด)</div>
+              <div class="modal-subtitle">อัปเดตข้อมูลการติดต่อและสังกัดเพื่อความสะดวกในการประสานงานซ่อม</div>
+            </div>
           </div>
           <button type="button" class="modal-close" onclick="App.closeEditProfileModal()" aria-label="ปิด">
             <svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-x"></use></svg>
@@ -755,7 +808,10 @@
               <div class="form-row-2col">
                 <div>
                   <label class="form-label" for="ep_USERNAME">Username</label>
-                  <input type="text" id="ep_USERNAME" class="form-control" readonly style="background:var(--frs-surface-2); font-weight:700;">
+                  <div class="input-icon-wrap">
+                    <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-user"></use></svg></span>
+                    <input type="text" id="ep_USERNAME" class="form-control" readonly style="background:var(--frs-surface-2); font-weight:700;">
+                  </div>
                 </div>
                 <div>
                   <label class="form-label" for="ep_ROLE">สิทธิ์ในระบบ (Role)</label>
@@ -765,24 +821,36 @@
 
               <div>
                 <label class="form-label" for="ep_FULL_NAME">ชื่อ - นามสกุล <span class="required">*</span></label>
-                <input type="text" id="ep_FULL_NAME" name="FULL_NAME" class="form-control" required placeholder="ชื่อและนามสกุลจริง">
+                <div class="input-icon-wrap">
+                  <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-user"></use></svg></span>
+                  <input type="text" id="ep_FULL_NAME" name="FULL_NAME" class="form-control" required placeholder="ชื่อและนามสกุลจริง">
+                </div>
               </div>
 
               <div>
                 <label class="form-label" for="ep_EMPLOYEE_ID">รหัสพนักงาน (Employee ID)</label>
-                <input type="text" id="ep_EMPLOYEE_ID" name="EMPLOYEE_ID" class="form-control" placeholder="เช่น EMP-001 หรือ 67001">
+                <div class="input-icon-wrap">
+                  <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-user"></use></svg></span>
+                  <input type="text" id="ep_EMPLOYEE_ID" name="EMPLOYEE_ID" class="form-control" placeholder="เช่น EMP-001 หรือ 67001">
+                </div>
                 <small class="muted" style="font-size:11px; margin-top:3px; display:block;">ใช้ยืนยันตัวตนและเข้าสู่ระบบแทน Username ได้</small>
               </div>
 
               <div class="form-row-2col">
                 <div>
                   <label class="form-label" for="ep_PHONE">เบอร์โทรศัพท์ <span class="required">*</span></label>
-                  <input type="tel" id="ep_PHONE" name="PHONE" class="form-control" required placeholder="08x-xxx-xxxx" maxlength="12">
+                  <div class="input-icon-wrap">
+                    <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-phone"></use></svg></span>
+                    <input type="tel" id="ep_PHONE" name="PHONE" class="form-control" required placeholder="08x-xxx-xxxx" maxlength="12">
+                  </div>
                   <small class="muted" style="font-size:11px; margin-top:3px; display:block;">สำหรับโทรติดต่อด่วนเรื่องงานซ่อม</small>
                 </div>
                 <div>
                   <label class="form-label" for="ep_EMAIL">อีเมล <span class="required">*</span></label>
-                  <input type="email" id="ep_EMAIL" name="EMAIL" class="form-control" required placeholder="name@company.com">
+                  <div class="input-icon-wrap">
+                    <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-mail"></use></svg></span>
+                    <input type="email" id="ep_EMAIL" name="EMAIL" class="form-control" required placeholder="name@company.com">
+                  </div>
                   <small class="muted" style="font-size:11px; margin-top:3px; display:block;">สำหรับรับการแจ้งเตือนงาน</small>
                 </div>
               </div>
@@ -796,13 +864,16 @@
 
               <div>
                 <label class="form-label" for="ep_POSITION">ตำแหน่งงาน</label>
-                <input type="text" id="ep_POSITION" name="POSITION" class="form-control" placeholder="เช่น เจ้าหน้าที่บริหารงานทั่วไป, วิศวกรไฟฟ้า">
+                <div class="input-icon-wrap">
+                  <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-layers"></use></svg></span>
+                  <input type="text" id="ep_POSITION" name="POSITION" class="form-control" placeholder="เช่น เจ้าหน้าที่บริหารงานทั่วไป, วิศวกรไฟฟ้า">
+                </div>
               </div>
             </div>
 
             <div class="modal-actions" style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
               <button type="button" class="btn btn-outline" onclick="App.closeEditProfileModal()">ยกเลิก</button>
-              <button type="submit" id="editProfileSubmitBtn" class="btn btn-primary">บันทึกข้อมูลส่วนตัว</button>
+              <button type="submit" id="editProfileSubmitBtn" class="btn btn-primary auth-submit-btn" style="min-height:44px;">Save & Confirm (บันทึกข้อมูลส่วนตัว)</button>
             </div>
           </form>
         </div>

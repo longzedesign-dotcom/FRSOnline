@@ -852,6 +852,14 @@
         this.currentUser = res.data.user;
         sessionStorage.setItem(this.sessionKey, this.token);
         document.getElementById('loginPassword').value = '';
+
+        const remChk = document.getElementById('rememberMeCheckbox');
+        if (remChk && remChk.checked) {
+          try { localStorage.setItem('FRS_REMEMBER_USERNAME', username); } catch (_) {}
+        } else {
+          try { localStorage.removeItem('FRS_REMEMBER_USERNAME'); } catch (_) {}
+        }
+
         this.showMain();
         await this.loadInitialData();
       } catch (err) {
@@ -914,6 +922,24 @@
       if (!this.publicRegistrationData) {
         this.ensurePublicRegistrationData().catch((err) => console.warn('PUBLIC_REGISTRATION_DATA', err));
       }
+      try {
+        const saved = localStorage.getItem('FRS_REMEMBER_USERNAME');
+        const userInp = document.getElementById('loginUsername');
+        const remChk = document.getElementById('rememberMeCheckbox');
+        if (saved && userInp) {
+          userInp.value = saved;
+          if (remChk) remChk.checked = true;
+        }
+      } catch (_) {}
+    },
+
+    showForgotPasswordDialog() {
+      this.haptic(10);
+      this.notify(
+        'ระบบ FRS เชื่อมโยงบัญชีและสิทธิ์พนักงานภายในองค์กร\n\nหากท่านลืมรหัสผ่าน หรือต้องการรีเซ็ตรหัสผ่าน กรุณาติดต่อ:\n• ผู้ดูแลระบบ (IT Administrator)\n• หรือฝ่ายบริหารงานอาคารและสถานที่ (Facility Management)\n\nพร้อมแจ้ง Username หรือ รหัสพนักงานของท่าน',
+        'info',
+        'แจ้งรีเซ็ตรหัสผ่าน (Forgot Password)'
+      );
     },
 
     showMain() {

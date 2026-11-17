@@ -6,6 +6,31 @@
 
 ---
 
+## [V2.3.11 Modern Auth & Profile UX/UI Suite] — 2026-11-17 🎨✨📱 (ITSD Release Standard)
+
+### 🌟 ปรับโฉมหน้าเข้าสู่ระบบและสมัครสมาชิกใหม่ (Modern Auth Transformation)
+- **Hero Illustration & Welcome Typography:**
+  - เพิ่มการ์ดสัญลักษณ์ Hero Icon รูปกุญแจความปลอดภัยและตราสัญลักษณ์ผู้ใช้งานแบบ Minimalist 2.5D
+  - เพิ่มหัวข้อต้อนรับขนาดใหญ่เด่นชัด: **"Welcome Back!"** พร้อมคำอธิบายระบบแจ้งซ่อม
+  - ฉากหลังแบบ Dual-Tone โค้งมนนุ่มนวล (Curved Wave Background) ให้ความรู้สึกทันสมัยระดับ Mobile App สากล
+- **ช่องกรอกข้อมูลพร้อมไอคอนนำหน้าด้านใน (Input Icon Prefix):**
+  - ช่อง Username / รหัสพนักงาน: แสดงไอคอนผู้ใช้งาน (`user icon`) ด้านซ้ายในช่อง
+  - ช่อง Password: แสดงไอคอนแม่กุญแจ (`lock icon`) ด้านซ้าย พร้อมปุ่มเปิด/ปิดตาด้านขวา
+  - ช่อง Email: แสดงไอคอนจดหมาย (`mail icon`)
+  - ช่อง Phone: แสดงไอคอนโทรศัพท์ (`phone icon`)
+  - ช่อง Position / Department: แสดงไอคอนโครงสร้างและเอกสาร
+  - เมื่อผู้ใช้แตะหรือคลิกที่ช่อง ไอคอนจะเปลี่ยนเป็นสีน้ำเงิน Primary แบบ Interactive
+- **แถบเมนูช่วยเหลือ (Auth Utilities Row):**
+  - **Save Password (จดจำฉัน):** ตัวเลือกบันทึก Username ไว้ในเครื่อง เพื่อความสะดวกในการเข้าสู่ระบบครั้งถัดไป
+  - **Forgot Password? (ลืมรหัสผ่าน):** ปุ่มเปิดกล่องข้อความช่วยเหลือและแนะนำช่องทางการติดต่อผู้ดูแลระบบ IT/ฝ่ายอาคาร
+
+### 📍 ปรับโฉมหน้าต่างข้อมูลผู้ติดต่อและสังกัด (Contact & Workplace Profile)
+- **อ้างอิงดีไซน์ Contact Address Card สไตล์สากล:**
+  - เพิ่ม Hero Badge ตราสัญลักษณ์ Location Pin + Building ในหน้าต่างแก้ไขข้อมูลส่วนตัว
+  - จัดหมวดหมู่ฟอร์มข้อมูลติดต่อและสังกัดให้เป็นระเบียบ พร้อมปุ่ม **"Save & Confirm (บันทึกข้อมูลส่วนตัว)"**
+
+---
+
 ## [V2.3.10 Mobile & Desktop Dual Enhancement] — 2026-11-16 🚀💻📱 (ITSD Release Standard)
 
 ### 🎨 ปรับปรุงการแสดงผลสถานะงาน 9 สถานะ (Status Badges Completeness)
