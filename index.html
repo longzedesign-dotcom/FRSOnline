@@ -95,13 +95,10 @@
 
             <form id="loginForm" onsubmit="App.login(event)">
               <div class="form-group">
-                <label for="loginUsername">Username หรือ รหัสพนักงาน</label>
+                <label for="loginUsername">Username</label>
                 <div class="input-icon-wrap">
                   <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-user"></use></svg></span>
-                  <input id="loginUsername" type="text" autocomplete="username" maxlength="80" placeholder="เช่น chaloemporn.th หรือ E0001" required>
-                </div>
-                <div class="field-help" style="margin-top:4px; font-size:11.5px; color:var(--frs-muted);">
-                  มาตรฐาน: Username (เช่น <code>chaloemporn.th</code>) หรือ รหัสพนักงาน (เช่น <code>E0001 - E9999</code>)
+                  <input id="loginUsername" type="text" autocomplete="username" maxlength="80" placeholder="รหัสเข้าใช้งาน" required>
                 </div>
               </div>
               <div class="form-group">
