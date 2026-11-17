@@ -1606,7 +1606,7 @@ body { background: radial-gradient(circle at 8% 4%, #dff1ff 0, transparent 32%),
 .frs-content { width:min(1180px,calc(100% - 28px)); margin:0 auto; padding:clamp(22px,4vw,48px) 0 140px; }
 .frs-welcome-row { justify-content:space-between;gap:24px;margin-bottom:26px; }
 .frs-eyebrow,.frs-card-kicker { margin:0 0 6px;color:var(--frs-primary);font-weight:800;font-size:11px;letter-spacing:.08em;text-transform:uppercase; }
-.frs-welcome-row h1 { margin:0;font-size:clamp(27px,4vw,42px);letter-spacing:-.035em;color:#13345d; }
+.frs-welcome-row h1 { margin:0;font-size:var(--frs-fs-lg);font-weight:800;line-height:var(--frs-lh-heading);letter-spacing:-.02em;color:#13345d; }
 .frs-lead { margin:8px 0 0;color:var(--frs-muted);font-size:14px; }
 .frs-primary-action { border:0;border-radius:18px;padding:14px 20px;background:linear-gradient(135deg,#2697ff,#0c6ae2);color:#fff;font-weight:800;display:flex;align-items:center;gap:9px;box-shadow:0 12px 28px rgba(13,108,226,.22);cursor:pointer; }
 .frs-primary-action svg { width:20px;height:20px; }
@@ -2330,10 +2330,10 @@ html[data-theme="dark"] .frs-v2303 .frs-welcome-row::after { opacity:.18; }
   margin:0;
   text-align:left;
   color:var(--frs-text);
-  font-size:clamp(30px,2.45vw,40px);
-  line-height:1.12;
-  font-weight:900;
-  letter-spacing:-.035em;
+  font-size:var(--frs-fs-lg);
+  line-height:var(--frs-lh-heading);
+  font-weight:800;
+  letter-spacing:-.02em;
 }
 .frs-v2303 .frs-lead,
 .frs-v2303 .frs-page-heading p:not(.frs-eyebrow) { margin:9px 0 0; color:var(--frs-muted); font-size:14px; line-height:1.55; }
@@ -2547,7 +2547,7 @@ html[data-theme="dark"] .frs-v2303 .frs-score-ring { background:conic-gradient(#
 
 /* Secondary pages */
 .frs-v2303 .frs-page-heading { margin:4px 0 18px; display:flex; align-items:flex-start; justify-content:space-between; gap:20px; }
-.frs-v2303 .frs-page-heading h1 { font-size:var(--frs-fs-xl); line-height:var(--frs-lh-tight); }
+.frs-v2303 .frs-page-heading h1 { font-size:var(--frs-fs-lg); line-height:var(--frs-lh-heading); font-weight:800; }
 .frs-v2303 .section-title { color:var(--frs-text); font-size:var(--frs-fs-lg); line-height:var(--frs-lh-heading); font-weight:800; }
 .frs-v2303 .section-header-row { margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; gap:14px; }
 .frs-v2303 .card-form,
@@ -2678,7 +2678,7 @@ html[data-theme="dark"] .frs-v2303 .frs-score-ring { background:conic-gradient(#
   }
   .frs-v2303 .frs-welcome-row::after { width:300px; height:135px; right:-58px; top:0; opacity:.32; }
   .frs-v2303 .frs-eyebrow { margin-bottom:10px; font-size:13px; }
-  .frs-v2303 .frs-welcome-row h1 { font-size:clamp(31px,8.5vw,42px); line-height:1.03; }
+  .frs-v2303 .frs-welcome-row h1 { font-size:var(--frs-fs-md); font-weight:800; line-height:var(--frs-lh-heading); }
   .frs-v2303 .frs-lead { margin-top:10px; max-width:29ch; font-size:16px; line-height:1.5; }
   .frs-v2303 .frs-welcome-row .frs-primary-action,
   .frs-v2303 #welcomeNewRequestBtn {
@@ -2826,7 +2826,7 @@ html[data-theme="dark"] .frs-v2303 .frs-score-ring { background:conic-gradient(#
 
   /* Secondary page readability & Mobile balanced typography */
   .frs-v2303 .frs-page-heading { flex-direction:column; gap:10px; margin-bottom:14px; }
-  .frs-v2303 .frs-page-heading h1 { font-size:var(--frs-fs-lg); font-weight:800; line-height:var(--frs-lh-heading); }
+  .frs-v2303 .frs-page-heading h1 { font-size:var(--frs-fs-md); font-weight:800; line-height:var(--frs-lh-heading); }
   .frs-v2303 .frs-page-heading p:not(.frs-eyebrow) { font-size:var(--frs-fs-sm); line-height:var(--frs-lh-body); }
   .frs-v2303 .frs-page-heading .btn,
   .frs-v2303 .section-header-row .btn-small { width:100%; min-height:44px; }
@@ -2901,7 +2901,7 @@ html[data-theme="dark"] .frs-v2303 .frs-score-ring { background:conic-gradient(#
   .frs-v2303 .frs-welcome-row { grid-template-columns:1fr !important; gap:10px; }
   .frs-v2303 .frs-welcome-row .frs-primary-action,
   .frs-v2303 #welcomeNewRequestBtn { display: none !important; }
-  .frs-v2303 .frs-welcome-row h1 { font-size:22px; font-weight:800; line-height:1.25; }
+  .frs-v2303 .frs-welcome-row h1 { font-size:var(--frs-fs-md); font-weight:800; line-height:var(--frs-lh-heading); }
   .frs-v2303 .frs-lead { font-size:13px; line-height:1.45; }
   .frs-v2303 .frs-stat-card { min-height:105px; padding:12px 10px; grid-template-columns:42px minmax(0,1fr); gap:8px; }
   .frs-v2303 .frs-stat-icon { width:42px; height:42px; }
