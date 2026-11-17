@@ -6,6 +6,17 @@
 
 ---
 
+## [V2.3.26 Google Sites & iFrame Embedding Support] — 2026-11-17 🌐🖼️✨ (ITSD Release Standard)
+
+### 🌐 ปลดล็อกการฝังระบบลงใน Google Sites และ iFrame ภายนอก (X-Frame-Options ALLOWALL)
+- **เปิดสิทธิ์การฝังหน้า Web App ลงใน Google Sites:**
+  - เพิ่มคำสั่ง `.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)` ใน `doGet(e)` ของ [Code.js](file:///Users/chaloem/Antigravity/FRSOnline/Code.js)
+  - ปลดล็อกข้อจำกัดความปลอดภัยของเบราว์เซอร์ (Browser X-Frame-Options) ทำให้ Google Sites สามารถดึงหน้า Web App ของ FRS ไปรันได้อย่างสมบูรณ์แบบ
+  - รองรับทั้งการฝังแบบ **Full Page Embed (ทั้งหน้าจอ)** และ **Embed Block (`<iframe>`)**
+  - ระบบ UI รองรับการปรับขนาดจอแบบ Responsive อัตโนมัติ สามารถใช้งานได้อย่างราบรื่นทั้งบนคอมพิวเตอร์ แท็บเล็ต และสมาร์ตโฟนผ่าน Google Sites
+
+---
+
 ## [V2.3.25 Customizable Login Branding & Font Sliders] — 2026-11-17 🎚️🏷️✨ (ITSD Release Standard)
 
 ### 🎚️ ปรับแต่งข้อความและขนาดตัวอักษรหน้าเข้าสู่ระบบผ่านการตั้งค่า Admin (Login Screen Branding Customization)
