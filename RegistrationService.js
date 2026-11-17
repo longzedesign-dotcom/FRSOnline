@@ -120,6 +120,7 @@ const RegistrationService = {
         REGISTRATION_TOKEN_HASH: '',
         TOKEN_EXPIRES_AT: '',
         USERNAME: input.username,
+        EMPLOYEE_ID: input.employeeId || '',
         FULL_NAME: input.fullName,
         PHONE: input.phone,
         EMAIL: input.email,
@@ -163,6 +164,7 @@ const RegistrationService = {
         DISPLAY_NAME: input.fullName,
         PROFILE_IMAGE_URL: '',
         USERNAME: input.username,
+        EMPLOYEE_ID: input.employeeId || '',
         PASSWORD_HASH: Utils.hashPassword(input.password),
         FULL_NAME: input.fullName,
         PHONE: input.phone,
@@ -221,10 +223,16 @@ const RegistrationService = {
       const email = String(request.EMAIL || '').trim().toLowerCase();
       this.assertUnique_(username, email, request.PROVIDER, request.PROVIDER_SUB, registrationId);
 
+      let employeeId = Utils.normalizeEmployeeId(request.EMPLOYEE_ID);
+      if (!employeeId || !Utils.isValidEmployeeId(employeeId) || DataService.findOneCaseInsensitive(APP_CONFIG.SHEETS.USERS, 'EMPLOYEE_ID', employeeId)) {
+        employeeId = this.getNextEmployeeId_();
+      }
+
       const userId = Utils.uuid('U');
       const now = Utils.now();
       DataService.appendRow(APP_CONFIG.SHEETS.USERS, {
         USER_ID: userId,
+        EMPLOYEE_ID: employeeId,
         USERNAME: username,
         PASSWORD_HASH: request.PASSWORD_HASH || '',
         FULL_NAME: request.FULL_NAME,
@@ -312,6 +320,7 @@ const RegistrationService = {
       username: Utils.normalizeText(input.username, 80).toLowerCase(),
       password: requirePassword ? String(input.password || '').slice(0, 256) : '',
       fullName: Utils.normalizeText(input.fullName, 200),
+      employeeId: Utils.normalizeEmployeeId(input.employeeId || input.EMPLOYEE_ID),
       phone: Utils.normalizeThaiPhoneE164(input.phone, true),
       email: Utils.normalizeText(input.email, 200).toLowerCase(),
       division: Utils.normalizeText(input.division, 200),
@@ -327,6 +336,15 @@ const RegistrationService = {
     Utils.requireFields(input, ['username', 'fullName', 'email', 'division', 'department']);
     if (!/^[a-z0-9._-]{4,80}$/.test(input.username)) {
       throw new Error('Username ต้องมี 4-80 ตัว และใช้ a-z, 0-9, จุด, ขีดกลาง หรือขีดล่างเท่านั้น');
+    }
+    if (input.employeeId) {
+      if (!Utils.isValidEmployeeId(input.employeeId)) {
+        throw new Error('รหัสพนักงานต้องเป็นรูปแบบ E0001 ถึง E9999 (เช่น E0001, E0002)');
+      }
+      const existingUser = DataService.findOneCaseInsensitive(APP_CONFIG.SHEETS.USERS, 'EMPLOYEE_ID', input.employeeId);
+      if (existingUser) {
+        throw new Error('รหัสพนักงาน ' + input.employeeId + ' นี้มีบัญชีในระบบแล้ว');
+      }
     }
     if (!Utils.isValidEmail(input.email)) throw new Error('รูปแบบอีเมลไม่ถูกต้อง');
     if (!AuthService.isAllowedDomain_(input.email)) throw new Error('Email Domain นี้ไม่ได้รับอนุญาต');
@@ -366,7 +384,8 @@ const RegistrationService = {
   },
 
   suggestUsername_(email, displayName, provider) {
-    let base = String(email || '').split('@')[0].toLowerCase().replace(/[^a-z0-9._-]/g, '');
+    let standard = Utils.buildStandardUsername(displayName, email);
+    let base = standard || String(email || '').split('@')[0].toLowerCase().replace(/[^a-z0-9._-]/g, '');
     if (base.length < 4) base = String(provider || 'user').toLowerCase() + '-' + Utils.sha256(displayName || Utils.uuid()).slice(0, 8);
     base = base.slice(0, 60);
     let candidate = base;
@@ -375,6 +394,23 @@ const RegistrationService = {
       candidate = base.slice(0, 55) + '-' + counter++;
     }
     return candidate;
+  },
+
+  getNextEmployeeId_() {
+    const users = DataService.getRows(APP_CONFIG.SHEETS.USERS);
+    let maxNum = 0;
+    users.forEach(function(u) {
+      const match = String(u.EMPLOYEE_ID || '').trim().toUpperCase().match(/^E(\d{4})$/);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxNum) maxNum = num;
+      }
+    });
+    const nextNum = maxNum + 1;
+    if (nextNum > 9999) {
+      throw new Error('รหัสพนักงานเต็มจำนวนสูงสุด E9999 แล้ว');
+    }
+    return 'E' + String(nextNum).padStart(4, '0');
   },
 
 

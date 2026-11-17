@@ -45,6 +45,7 @@
       this.bindSearchableSelectFilters();
       this.bindPasswordVisibility();
       this.bindThaiPhoneInputs();
+      this.bindEmployeeIdAndUsernameHelpers();
       this.bindNetworkStatus();
       this.initNewRequestDraft();
       document.addEventListener('keydown', (event) => {
@@ -316,6 +317,46 @@
       document.querySelectorAll('[data-thai-phone]').forEach((input) => {
         if (input.value) input.value = this.formatThaiPhoneDisplay(input.value);
       });
+    },
+
+    bindEmployeeIdAndUsernameHelpers() {
+      // Auto-format Employee ID inputs to uppercase & enforce alphanumeric pattern
+      ['registerEmployeeId', 'socialRegisterEmployeeId', 'ep_EMPLOYEE_ID'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('input', () => {
+          el.value = el.value.toUpperCase().replace(/[^E0-9]/g, '');
+        });
+      });
+
+      // Auto-suggest username from English Full Name (e.g. Chaloemporn Thakot -> chaloemporn.th)
+      const setupAutoSuggest = (nameInputId, userInputId) => {
+        const nameInput = document.getElementById(nameInputId);
+        const userInput = document.getElementById(userInputId);
+        if (!nameInput || !userInput) return;
+
+        nameInput.addEventListener('input', () => {
+          if (userInput.dataset.manuallyEdited === 'true') return;
+          const val = nameInput.value.trim().replace(/\s+/g, ' ');
+          const parts = val.split(' ').map(function(p) {
+            return p.replace(/[^a-zA-Z]/g, '').toLowerCase();
+          }).filter(Boolean);
+          if (parts.length >= 2) {
+            const first = parts[0];
+            const last2 = parts[parts.length - 1].slice(0, 2);
+            if (first.length >= 2 && last2.length >= 1) {
+              userInput.value = first + '.' + last2;
+            }
+          }
+        });
+
+        userInput.addEventListener('input', () => {
+          userInput.dataset.manuallyEdited = userInput.value.trim() ? 'true' : 'false';
+        });
+      };
+
+      setupAutoSuggest('registerFullName', 'registerUsername');
+      setupAutoSuggest('socialRegisterFullName', 'socialRegisterUsername');
     },
 
     normalizeThaiPhoneDigits(value) {
@@ -733,9 +774,11 @@
       }
 
       const department = this.getSelectedDepartment('registerDepartment');
+      const empEl = document.getElementById('registerEmployeeId');
       const payload = {
         email: document.getElementById('registerEmail').value.trim(),
         username: document.getElementById('registerUsername').value.trim(),
+        employeeId: empEl ? empEl.value.trim().toUpperCase() : '',
         password: document.getElementById('registerPassword').value,
         fullName: document.getElementById('registerFullName').value.trim(),
         phone: phoneValue,
@@ -796,6 +839,7 @@
 
       const context = this.socialRegistrationContext;
       const department = this.getSelectedDepartment('socialRegisterDepartment');
+      const socialEmpEl = document.getElementById('socialRegisterEmployeeId');
       if (!context || !context.registrationToken) {
         this.notify('Registration Token หมดอายุ กรุณาเริ่มใหม่', 'warning');
         return;
@@ -807,6 +851,7 @@
       const payload = {
         email: document.getElementById('socialRegisterEmail').value.trim(),
         username: document.getElementById('socialRegisterUsername').value.trim(),
+        employeeId: socialEmpEl ? socialEmpEl.value.trim().toUpperCase() : '',
         fullName: document.getElementById('socialRegisterFullName').value.trim(),
         phone: phoneValue,
         division: department.DIVISION,
@@ -2229,12 +2274,17 @@
       if (event) event.preventDefault();
 
       const fullName = (document.getElementById('ep_FULL_NAME').value || '').trim();
-      const employeeId = (document.getElementById('ep_EMPLOYEE_ID').value || '').trim();
+      let employeeId = (document.getElementById('ep_EMPLOYEE_ID').value || '').trim().toUpperCase();
       const phone = (document.getElementById('ep_PHONE').value || '').trim();
       const email = (document.getElementById('ep_EMAIL').value || '').trim();
       const division = (document.getElementById('ep_DIVISION').value || '').trim();
       const department = (document.getElementById('ep_DEPARTMENT').value || '').trim();
       const position = (document.getElementById('ep_POSITION').value || '').trim();
+
+      if (employeeId && !/^E\d{4}$/.test(employeeId)) {
+        this.notify('รหัสพนักงานต้องเป็นรูปแบบ E0001 ถึง E9999 (เช่น E0001, E0002)', 'warning');
+        return;
+      }
 
       if (!fullName) {
         this.notify('กรุณากรอกชื่อ - นามสกุล', 'warning');

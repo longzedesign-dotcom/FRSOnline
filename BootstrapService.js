@@ -17,6 +17,27 @@ const BootstrapService = {
       });
       const role = String(user.ROLE || '').toUpperCase();
 
+      // Ensure user has valid standard EMPLOYEE_ID (E0001 - E9999)
+      if (!user.EMPLOYEE_ID || !Utils.isValidEmployeeId(user.EMPLOYEE_ID)) {
+        const fixedMap = {
+          'admin': 'E0001',
+          'user01': 'E0002',
+          'tech01': 'E0003',
+          'tech02': 'E0004',
+          'manager01': 'E0005',
+          'chaloemporn.th': 'E0006'
+        };
+        const username = String(user.USERNAME || '').trim().toLowerCase();
+        const assigned = fixedMap[username] || RegistrationService.getNextEmployeeId_();
+        try {
+          DataService.updateRowByKey(APP_CONFIG.SHEETS.USERS, 'USER_ID', user.USER_ID, {
+            EMPLOYEE_ID: assigned,
+            UPDATED_AT: Utils.now()
+          });
+          user.EMPLOYEE_ID = assigned;
+        } catch (_) {}
+      }
+
       return Utils.jsonSuccess({
         user: user,
         master: master,

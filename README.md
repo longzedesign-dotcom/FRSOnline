@@ -4,7 +4,7 @@
 
 ### Next-Gen Serverless Facility Repair & Maintenance Management Suite (Mobile-First Experience)
 
-[![Version](https://img.shields.io/badge/Version-FRS%20V2.3.12%20Mobile%20Full%20Option-F97316?style=flat-square)](https://github.com/longzedesign-dotcom/FRSOnline)
+[![Version](https://img.shields.io/badge/Version-FRS%20V2.3.13%20Mobile%20Full%20Option-F97316?style=flat-square)](https://github.com/longzedesign-dotcom/FRSOnline)
 [![Theme](https://img.shields.io/badge/Theme-Mobile%20Full%20Option%20%7C%20Dual%20Mode-2563EB?style=flat-square)](https://github.com/longzedesign-dotcom/FRSOnline)
 [![Developer](https://img.shields.io/badge/Developer-LongZe%20Design-purple?style=flat-square)](https://github.com/longzedesign-dotcom)
 [![Platform](https://img.shields.io/badge/Platform-Google%20Apps%20Script%20%7C%20Web%20App-34A853?style=flat-square&logo=google)](https://script.google.com/home/projects/1r67OX6cinXQJjCJKC39ZKutrYodlhxQ60gPb9rZ27M1mJ_HzWfOzPmfW/edit)
@@ -27,7 +27,7 @@
 | **Google Sheets Database** | `DBS_FRS` (`1eI2xZjGpmKHhhpl3TIucxFbSe_aXzy3am2H-KieQjCk`) | https://docs.google.com/spreadsheets/d/1eI2xZjGpmKHhhpl3TIucxFbSe_aXzy3am2H-KieQjCk/edit |
 | **Google Drive Uploads** | `FRS_Uploads` (`1bxDK2QLZW_ySZKRfuMZvBuEDHELL9W0j`) | https://drive.google.com/drive/folders/1bxDK2QLZW_ySZKRfuMZvBuEDHELL9W0j |
 | **Apps Script Project (Edit)** | `FRSOnline : ระบบแจ้งซ่อมบำรุง` (`1r67OX6cinXQJjCJKC39ZKutrYodlhxQ60gPb9rZ27M1mJ_HzWfOzPmfW`) | https://script.google.com/home/projects/1r67OX6cinXQJjCJKC39ZKutrYodlhxQ60gPb9rZ27M1mJ_HzWfOzPmfW/edit |
-| **Web App Deploy (Exec)** | `AKfycbwGnIi...` (`FRS V2.3.12` · Deployment `@18`) | https://script.google.com/macros/s/AKfycbwGnIi6IsVMMDoymjWtDmgzGbN9TrH22es0RObGT0AJrHDw2UTJOMNfbbLz2dwXlulO/exec |
+| **Web App Deploy (Exec)** | `AKfycbwGnIi...` (`FRS V2.3.13` · Deployment `@19`) | https://script.google.com/macros/s/AKfycbwGnIi6IsVMMDoymjWtDmgzGbN9TrH22es0RObGT0AJrHDw2UTJOMNfbbLz2dwXlulO/exec |
 
 ---
 
@@ -46,7 +46,9 @@
 
 **FRS : Facility Repair System (ระบบแจ้งซ่อมบำรุงออนไลน์)** พัฒนาขึ้นด้วยสถาปัตยกรรม **100% Serverless** บน Google Workspace โดยใช้ **Google Apps Script (V8 Engine)** ขับเคลื่อน Web Application แบบ Single Page Application (SPA) เชื่อมต่อกับ **Google Sheets (`DBS_FRS`)** ทำหน้าที่เป็น Relational Database และจัดเก็บรูปภาพหลักฐานงานซ่อมบน **Google Drive (`FRS_Uploads`)**
 
-**จุดเด่นสำคัญใน V2.3.12 Mobile Full Option:**
+**จุดเด่นสำคัญใน V2.3.13 Mobile Full Option:**
+- **Standard Employee ID (E0001 - E9999)**: รองรับการเข้าสู่ระบบด้วยรหัสพนักงานตามมาตรฐานองค์กร พร้อมระบบ Auto-Formatting และ Auto-Assignment อัตโนมัติ
+- **Username Naming Standard**: คำแนะนำการตั้ง Username ตามสูตร `ชื่อภาษาอังกฤษ.นามสกุล 2 ตัวแรก` (เช่น `chaloemporn.th`) พร้อม Smart Auto-Suggest จากชื่อ Full Name
 - **iPhone Squircle Social Auth Buttons**: ปุ่มเข้าสู่ระบบและสมัครสมาชิกด้วย LINE & Google ทรงสี่เหลี่ยมจัตุรัสโค้งมน (`58x58px`, `border-radius: 16px`) ในแถวเดียวกัน กึ่งกลางหน้าจอ สวยงาม กะทัดรัด สไตล์ iOS App
 - **Defensive Phone Formatting**: แก้ไขข้อผิดพลาด `this.formatThaiPhone is not a function` อย่างสิ้นเชิง ด้วยสถาปัตยกรรม Fallback และ Global Alias ปราศจาก Runtime Error ตลอดการใช้งาน
 - **Modern Auth Transformation**: หน้า Login & Register ดีไซน์ระดับสากล โค้งมนสวยงาม พร้อม Hero Badge และไอคอนนำหน้าในทุกช่องกรอกข้อมูล
@@ -182,13 +184,16 @@ FRSOnline/
 
 ## 👥 บัญชีผู้ใช้เริ่มต้นสำหรับการทดสอบ (Default Accounts)
 
-| รหัสผู้ใช้ | Username | ชื่อ-นามสกุล | สิทธิ์ (Role) | รหัสผ่านเริ่มต้น | สถานะ |
-| :---: | :---: | :--- | :---: | :---: | :---: |
-| **U-ADMIN-001** | `admin` | ผู้ดูแลระบบ FRS | **ADMIN** | `Admin@1234` | พร้อมใช้งาน |
-| **U-TECH-001** | `tech01` | ช่าง Facility 01 | **TECHNICIAN** | `Tech@1234` | พร้อมใช้งาน |
-| **U-TECH-002** | `tech02` | ช่างระบบไฟฟ้า | **TECHNICIAN** | `Tech@1234` | พร้อมใช้งาน |
-| **U-MANAGER-001** | `manager01` | หัวหน้างานอาคาร | **MANAGER** | `Manager@1234` | พร้อมใช้งาน |
-| **U-USER-001** | `user01` | สมชาย แจ้งซ่อม | **USER** | `User@1234` | พร้อมใช้งาน |
+| รหัสผู้ใช้ | รหัสพนักงาน (ID) | Username | ชื่อ-นามสกุล | สิทธิ์ (Role) | รหัสผ่านเริ่มต้น | สถานะ |
+| :---: | :---: | :---: | :--- | :---: | :---: | :---: |
+| **U-ADMIN-001** | `E0001` | `admin` | ผู้ดูแลระบบ FRS | **ADMIN** | `Admin@1234` | พร้อมใช้งาน |
+| **U-USER-001** | `E0002` | `user01` | สมชาย แจ้งซ่อม | **USER** | `User@1234` | พร้อมใช้งาน |
+| **U-TECH-001** | `E0003` | `tech01` | ช่าง Facility 01 | **TECHNICIAN** | `Tech@1234` | พร้อมใช้งาน |
+| **U-TECH-002** | `E0004` | `tech02` | ช่างระบบไฟฟ้า | **TECHNICIAN** | `Tech@1234` | พร้อมใช้งาน |
+| **U-MANAGER-001** | `E0005` | `manager01` | หัวหน้างานอาคาร | **MANAGER** | `Manager@1234` | พร้อมใช้งาน |
+| **U-USER-002** | `E0006` | `chaloemporn.th` | Chaloemporn Thakot | **ADMIN** | `User@1234` | พร้อมใช้งาน |
+
+> **คำแนะนำการเข้าสู่ระบบ:** สามารถใช้ **Username** (เช่น `chaloemporn.th`) หรือ **รหัสพนักงาน** (เช่น `E0001` - `E9999`) ในช่อง Login ได้ทันที
 
 ---
 

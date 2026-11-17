@@ -98,7 +98,10 @@
                 <label for="loginUsername">Username หรือ รหัสพนักงาน</label>
                 <div class="input-icon-wrap">
                   <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-user"></use></svg></span>
-                  <input id="loginUsername" type="text" autocomplete="username" maxlength="80" placeholder="กรอก Username หรือ รหัสพนักงาน" required>
+                  <input id="loginUsername" type="text" autocomplete="username" maxlength="80" placeholder="เช่น chaloemporn.th หรือ E0001" required>
+                </div>
+                <div class="field-help" style="margin-top:4px; font-size:11.5px; color:var(--frs-muted);">
+                  มาตรฐาน: Username (เช่น <code>chaloemporn.th</code>) หรือ รหัสพนักงาน (เช่น <code>E0001 - E9999</code>)
                 </div>
               </div>
               <div class="form-group">
@@ -194,7 +197,7 @@
               <label for="registerFullName">ชื่อ-นามสกุล <span class="required">*</span></label>
               <div class="input-icon-wrap">
                 <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-user"></use></svg></span>
-                <input id="registerFullName" type="text" maxlength="200" placeholder="ชื่อและนามสกุลจริง" required>
+                <input id="registerFullName" type="text" maxlength="200" placeholder="เช่น Chaloemporn Thakot หรือ สมชาย แจ้งซ่อม" required>
               </div>
             </div>
             <div class="form-group">
@@ -205,12 +208,25 @@
               </div>
             </div>
             <div class="form-group">
-              <label for="registerUsername">Username <span class="required">*</span></label>
+              <label for="registerUsername">Username สำหรับเข้าสู่ระบบ <span class="required">*</span></label>
               <div class="input-icon-wrap">
                 <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-user"></use></svg></span>
-                <input id="registerUsername" type="text" autocomplete="username" maxlength="80" pattern="[a-zA-Z0-9._-]{4,80}" placeholder="ระบุ username สำหรับเข้าระบบ" required>
+                <input id="registerUsername" type="text" autocomplete="username" maxlength="80" pattern="[a-zA-Z0-9._-]{4,80}" placeholder="เช่น chaloemporn.th" required>
               </div>
-              <div class="field-help">ใช้ a-z, 0-9, จุด, ขีดกลาง หรือขีดล่าง จำนวน 4-80 ตัว</div>
+              <div class="field-help" style="margin-top:6px; font-size:12px; color:var(--frs-text); line-height:1.45; background:rgba(37,99,235,0.06); padding:9px 12px; border-radius:12px; border:1px solid rgba(37,99,235,0.15);">
+                💡 <strong>คำแนะนำการตั้ง User สำหรับ Login:</strong> สะกดด้วยชื่อภาษาอังกฤษ + จุด (.) + นามสกุลภาษาอังกฤษ 2 ตัวแรก<br>
+                <em>ตัวอย่าง:</em> <strong>Chaloemporn Thakot</strong> ➔ User: <code>chaloemporn.th</code>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="registerEmployeeId">รหัสพนักงาน (Employee ID)</label>
+              <div class="input-icon-wrap">
+                <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-user"></use></svg></span>
+                <input id="registerEmployeeId" type="text" maxlength="5" placeholder="เช่น E0001, E0002 (รูปแบบ E0001 - E9999)">
+              </div>
+              <div class="field-help" style="margin-top:3px; font-size:11.5px; color:var(--frs-muted);">
+                มาตรฐานองค์กร: รหัสพนักงานใช้รูปแบบ <code>E0001</code> ถึง <code>E9999</code> (หากยังไม่มี ระบบจะกำหนดให้อัตโนมัติเมื่ออนุมัติ)
+              </div>
             </div>
             <div class="form-group">
               <label for="registerPassword">Password <span class="required">*</span></label>
@@ -280,7 +296,18 @@
             </div>
             <div class="form-group">
               <label for="socialRegisterUsername">Username <span class="required">*</span></label>
-              <input id="socialRegisterUsername" type="text" maxlength="80" pattern="[a-zA-Z0-9._-]{4,80}" required>
+              <input id="socialRegisterUsername" type="text" maxlength="80" pattern="[a-zA-Z0-9._-]{4,80}" placeholder="เช่น chaloemporn.th" required>
+              <div class="field-help" style="margin-top:6px; font-size:12px; color:var(--frs-text); line-height:1.45; background:rgba(37,99,235,0.06); padding:9px 12px; border-radius:12px; border:1px solid rgba(37,99,235,0.15);">
+                💡 <strong>คำแนะนำการตั้ง Username:</strong> สะกดด้วยชื่อภาษาอังกฤษ + จุด (.) + นามสกุลภาษาอังกฤษ 2 ตัวแรก<br>
+                <em>ตัวอย่าง:</em> <strong>Chaloemporn Thakot</strong> ➔ User: <code>chaloemporn.th</code>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="socialRegisterEmployeeId">รหัสพนักงาน (Employee ID)</label>
+              <input id="socialRegisterEmployeeId" type="text" maxlength="5" placeholder="เช่น E0001, E0002 (รูปแบบ E0001 - E9999)">
+              <div class="field-help" style="margin-top:3px; font-size:11.5px; color:var(--frs-muted);">
+                มาตรฐานองค์กร: รูปแบบ <code>E0001</code> ถึง <code>E9999</code> (หากยังไม่มี ระบบจะกำหนดให้อัตโนมัติเมื่ออนุมัติ)
+              </div>
             </div>
             <div class="form-group">
               <label for="socialRegisterFullName">ชื่อ-นามสกุล <span class="required">*</span></label>
@@ -821,12 +848,12 @@
               </div>
 
               <div>
-                <label class="form-label" for="ep_EMPLOYEE_ID">รหัสพนักงาน (Employee ID)</label>
+                <label class="form-label" for="ep_EMPLOYEE_ID">รหัสพนักงาน (Employee ID: E0001 - E9999)</label>
                 <div class="input-icon-wrap">
                   <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-user"></use></svg></span>
-                  <input type="text" id="ep_EMPLOYEE_ID" name="EMPLOYEE_ID" class="form-control" placeholder="เช่น EMP-001 หรือ 67001">
+                  <input type="text" id="ep_EMPLOYEE_ID" name="EMPLOYEE_ID" class="form-control" maxlength="5" placeholder="เช่น E0001 ถึง E9999">
                 </div>
-                <small class="muted" style="font-size:11px; margin-top:3px; display:block;">ใช้ยืนยันตัวตนและเข้าสู่ระบบแทน Username ได้</small>
+                <small class="muted" style="font-size:11px; margin-top:3px; display:block;">มาตรฐานองค์กร: รูปแบบ E0001 ถึง E9999 (ใช้เข้าสู่ระบบแทน Username ได้)</small>
               </div>
 
               <div class="form-row-2col">

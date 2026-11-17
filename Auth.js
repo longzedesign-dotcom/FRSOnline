@@ -121,7 +121,8 @@ const AuthService = {
       const division = Utils.normalizeText(input.DIVISION || input.division, 100);
       const department = Utils.normalizeText(input.DEPARTMENT || input.department, 100);
       const position = Utils.normalizeText(input.POSITION || input.position, 100);
-      const employeeId = Utils.normalizeText(input.EMPLOYEE_ID || input.employeeId, 50);
+      const rawEmployeeId = Utils.normalizeText(input.EMPLOYEE_ID || input.employeeId, 50);
+      const employeeId = Utils.normalizeEmployeeId(rawEmployeeId);
 
       if (!fullName) throw new Error('กรุณาระบุชื่อ - นามสกุล');
 
@@ -139,6 +140,9 @@ const AuthService = {
       }
 
       if (employeeId) {
+        if (!Utils.isValidEmployeeId(employeeId)) {
+          throw new Error('รหัสพนักงานต้องเป็นรูปแบบ E0001 ถึง E9999 (เช่น E0001, E0002)');
+        }
         const existingEmp = DataService.findOneCaseInsensitive(APP_CONFIG.SHEETS.USERS, 'EMPLOYEE_ID', employeeId);
         if (existingEmp && String(existingEmp.USER_ID) !== String(user.USER_ID)) {
           throw new Error('รหัสพนักงาน ' + employeeId + ' นี้ถูกใช้งานโดยบัญชีอื่นแล้ว');

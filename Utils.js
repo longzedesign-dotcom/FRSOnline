@@ -296,6 +296,58 @@ const Utils = {
     return { ok: errors.length === 0, errors: errors };
   },
 
+  normalizeEmployeeId(value) {
+    let s = String(value || '').trim().toUpperCase();
+    if (!s) return '';
+    if (/^E\d{1,4}$/.test(s)) {
+      const num = parseInt(s.slice(1), 10);
+      if (num >= 1 && num <= 9999) return 'E' + String(num).padStart(4, '0');
+    }
+    if (/^\d{1,4}$/.test(s)) {
+      const num = parseInt(s, 10);
+      if (num >= 1 && num <= 9999) return 'E' + String(num).padStart(4, '0');
+    }
+    return s;
+  },
+
+  isValidEmployeeId(value) {
+    const s = String(value || '').trim().toUpperCase();
+    if (!/^E\d{4}$/.test(s)) return false;
+    const num = parseInt(s.slice(1), 10);
+    return num >= 1 && num <= 9999;
+  },
+
+  buildStandardUsername(fullName, email) {
+    if (fullName) {
+      const clean = String(fullName).trim().replace(/\s+/g, ' ');
+      const parts = clean.split(' ').map(function(p) {
+        return p.replace(/[^a-zA-Z]/g, '').toLowerCase();
+      }).filter(Boolean);
+      if (parts.length >= 2) {
+        const first = parts[0];
+        const last2 = parts[parts.length - 1].slice(0, 2);
+        if (first.length >= 2 && last2.length >= 1) {
+          return first + '.' + last2;
+        }
+      } else if (parts.length === 1 && parts[0].length >= 3) {
+        // Single english word
+        const single = parts[0];
+        if (email) {
+          const emailParts = String(email).split('@')[0].toLowerCase().split(/[._-]/).filter(Boolean);
+          if (emailParts.length >= 2) {
+            return single + '.' + emailParts[1].slice(0, 2);
+          }
+        }
+        return single;
+      }
+    }
+    if (email) {
+      const prefix = String(email).split('@')[0].toLowerCase().replace(/[^a-z0-9._-]/g, '');
+      if (prefix.length >= 4) return prefix;
+    }
+    return '';
+  },
+
   normalizeProvider(value) {
     const provider = String(value || '').trim().toUpperCase();
     const allowed = Object.keys(APP_CONFIG.IDENTITY_PROVIDERS).map(function(key) {

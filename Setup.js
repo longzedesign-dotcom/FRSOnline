@@ -345,11 +345,12 @@ function seedRowsByKey_(sheetName, keyField, rows) {
 function seedDemoUsers_(forceReset) {
   const now = Utils.now();
   const users = [
-    { USER_ID: 'U-ADMIN-001', USERNAME: 'admin', PASSWORD: 'Admin@1234', FULL_NAME: 'ผู้ดูแลระบบ FRS', PHONE: '0800000001', EMAIL: 'admin@example.com', DIVISION: 'ฝ่ายอำนวยการ', DEPARTMENT: 'งานอาคารสถานที่', POSITION: 'Admin', ROLE: 'ADMIN' },
-    { USER_ID: 'U-USER-001', USERNAME: 'user01', PASSWORD: 'User@1234', FULL_NAME: 'สมชาย แจ้งซ่อม', PHONE: '0800000002', EMAIL: 'user01@example.com', DIVISION: 'ฝ่ายบริหารทั่วไป', DEPARTMENT: 'งานธุรการ', POSITION: 'เจ้าหน้าที่', ROLE: 'USER' },
-    { USER_ID: 'U-TECH-001', USERNAME: 'tech01', PASSWORD: 'Tech@1234', FULL_NAME: 'ช่าง Facility 01', PHONE: '0800000003', EMAIL: 'tech01@example.com', DIVISION: 'ฝ่ายอำนวยการ', DEPARTMENT: 'งานอาคารสถานที่', POSITION: 'ช่างซ่อมบำรุง', ROLE: 'TECHNICIAN' },
-    { USER_ID: 'U-TECH-002', USERNAME: 'tech02', PASSWORD: 'Tech@1234', FULL_NAME: 'ช่างระบบไฟฟ้า', PHONE: '0800000005', EMAIL: 'tech02@example.com', DIVISION: 'ฝ่ายอำนวยการ', DEPARTMENT: 'งานอาคารสถานที่', POSITION: 'ช่างไฟฟ้า', ROLE: 'TECHNICIAN' },
-    { USER_ID: 'U-MANAGER-001', USERNAME: 'manager01', PASSWORD: 'Manager@1234', FULL_NAME: 'หัวหน้างานอาคาร', PHONE: '0800000004', EMAIL: 'manager01@example.com', DIVISION: 'ฝ่ายอำนวยการ', DEPARTMENT: 'งานอาคารสถานที่', POSITION: 'Manager', ROLE: 'MANAGER' }
+    { USER_ID: 'U-ADMIN-001', EMPLOYEE_ID: 'E0001', USERNAME: 'admin', PASSWORD: 'Admin@1234', FULL_NAME: 'ผู้ดูแลระบบ FRS', PHONE: '0800000001', EMAIL: 'admin@example.com', DIVISION: 'ฝ่ายอำนวยการ', DEPARTMENT: 'งานอาคารสถานที่', POSITION: 'Admin', ROLE: 'ADMIN' },
+    { USER_ID: 'U-USER-001', EMPLOYEE_ID: 'E0002', USERNAME: 'user01', PASSWORD: 'User@1234', FULL_NAME: 'สมชาย แจ้งซ่อม', PHONE: '0800000002', EMAIL: 'user01@example.com', DIVISION: 'ฝ่ายบริหารทั่วไป', DEPARTMENT: 'งานธุรการ', POSITION: 'เจ้าหน้าที่', ROLE: 'USER' },
+    { USER_ID: 'U-TECH-001', EMPLOYEE_ID: 'E0003', USERNAME: 'tech01', PASSWORD: 'Tech@1234', FULL_NAME: 'ช่าง Facility 01', PHONE: '0800000003', EMAIL: 'tech01@example.com', DIVISION: 'ฝ่ายอำนวยการ', DEPARTMENT: 'งานอาคารสถานที่', POSITION: 'ช่างซ่อมบำรุง', ROLE: 'TECHNICIAN' },
+    { USER_ID: 'U-TECH-002', EMPLOYEE_ID: 'E0004', USERNAME: 'tech02', PASSWORD: 'Tech@1234', FULL_NAME: 'ช่างระบบไฟฟ้า', PHONE: '0800000005', EMAIL: 'tech02@example.com', DIVISION: 'ฝ่ายอำนวยการ', DEPARTMENT: 'งานอาคารสถานที่', POSITION: 'ช่างไฟฟ้า', ROLE: 'TECHNICIAN' },
+    { USER_ID: 'U-MANAGER-001', EMPLOYEE_ID: 'E0005', USERNAME: 'manager01', PASSWORD: 'Manager@1234', FULL_NAME: 'หัวหน้างานอาคาร', PHONE: '0800000004', EMAIL: 'manager01@example.com', DIVISION: 'ฝ่ายอำนวยการ', DEPARTMENT: 'งานอาคารสถานที่', POSITION: 'Manager', ROLE: 'MANAGER' },
+    { USER_ID: 'U-USER-002', EMPLOYEE_ID: 'E0006', USERNAME: 'chaloemporn.th', PASSWORD: 'User@1234', FULL_NAME: 'Chaloemporn Thakot', PHONE: '0812345678', EMAIL: 'chaloemporn.th@example.com', DIVISION: 'ฝ่ายอำนวยการ', DEPARTMENT: 'งานอาคารสถานที่', POSITION: 'IT Supervisor', ROLE: 'ADMIN' }
   ];
 
   users.forEach(function(item) {
@@ -359,6 +360,7 @@ function seedDemoUsers_(forceReset) {
     if (!existing) {
       DataService.appendRow(APP_CONFIG.SHEETS.USERS, {
         USER_ID: item.USER_ID,
+        EMPLOYEE_ID: item.EMPLOYEE_ID,
         USERNAME: item.USERNAME,
         PASSWORD_HASH: passwordHash,
         FULL_NAME: item.FULL_NAME,
@@ -379,15 +381,20 @@ function seedDemoUsers_(forceReset) {
       });
     } else {
       const isPlaceholder = /^<SHA256_HASH_/i.test(String(existing.PASSWORD_HASH || ''));
+      const updatePayload = {};
+      if (!existing.EMPLOYEE_ID || !Utils.isValidEmployeeId(existing.EMPLOYEE_ID)) {
+        updatePayload.EMPLOYEE_ID = item.EMPLOYEE_ID;
+      }
       if (forceReset || isPlaceholder || !existing.PASSWORD_HASH) {
-        DataService.updateRowByKey(APP_CONFIG.SHEETS.USERS, 'USER_ID', item.USER_ID, {
-          USERNAME: item.USERNAME,
-          PASSWORD_HASH: passwordHash,
-          FAILED_LOGIN_COUNT: 0,
-          LOCKED_UNTIL: '',
-          PASSWORD_CHANGED_AT: now,
-          UPDATED_AT: now
-        });
+        updatePayload.USERNAME = item.USERNAME;
+        updatePayload.PASSWORD_HASH = passwordHash;
+        updatePayload.FAILED_LOGIN_COUNT = 0;
+        updatePayload.LOCKED_UNTIL = '';
+        updatePayload.PASSWORD_CHANGED_AT = now;
+      }
+      if (Object.keys(updatePayload).length > 0) {
+        updatePayload.UPDATED_AT = now;
+        DataService.updateRowByKey(APP_CONFIG.SHEETS.USERS, 'USER_ID', item.USER_ID, updatePayload);
       }
     }
   });
