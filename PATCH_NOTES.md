@@ -6,6 +6,25 @@
 
 ---
 
+## [V2.3.20 Standard Typographic Scale & Thai Legibility Suite] — 2026-11-17 ✍️📐📱 (ITSD Release Standard)
+
+### 📐 ยกระดับมาตรฐานฟอนต์และมิติการแสดงผลตัวอักษรทั้งระบบ (Enterprise Typography Scale)
+- **ระบบแม่แบบ Typographic Scale 6 ระดับ (Rem-Based Scale):**
+  - `--frs-fs-xs` (12px / 0.75rem): Badges, Captions, Field Help, Timestamps
+  - `--frs-fs-sm` (14px / 0.875rem): Labels, Nav Links, Table Cells, Subtitles
+  - `--frs-fs-base` (16px / 1.0rem): Base Body Text, Primary Buttons, **All Form Inputs**
+  - `--frs-fs-md` (18px - 20px / 1.125rem - 1.25rem): Subheadings, Card Titles, Dialog Headers
+  - `--frs-fs-lg` (22px - 24px / 1.375rem - 1.5rem): Section Titles, Page Main Headings
+  - `--frs-fs-xl` / `--frs-fs-display` (28px - 32px): Big KPI Numbers, Display Headings
+- **แก้ปัญหา iOS Safari Auto-Zoom 100%:**
+  - กำหนดขนาดฟอนต์ของช่องกรอกข้อมูลทุกประเภท (`input`, `select`, `textarea`, `.thai-phone-control`) ให้เป็น `16px` (`--frs-fs-base`) อย่างเข้มงวด ป้องกันไม่ให้หน้าจอบน iPhone / iPad ซูมขยายเองเมื่อแตะพิมพ์
+- **ระยะห่างบรรทัดที่สมบูรณ์แบบสำหรับภาษาไทย (Thai Glyphs Line-Height):**
+  - กำหนด `line-height: 1.6` สำหรับข้อความทั่วไป และ `1.3 - 1.35` สำหรับหัวข้อ ป้องกันสระบน-ล่างและวรรณยุกต์ซ้อนทับหรือขาดหาย ทำให้อ่านสบายตาและสวยงามในทุกอุปกรณ์
+- **Accessibility & Scalability:**
+  - การใช้หน่วย `rem` ช่วยให้ระบบรองรับการปรับขยายขนาดตัวอักษรตามการตั้งค่าความสามารถการเข้าถึงของผู้ใช้งาน
+
+---
+
 ## [V2.3.19 Enterprise System Settings & Admin Control Suite] — 2026-11-17 🛡️⚙️📊 (ITSD Release Standard)
 
 ### ⚙️ ศูนย์ควบคุมระบบองค์กรสำหรับผู้ดูแลระบบและ Super Admin (ระยะที่ 1 และระยะที่ 2 ครบวงจร)
