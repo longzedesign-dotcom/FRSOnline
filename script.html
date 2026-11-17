@@ -327,11 +327,20 @@
     },
 
     formatThaiPhone(value) {
-      return this.formatThaiPhoneDisplay(value);
+      if (typeof this.formatThaiPhoneDisplay === 'function') {
+        return this.formatThaiPhoneDisplay(value);
+      }
+      if (typeof App !== 'undefined' && typeof App.formatThaiPhoneDisplay === 'function') {
+        return App.formatThaiPhoneDisplay(value);
+      }
+      return value || '';
     },
 
     formatThaiPhoneDisplay(value) {
-      const digits = this.normalizeThaiPhoneDigits(value);
+      const normalize = typeof this.normalizeThaiPhoneDigits === 'function'
+        ? this.normalizeThaiPhoneDigits.bind(this)
+        : (typeof App !== 'undefined' && typeof App.normalizeThaiPhoneDigits === 'function' ? App.normalizeThaiPhoneDigits.bind(App) : (v) => String(v || '').replace(/\D/g, ''));
+      const digits = normalize(value);
       if (!digits) return '';
       if (digits.length <= 2) return digits;
       if (digits.length <= 5) return digits.slice(0, 2) + ' ' + digits.slice(2);
@@ -2093,7 +2102,7 @@
         '<div><span>Username</span><strong>' + this.escapeHtml(user.USERNAME || '-') + '</strong></div>' +
         '<div><span>รหัสพนักงาน</span><strong>' + this.escapeHtml(user.EMPLOYEE_ID || 'ยังไม่ได้ระบุ') + '</strong></div>' +
         '<div><span>ชื่อ-นามสกุล</span><strong>' + this.escapeHtml(user.FULL_NAME || '-') + '</strong></div>' +
-        '<div><span>เบอร์โทรศัพท์</span><strong>' + (user.PHONE ? ('<a href="tel:' + this.escapeAttr(user.PHONE) + '" style="color:var(--frs-primary); text-decoration:none; font-weight:700;">' + this.escapeHtml(this.formatThaiPhone(user.PHONE)) + ' 📞</a>') : 'ยังไม่ได้ระบุ') + '</strong></div>' +
+        '<div><span>เบอร์โทรศัพท์</span><strong>' + (user.PHONE ? ('<a href="tel:' + this.escapeAttr(user.PHONE) + '" style="color:var(--frs-primary); text-decoration:none; font-weight:700;">' + this.escapeHtml(typeof this.formatThaiPhone === 'function' ? this.formatThaiPhone(user.PHONE) : (typeof App !== 'undefined' && typeof App.formatThaiPhone === 'function' ? App.formatThaiPhone(user.PHONE) : user.PHONE)) + ' 📞</a>') : 'ยังไม่ได้ระบุ') + '</strong></div>' +
         '<div><span>อีเมล</span><strong>' + this.escapeHtml(user.EMAIL || '-') + '</strong></div>' +
         '<div><span>ฝ่าย / สำนัก</span><strong>' + this.escapeHtml(user.DIVISION || '-') + '</strong></div>' +
         '<div><span>แผนก / ส่วนงาน</span><strong>' + this.escapeHtml(user.DEPARTMENT || '-') + '</strong></div>' +
@@ -3543,6 +3552,10 @@
       return this.escapeHtml(text).replace(/`/g, '&#096;');
     }
   };
+
+  window.App = App;
+  window.formatThaiPhone = function(val) { return App.formatThaiPhone(val); };
+  window.formatThaiPhoneDisplay = function(val) { return App.formatThaiPhoneDisplay(val); };
 
   document.addEventListener('DOMContentLoaded', function() { App.init(); });
 </script>

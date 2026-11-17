@@ -258,6 +258,10 @@ const Utils = {
     return '+66' + digits;
   },
 
+  formatThaiPhone(value) {
+    return this.formatThaiPhoneDisplay(value);
+  },
+
   formatThaiPhoneDisplay(value) {
     let digits = String(value || '').replace(/\D/g, '');
     if (digits.indexOf('0066') === 0) digits = digits.slice(4);

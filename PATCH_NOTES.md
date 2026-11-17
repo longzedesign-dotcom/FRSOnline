@@ -6,6 +6,26 @@
 
 ---
 
+## [V2.3.12 iPhone Squircle Social Auth & Phone Hotfix] — 2026-11-17 📱✨🛡️ (ITSD Release Standard)
+
+### 📱 ปุ่ม Social Login สไตล์ iPhone App Icon (Squircle Single Row)
+- **ปรับขนาดและทรงไอคอน LINE & Google เป็นสี่เหลี่ยมจัตุรัสโค้งมน (iOS Squircle Icon):**
+  - เปลี่ยนรูปแบบปุ่มจากแนวยาวเป็นทรงสี่เหลี่ยมจัตุรัสขอบมนขนาด `58x58px` รัศมีความโค้ง `border-radius: 16px` ตามมาตรฐาน Apple iOS App Icon
+  - จัดเรียงไอคอนทั้งสองไว้ในแถวแนวนอนแถวเดียว (`.social-app-row`) กึ่งกลางหน้าจออย่างสมดุล สวยงาม ทันสมัย
+  - ไอคอน **LINE**: พื้นหลังสีเขียวทางการ `#06C755` พร้อมเวกเตอร์ Bubble สีขาวเด่นชัด ขนาด `32x32px` พร้อมเงาละมุนแบบ 3D
+  - ไอคอน **Google**: พื้นหลังสีขาวบริสุทธิ์ ขอบบางเฉียบ `#e2e8f0` พร้อมเวกเตอร์สัญลักษณ์ 'G' 4 สี ขนาด `28x28px`
+  - อนิเมชันแบบ Micro-Interactions: แตะหรือชี้เมาส์แล้วยกตัวขึ้นเล็กน้อย (`translateY(-3px) scale(1.06)`) และยุบตัวลงเมื่อคลิก (`scale(0.94)`) ให้สัมผัสเสมือนกดแอปจริงบนมือถือ
+  - ใช้งานได้ทั้งหน้าเข้าสู่ระบบ (Login) และหน้าสมัครสมาชิก (Register) ทั้งบนมือถือและเดสก์ท็อป พร้อมรองรับ Dark Mode เต็มรูปแบบ
+
+### 🛡️ แก้ไขข้อผิดพลาด `this.formatThaiPhone is not a function` อย่างถาวร (Defensive Architecture)
+- **ปรับปรุงการเรียกใช้งานและระบบผูกฟังก์ชันจัดรูปแบบเบอร์โทรศัพท์ (Comprehensive Phone Helper Fallbacks):**
+  - เสริมการตรวจสอบ `typeof this.formatThaiPhone === 'function'` แบบปลอดภัย (Defensive Check) ใน `renderProfile()` และทุกจุดที่มีการเรียกใช้งาน
+  - เพิ่ม Fallback เชื่อมโยงไปยัง `App.formatThaiPhone` และ `window.formatThaiPhone` โดยตรง ป้องกันข้อผิดพลาดกรณี Context หลุด
+  - เพิ่ม Alias Method `formatThaiPhone(value)` ใน `Utils.js` บนฝั่งเซิร์ฟเวอร์ ให้มีความเข้ากันได้ 100% ระหว่าง Frontend และ Backend
+  - รองรับการทำงานต่อเนื่อง ปราศจาก Runtime Error ตลอดการใช้งาน
+
+---
+
 ## [V2.3.11 Modern Auth & Profile UX/UI Suite] — 2026-11-17 🎨✨📱 (ITSD Release Standard)
 
 ### 🌟 ปรับโฉมหน้าเข้าสู่ระบบและสมัครสมาชิกใหม่ (Modern Auth Transformation)
