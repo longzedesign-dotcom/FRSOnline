@@ -785,6 +785,78 @@
   }
 
 
+  .social-connections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+    margin: 12px 0 20px;
+  }
+  .social-connection-card {
+    background: var(--frs-surface, #fff);
+    border: 1px solid var(--frs-border, #e2e8f0);
+    border-radius: 18px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .social-connection-card:hover {
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  }
+  .social-connection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .social-connection-provider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .social-connection-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .social-connection-icon.line {
+    background: #06C755;
+    box-shadow: 0 4px 10px rgba(6,199,85,0.25);
+  }
+  .social-connection-icon.google {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+  html[data-theme="dark"] .social-connection-icon.google {
+    background: #1e293b;
+    border-color: #334155;
+  }
+  .social-connection-name {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--frs-text, #0f172a);
+  }
+  .social-connection-body {
+    font-size: 13px;
+    color: var(--frs-muted, #64748b);
+    line-height: 1.45;
+  }
+  .social-connection-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--frs-border, #f1f5f9);
+  }
   .identity-list { display: grid; gap: 10px; }
   .identity-card { background: #fff; border: 1px solid var(--border); border-radius: 17px; padding: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
   .identity-provider { font-weight: 900; }

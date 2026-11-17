@@ -641,17 +641,17 @@
             </div>
           </div>
           <div id="profileSummary" class="detail-card"></div>
-          <div class="section-title mt">วิธีเข้าสู่ระบบที่เชื่อมไว้</div>
-          <div id="identityList" class="identity-list"></div>
-          <div id="linkIdentityActions" class="action-card">
-            <div class="action-title">เชื่อมบัญชีเพิ่มเติม</div>
-            <div class="button-row">
-              <button id="linkGoogleButton" class="btn btn-outline hidden" type="button" onclick="App.beginSocialAuth('GOOGLE', 'LINK')">เชื่อม Google</button>
-              <button id="linkLineButton" class="btn btn-success hidden" type="button" onclick="App.beginSocialAuth('LINE', 'LINK')">เชื่อม LINE</button>
-            </div>
-            <div class="field-help">ระบบจะไม่เชื่อมบัญชีอัตโนมัติจากอีเมลที่เหมือนกัน ต้องดำเนินการจากหน้านี้เท่านั้น</div>
+
+          <div class="section-title mt" style="display:flex; align-items:center; gap:8px;">
+            <svg class="frs-ui-icon" style="width:20px; height:20px; color:var(--frs-primary);"><use href="#frs-icon-shield"></use></svg>
+            <span>สถานะการเชื่อมต่อบัญชี (LINE & Google)</span>
           </div>
-          <div class="action-card">
+          <div id="socialConnectionsContainer" class="social-connections-grid"></div>
+
+          <div class="section-title mt">วิธีเข้าสู่ระบบทั้งหมดที่ผูกไว้</div>
+          <div id="identityList" class="identity-list"></div>
+
+          <div class="action-card mt">
             <div class="action-title">การเข้าสู่ระบบ</div>
             <button class="btn btn-danger btn-full frs-button-with-icon" type="button" onclick="App.logout()"><svg class="frs-ui-icon frs-button-icon" aria-hidden="true"><use href="#frs-icon-log-out"></use></svg><span>ออกจากระบบ</span></button>
           </div>
