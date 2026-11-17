@@ -20,12 +20,8 @@ const BootstrapService = {
       // Ensure user has valid standard EMPLOYEE_ID (E0001 - E9999)
       if (!user.EMPLOYEE_ID || !Utils.isValidEmployeeId(user.EMPLOYEE_ID)) {
         const fixedMap = {
-          'admin': 'E0001',
-          'user01': 'E0002',
-          'tech01': 'E0003',
-          'tech02': 'E0004',
-          'manager01': 'E0005',
-          'chaloemporn.th': 'E0006'
+          'superadmin': 'E0001',
+          'admin': 'E0001'
         };
         const username = String(user.USERNAME || '').trim().toLowerCase();
         const assigned = fixedMap[username] || RegistrationService.getNextEmployeeId_();

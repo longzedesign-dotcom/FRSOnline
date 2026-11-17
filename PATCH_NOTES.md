@@ -6,6 +6,29 @@
 
 ---
 
+## [V2.3.14 Production Clean Reset & Superadmin Provisioning] — 2026-11-17 👑🛡️🧹 (ITSD Release Standard)
+
+### 👑 บัญชีผู้ดูแลระบบสูงสุดสำหรับการใช้งานจริง (Production Superadmin Account)
+- **สร้างบัญชี Administrator หลักขององค์กร:**
+  - **Role:** `ADMIN` (Administrator ผู้มีสิทธิ์สูงสุดในการจัดการระบบทุกส่วน)
+  - **Username:** `superadmin`
+  - **Password:** `Admin@12345`
+  - **Email:** `c.thakot@gmail.com`
+  - **Full Name:** `เฉลิมพร ถาโคตร (Chaloemporn Thakot)`
+  - **Employee ID:** `E0001` (ตามมาตรฐานองค์กร E0001 - E9999)
+  - **Division / Department:** `ฝ่ายเทคโนโลยีสารสนเทศ` / `ศูนย์เทคโนโลยีสารสนเทศและการสื่อสาร (ITSD)`
+  - **Position:** `System Administrator`
+  - **Identity:** ผูกกับ Identity ชนิด `PASSWORD` สำหรับล็อกอินด้วยรหัสผ่าน
+
+### 🧹 ล้างข้อมูลบัญชีทดสอบเดิมทั้งหมดเพื่อเตรียมพร้อมใช้งานจริง (Clean Reset)
+- **ทำความสะอาดฐานข้อมูลตารางผู้ใช้งาน:**
+  - ล้างข้อมูลบัญชีทดสอบเดิมทั้งหมด (`admin`, `user01`, `tech01`, `tech02`, `manager01`, `chaloemporn.th`) ออกจากตาราง `USERS`
+  - ล้างรายการในตาราง `USER_IDENTITIES` ให้คงเหลือเฉพาะบัญชี `superadmin`
+  - ล้างข้อมูลในตารางคำขอสมัครสมาชิก `REGISTRATION_REQUESTS` และ Session เดิม `SESSION_STORE` ให้ว่างเปล่า สะอาด 100% พร้อมเปิดใช้งานจริง
+  - Invalidate Runtime Cache และ Master Cache ให้ระบบโหลดข้อมูลใหม่ทันที
+
+---
+
 ## [V2.3.13 Standard Employee ID & Username Naming Suite] — 2026-11-17 🆔🔤✨ (ITSD Release Standard)
 
 ### 🆔 มาตรฐานรหัสพนักงานใหม่ (Standard Employee ID Format: E0001 - E9999)

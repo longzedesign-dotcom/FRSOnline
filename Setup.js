@@ -157,9 +157,9 @@ function verifyInstallation() {
       }
     });
 
-    const demoUser = DataService.findOneCaseInsensitive(APP_CONFIG.SHEETS.USERS, 'USERNAME', 'user01');
-    addCheck('Demo user hash', Boolean(demoUser && Utils.verifyPassword('User@1234', demoUser.PASSWORD_HASH)),
-      demoUser ? 'ตรวจสอบ Hash แล้ว' : 'ไม่พบ user01');
+    const demoUser = DataService.findOneCaseInsensitive(APP_CONFIG.SHEETS.USERS, 'USERNAME', 'superadmin');
+    addCheck('Superadmin user hash', Boolean(demoUser && Utils.verifyPassword('Admin@12345', demoUser.PASSWORD_HASH)),
+      demoUser ? 'ตรวจสอบ Hash แล้ว' : 'ไม่พบ superadmin');
 
     const statuses = DataService.getRows(APP_CONFIG.SHEETS.MASTER_STATUS);
     const sla = DataService.getRows(APP_CONFIG.SHEETS.MASTER_SLA);
@@ -242,8 +242,112 @@ function verifyWorkflowConfiguration() {
 }
 
 function resetDemoUsers() {
-  seedDemoUsers_(true);
-  return 'รีเซ็ตรหัสผ่าน Demo User เรียบร้อยแล้ว กรุณาเปลี่ยนก่อนใช้งานจริง';
+  return resetToProductionSuperAdmin();
+}
+
+function resetToProductionSuperAdmin() {
+  const ss = DataService.ss();
+  const now = Utils.now();
+  const passwordHash = Utils.hashPassword('Admin@12345');
+
+  // 1. Reset USERS sheet to ONLY have superadmin
+  const usersSheet = ss.getSheetByName(APP_CONFIG.SHEETS.USERS);
+  if (usersSheet) {
+    const headers = FRS_SCHEMA.USERS;
+    usersSheet.clearContents();
+    usersSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+
+    const superadminRow = [
+      'U-SUPERADMIN-001',                               // USER_ID
+      'E0001',                                          // EMPLOYEE_ID
+      'superadmin',                                     // USERNAME
+      passwordHash,                                     // PASSWORD_HASH
+      'เฉลิมพร ถาโคตร (Chaloemporn Thakot)',             // FULL_NAME
+      '0812345678',                                     // PHONE
+      'c.thakot@gmail.com',                             // EMAIL
+      'ฝ่ายเทคโนโลยีสารสนเทศ',                            // DIVISION
+      'ศูนย์เทคโนโลยีสารสนเทศและการสื่อสาร (ITSD)',     // DEPARTMENT
+      'System Administrator',                           // POSITION
+      APP_CONFIG.ROLES.ADMIN,                           // ROLE
+      'ACTIVE',                                         // STATUS
+      0,                                                // FAILED_LOGIN_COUNT
+      '',                                               // LOCKED_UNTIL
+      false,                                            // MUST_CHANGE_PASSWORD
+      '',                                               // LAST_LOGIN
+      now,                                              // PASSWORD_CHANGED_AT
+      now,                                              // CREATED_AT
+      now                                               // UPDATED_AT
+    ];
+    usersSheet.getRange(2, 1, 1, superadminRow.length).setValues([superadminRow]);
+  }
+
+  // 2. Reset USER_IDENTITIES sheet to ONLY have superadmin PASSWORD identity
+  const identitiesSheet = ss.getSheetByName(APP_CONFIG.SHEETS.USER_IDENTITIES);
+  if (identitiesSheet) {
+    const headers = FRS_SCHEMA.USER_IDENTITIES;
+    identitiesSheet.clearContents();
+    identitiesSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+
+    const identityRow = [
+      Utils.uuid('IDN'),                                // IDENTITY_ID
+      'U-SUPERADMIN-001',                               // USER_ID
+      APP_CONFIG.IDENTITY_PROVIDERS.PASSWORD,           // PROVIDER
+      'superadmin',                                     // PROVIDER_SUB
+      'c.thakot@gmail.com',                             // PROVIDER_EMAIL
+      true,                                             // EMAIL_VERIFIED
+      'เฉลิมพร ถาโคตร (Chaloemporn Thakot)',             // DISPLAY_NAME
+      '',                                               // PROFILE_IMAGE_URL
+      now,                                              // LINKED_AT
+      now,                                              // LAST_LOGIN_AT
+      'ACTIVE',                                         // STATUS
+      now,                                              // CREATED_AT
+      now                                               // UPDATED_AT
+    ];
+    identitiesSheet.getRange(2, 1, 1, identityRow.length).setValues([identityRow]);
+  }
+
+  // 3. Clear REGISTRATION_REQUESTS
+  const regSheet = ss.getSheetByName(APP_CONFIG.SHEETS.REGISTRATION_REQUESTS);
+  if (regSheet) {
+    const headers = FRS_SCHEMA.REGISTRATION_REQUESTS;
+    regSheet.clearContents();
+    regSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  }
+
+  // 4. Clear SESSION_STORE
+  const sessionSheet = ss.getSheetByName(APP_CONFIG.SHEETS.SESSION_STORE);
+  if (sessionSheet) {
+    const headers = FRS_SCHEMA.SESSION_STORE;
+    sessionSheet.clearContents();
+    sessionSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  }
+
+  // 5. Invalidate caches
+  SpreadsheetApp.flush();
+  DataService.invalidateAll();
+  try {
+    const cache = CacheService.getScriptCache();
+    cache.removeAll(['*']);
+  } catch (_) {}
+
+  return {
+    ok: true,
+    message: 'ล้างข้อมูล Account อื่นๆ ทั้งหมด และสร้างบัญชี Administrator (superadmin) เรียบร้อยแล้ว พร้อมใช้งานจริง',
+    admin: {
+      username: 'superadmin',
+      role: 'ADMIN',
+      employeeId: 'E0001',
+      fullName: 'เฉลิมพร ถาโคตร (Chaloemporn Thakot)',
+      email: 'c.thakot@gmail.com'
+    }
+  };
+}
+
+function seedDemoUsers_(forceReset) {
+  const existing = DataService.findOneCaseInsensitive(APP_CONFIG.SHEETS.USERS, 'USERNAME', 'superadmin');
+  if (!existing || forceReset) {
+    return resetToProductionSuperAdmin();
+  }
 }
 
 function cleanupExpiredSessions() {

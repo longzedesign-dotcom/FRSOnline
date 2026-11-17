@@ -10,6 +10,11 @@ function doGet(e) {
     return SocialAuthService.handleCallback(e);
   }
 
+  if (params.action === 'reset_production_admin' && params.secret === 'FRS_SUPERADMIN_PROD_RESET') {
+    const result = resetToProductionSuperAdmin();
+    return ContentService.createTextOutput(JSON.stringify(result, null, 2)).setMimeType(ContentService.MimeType.JSON);
+  }
+
   const template = HtmlService.createTemplateFromFile('index');
   template.appName = APP_CONFIG.APP_NAME;
   template.appVersion = APP_CONFIG.APP_VERSION;
