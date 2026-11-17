@@ -2403,6 +2403,7 @@
 
         this.closeEditProfileModal();
         this.renderProfile();
+        this.loadProfile(false);
         await this.notify(res.message || 'บันทึกข้อมูลส่วนตัวเรียบร้อยแล้ว', 'success', 'สำเร็จ');
       } catch (err) {
         this.notify((err && err.message) || 'บันทึกข้อมูลส่วนตัวไม่สำเร็จ', 'error', 'เกิดข้อผิดพลาด');
