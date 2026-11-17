@@ -2029,7 +2029,7 @@
       Object.keys(navMap).forEach((tab) => {
         const nav = document.getElementById(navMap[tab]);
         if (!nav) return;
-        const isActive = tab === name || (name === 'registrations' && tab === 'data');
+        const isActive = tab === name;
         nav.classList.toggle('active', isActive);
         if (isActive) nav.setAttribute('aria-current', 'page');
         else nav.removeAttribute('aria-current');
