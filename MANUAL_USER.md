@@ -1,6 +1,6 @@
 # 📖 คู่มือการใช้งานระบบฉบับสมบูรณ์ (User Manual)
 ### FRS : Facility Repair System (ระบบแจ้งซ่อมบำรุงออนไลน์ — Mobile Full Option)
-**Version: FRS V2.3.17 Mobile Full Option | Developer: LongZe Design**
+**Version: FRS V2.3.18 Mobile Full Option | Developer: LongZe Design**
 
 คู่มือนี้จัดทำขึ้นเพื่อให้ผู้ใช้งานทุกระดับ ตั้งแต่ผู้ใช้งานทั่วไป, ช่างซ่อมบำรุง, หัวหน้างาน และผู้ดูแลระบบ สามารถใช้งานฟังก์ชันต่างๆ ของระบบ FRS บนคอมพิวเตอร์และอุปกรณ์สมาร์ตโฟนได้อย่างเต็มประสิทธิภาพ
 

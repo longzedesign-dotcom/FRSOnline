@@ -1,7 +1,7 @@
 /**
  * Facility Repair System (FRS)
  * Config.gs
- * Version 2.3.17
+ * Version 2.3.18
  *
  * Secret values for Google/LINE OAuth must be stored in Script Properties,
  * never in this source file or Google Sheets.
@@ -9,7 +9,7 @@
 
 const APP_CONFIG = Object.freeze({
   APP_NAME: 'Facility Repair System (FRS)',
-  APP_VERSION: '2.3.17',
+  APP_VERSION: '2.3.18',
   TIMEZONE: 'Asia/Bangkok',
 
   // IDs for newly cloned FRS project
