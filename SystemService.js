@@ -26,6 +26,10 @@ const SystemService = {
       GENERAL: {
         ORG_NAME: props.getProperty('CFG_ORG_NAME') || APP_CONFIG.APP_NAME || 'Facility Repair System (FRS)',
         SYSTEM_SUBTITLE: props.getProperty('CFG_SYSTEM_SUBTITLE') || 'ระบบแจ้งซ่อมบำรุงออนไลน์',
+        LOGIN_TITLE: props.getProperty('CFG_LOGIN_TITLE') || 'Facility Repair System : FRS Online',
+        LOGIN_SUBTITLE: props.getProperty('CFG_LOGIN_SUBTITLE') || 'เข้าสู่ระบบเพื่อจัดการและติดตามงานแจ้งซ่อมบำรุง FRS',
+        LOGIN_TITLE_SIZE: Utils.toNumber(props.getProperty('CFG_LOGIN_TITLE_SIZE'), 24),
+        LOGIN_SUBTITLE_SIZE: Utils.toNumber(props.getProperty('CFG_LOGIN_SUBTITLE_SIZE'), 14),
         SUPPORT_PHONE: props.getProperty('CFG_SUPPORT_PHONE') || '',
         SUPPORT_EMAIL: props.getProperty('CFG_SUPPORT_EMAIL') || ''
       },
@@ -65,6 +69,22 @@ const SystemService = {
     if (sec === 'GENERAL') {
       if (input.ORG_NAME !== undefined) props.setProperty('CFG_ORG_NAME', Utils.normalizeText(input.ORG_NAME, 150));
       if (input.SYSTEM_SUBTITLE !== undefined) props.setProperty('CFG_SYSTEM_SUBTITLE', Utils.normalizeText(input.SYSTEM_SUBTITLE, 150));
+      if (input.LOGIN_TITLE !== undefined) {
+        const val = Utils.normalizeText(input.LOGIN_TITLE, 150);
+        props.setProperty('CFG_LOGIN_TITLE', val || 'Facility Repair System : FRS Online');
+      }
+      if (input.LOGIN_SUBTITLE !== undefined) {
+        const val = Utils.normalizeText(input.LOGIN_SUBTITLE, 200);
+        props.setProperty('CFG_LOGIN_SUBTITLE', val || 'เข้าสู่ระบบเพื่อจัดการและติดตามงานแจ้งซ่อมบำรุง FRS');
+      }
+      if (input.LOGIN_TITLE_SIZE !== undefined) {
+        const titleSize = Math.max(16, Math.min(48, Utils.toNumber(input.LOGIN_TITLE_SIZE, 24)));
+        props.setProperty('CFG_LOGIN_TITLE_SIZE', String(titleSize));
+      }
+      if (input.LOGIN_SUBTITLE_SIZE !== undefined) {
+        const subtitleSize = Math.max(10, Math.min(28, Utils.toNumber(input.LOGIN_SUBTITLE_SIZE, 14)));
+        props.setProperty('CFG_LOGIN_SUBTITLE_SIZE', String(subtitleSize));
+      }
       if (input.SUPPORT_PHONE !== undefined) props.setProperty('CFG_SUPPORT_PHONE', String(input.SUPPORT_PHONE || '').trim());
       if (input.SUPPORT_EMAIL !== undefined) props.setProperty('CFG_SUPPORT_EMAIL', String(input.SUPPORT_EMAIL || '').trim());
     } else if (sec === 'SECURITY') {

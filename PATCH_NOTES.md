@@ -6,6 +6,21 @@
 
 ---
 
+## [V2.3.25 Customizable Login Branding & Font Sliders] — 2026-11-17 🎚️🏷️✨ (ITSD Release Standard)
+
+### 🎚️ ปรับแต่งข้อความและขนาดตัวอักษรหน้าเข้าสู่ระบบผ่านการตั้งค่า Admin (Login Screen Branding Customization)
+- **เพิ่มระบบแก้ไขข้อความ 2 จุดของหน้า Login ผ่านเมนูตั้งค่าระบบ (Administrator Control Suite):**
+  - **ช่องที่ 1 (Login Title):** ข้อความหัวข้อหลัก (ค่าเริ่มต้น: `Facility Repair System : FRS Online`)
+  - **บาร์เลื่อนขนาดตัวหนังสือ ช่องที่ 1:** ปรับขนาดตัวอักษรของหัวข้อหลักแบบ Range Slider (16px – 36px) พร้อมแสดงตัวเลขพิกเซลแบบเรียลไทม์
+  - **ช่องที่ 2 (Login Subtitle):** ข้อความคำโปรย / คำอธิบายย่อย (ค่าเริ่มต้น: `เข้าสู่ระบบเพื่อจัดการและติดตามงานแจ้งซ่อมบำรุง FRS`)
+  - **บาร์เลื่อนขนาดตัวหนังสือ ช่องที่ 2:** ปรับขนาดตัวอักษรของคำโปรยย่อยแบบ Range Slider (11px – 22px) พร้อมแสดงตัวเลขพิกเซลแบบเรียลไทม์
+  - **กล่องแสดงตัวอย่างสด (Live Preview Box):** แสดงภาพจำลองขนาดและข้อความทันทีที่ผู้ดูแลระบบพิมพ์หรือเลื่อนบาร์บนหน้าตั้งค่า
+- **สถาปัตยกรรมและการบันทึกข้อมูล (Architecture & Persistence):**
+  - บันทึกลง Script Properties (`CFG_LOGIN_TITLE`, `CFG_LOGIN_SUBTITLE`, `CFG_LOGIN_TITLE_SIZE`, `CFG_LOGIN_SUBTITLE_SIZE`) อย่างปลอดภัย
+  - ฝังค่าลง HTML Template ทันทีใน `doGet(e)` ทำให้หน้า Login แสดงผลได้ทันทีไม่มีอาการกระตุกหรือดีเลย์
+
+---
+
 ## [V2.3.24 Standardized Main Headings Font Size] — 2026-11-17 🔤📐✨ (ITSD Release Standard)
 
 ### 🔤 มาตรฐานขนาดฟอนต์หัวข้อหลักทุกหน้า (Standardized Page Headings)

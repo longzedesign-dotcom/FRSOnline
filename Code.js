@@ -19,6 +19,12 @@ function doGet(e) {
   template.appName = APP_CONFIG.APP_NAME;
   template.appVersion = APP_CONFIG.APP_VERSION;
 
+  const props = PropertiesService.getScriptProperties();
+  template.loginTitle = props.getProperty('CFG_LOGIN_TITLE') || 'Facility Repair System : FRS Online';
+  template.loginSubtitle = props.getProperty('CFG_LOGIN_SUBTITLE') || 'เข้าสู่ระบบเพื่อจัดการและติดตามงานแจ้งซ่อมบำรุง FRS';
+  template.loginTitleSize = props.getProperty('CFG_LOGIN_TITLE_SIZE') || '24';
+  template.loginSubtitleSize = props.getProperty('CFG_LOGIN_SUBTITLE_SIZE') || '14';
+
   return template.evaluate()
     .setTitle(APP_CONFIG.APP_NAME)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');

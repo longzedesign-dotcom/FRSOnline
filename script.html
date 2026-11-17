@@ -2492,7 +2492,7 @@
         if (googLog) googLog.checked = notif.GOOGLE_LOGIN_ENABLED !== false;
         if (lineLog) lineLog.checked = notif.LINE_LOGIN_ENABLED !== false;
 
-        // General
+        // General & Login Customization
         const gen = s.GENERAL || {};
         const orgEl = document.getElementById('cfg_org_name');
         const subEl = document.getElementById('cfg_system_subtitle');
@@ -2502,6 +2502,22 @@
         if (subEl) subEl.value = gen.SYSTEM_SUBTITLE || '';
         if (phoneEl) phoneEl.value = gen.SUPPORT_PHONE || '';
         if (emailEl) emailEl.value = gen.SUPPORT_EMAIL || '';
+
+        const loginTitleEl = document.getElementById('cfg_login_title');
+        const loginSubtitleEl = document.getElementById('cfg_login_subtitle');
+        const loginTitleSizeEl = document.getElementById('cfg_login_title_size');
+        const loginSubtitleSizeEl = document.getElementById('cfg_login_subtitle_size');
+        if (loginTitleEl) loginTitleEl.value = gen.LOGIN_TITLE || 'Facility Repair System : FRS Online';
+        if (loginSubtitleEl) loginSubtitleEl.value = gen.LOGIN_SUBTITLE || 'เข้าสู่ระบบเพื่อจัดการและติดตามงานแจ้งซ่อมบำรุง FRS';
+        if (loginTitleSizeEl) {
+          loginTitleSizeEl.value = gen.LOGIN_TITLE_SIZE || 24;
+          this.onLoginFontSizeChange('title', loginTitleSizeEl.value);
+        }
+        if (loginSubtitleSizeEl) {
+          loginSubtitleSizeEl.value = gen.LOGIN_SUBTITLE_SIZE || 14;
+          this.onLoginFontSizeChange('subtitle', loginSubtitleSizeEl.value);
+        }
+        this.updateLoginBrandingPreview();
 
       } catch (err) {
         this.notify((err && err.message) || 'โหลดการตั้งค่าระบบไม่สำเร็จ', 'error');
@@ -2545,6 +2561,10 @@
         payload = {
           ORG_NAME: (document.getElementById('cfg_org_name').value || '').trim(),
           SYSTEM_SUBTITLE: (document.getElementById('cfg_system_subtitle').value || '').trim(),
+          LOGIN_TITLE: (document.getElementById('cfg_login_title').value || '').trim(),
+          LOGIN_SUBTITLE: (document.getElementById('cfg_login_subtitle').value || '').trim(),
+          LOGIN_TITLE_SIZE: Number(document.getElementById('cfg_login_title_size').value) || 24,
+          LOGIN_SUBTITLE_SIZE: Number(document.getElementById('cfg_login_subtitle_size').value) || 14,
           SUPPORT_PHONE: (document.getElementById('cfg_support_phone').value || '').trim(),
           SUPPORT_EMAIL: (document.getElementById('cfg_support_email').value || '').trim()
         };
@@ -2557,12 +2577,53 @@
           this.handleApiError(res);
           return;
         }
+        if (sec === 'GENERAL') {
+          const authTitle = document.getElementById('authWelcomeTitle');
+          const authSub = document.getElementById('authWelcomeSubtitle');
+          if (authTitle) {
+            authTitle.textContent = payload.LOGIN_TITLE || 'Facility Repair System : FRS Online';
+            authTitle.style.fontSize = (payload.LOGIN_TITLE_SIZE || 24) + 'px';
+          }
+          if (authSub) {
+            authSub.textContent = payload.LOGIN_SUBTITLE || 'เข้าสู่ระบบเพื่อจัดการและติดตามงานแจ้งซ่อมบำรุง FRS';
+            authSub.style.fontSize = (payload.LOGIN_SUBTITLE_SIZE || 14) + 'px';
+          }
+        }
         await this.notify(res.message || 'บันทึกการตั้งค่าเรียบร้อยแล้ว', 'success', 'สำเร็จ');
         await this.loadSystemSettings(false);
       } catch (err) {
         this.notify((err && err.message) || 'บันทึกการตั้งค่าไม่สำเร็จ', 'error', 'เกิดข้อผิดพลาด');
       } finally {
         this.showLoading(false);
+      }
+    },
+
+    onLoginFontSizeChange(type, value) {
+      const num = Number(value) || (type === 'title' ? 24 : 14);
+      if (type === 'title') {
+        const valEl = document.getElementById('cfg_login_title_size_val');
+        if (valEl) valEl.textContent = num + 'px';
+        const previewEl = document.getElementById('loginPreviewTitle');
+        if (previewEl) previewEl.style.fontSize = num + 'px';
+      } else if (type === 'subtitle') {
+        const valEl = document.getElementById('cfg_login_subtitle_size_val');
+        if (valEl) valEl.textContent = num + 'px';
+        const previewEl = document.getElementById('loginPreviewSubtitle');
+        if (previewEl) previewEl.style.fontSize = num + 'px';
+      }
+    },
+
+    updateLoginBrandingPreview() {
+      const titleInput = document.getElementById('cfg_login_title');
+      const subInput = document.getElementById('cfg_login_subtitle');
+      const previewTitle = document.getElementById('loginPreviewTitle');
+      const previewSub = document.getElementById('loginPreviewSubtitle');
+
+      if (previewTitle && titleInput) {
+        previewTitle.textContent = titleInput.value.trim() || 'Facility Repair System : FRS Online';
+      }
+      if (previewSub && subInput) {
+        previewSub.textContent = subInput.value.trim() || 'เข้าสู่ระบบเพื่อจัดการและติดตามงานแจ้งซ่อมบำรุง FRS';
       }
     },
 
