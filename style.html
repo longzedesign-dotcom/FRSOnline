@@ -160,12 +160,13 @@
   }
 
   .auth-welcome-title {
-    font-size: var(--frs-fs-xl);
-    line-height: var(--frs-lh-tight);
+    font-size: clamp(1.25rem, 4.5vw, var(--frs-fs-xl));
+    line-height: var(--frs-lh-heading);
     font-weight: 900;
     color: var(--text);
     letter-spacing: -0.02em;
     margin: 0 0 8px;
+    text-align: center;
   }
   .auth-welcome-subtitle {
     font-size: var(--frs-fs-sm);

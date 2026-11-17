@@ -4,7 +4,7 @@
 
 ### Next-Gen Serverless Facility Repair & Maintenance Management Suite (Mobile-First Experience)
 
-[![Version](https://img.shields.io/badge/Version-FRS%20V2.3.21%20Mobile%20Full%20Option-F97316?style=flat-square)](https://github.com/longzedesign-dotcom/FRSOnline)
+[![Version](https://img.shields.io/badge/Version-FRS%20V2.3.22%20Mobile%20Full%20Option-F97316?style=flat-square)](https://github.com/longzedesign-dotcom/FRSOnline)
 [![Theme](https://img.shields.io/badge/Theme-Mobile%20Full%20Option%20%7C%20Dual%20Mode-2563EB?style=flat-square)](https://github.com/longzedesign-dotcom/FRSOnline)
 [![Developer](https://img.shields.io/badge/Developer-LongZe%20Design-purple?style=flat-square)](https://github.com/longzedesign-dotcom)
 [![Platform](https://img.shields.io/badge/Platform-Google%20Apps%20Script%20%7C%20Web%20App-34A853?style=flat-square&logo=google)](https://script.google.com/home/projects/1r67OX6cinXQJjCJKC39ZKutrYodlhxQ60gPb9rZ27M1mJ_HzWfOzPmfW/edit)
@@ -27,7 +27,7 @@
 | **Google Sheets Database** | `DBS_FRS` (`1eI2xZjGpmKHhhpl3TIucxFbSe_aXzy3am2H-KieQjCk`) | https://docs.google.com/spreadsheets/d/1eI2xZjGpmKHhhpl3TIucxFbSe_aXzy3am2H-KieQjCk/edit |
 | **Google Drive Uploads** | `FRS_Uploads` (`1bxDK2QLZW_ySZKRfuMZvBuEDHELL9W0j`) | https://drive.google.com/drive/folders/1bxDK2QLZW_ySZKRfuMZvBuEDHELL9W0j |
 | **Apps Script Project (Edit)** | `FRSOnline : ระบบแจ้งซ่อมบำรุง` (`1r67OX6cinXQJjCJKC39ZKutrYodlhxQ60gPb9rZ27M1mJ_HzWfOzPmfW`) | https://script.google.com/home/projects/1r67OX6cinXQJjCJKC39ZKutrYodlhxQ60gPb9rZ27M1mJ_HzWfOzPmfW/edit |
-| **Web App Deploy (Exec)** | `AKfycbwGnIi...` (`FRS V2.3.21` · Deployment `@27`) | https://script.google.com/macros/s/AKfycbwGnIi6IsVMMDoymjWtDmgzGbN9TrH22es0RObGT0AJrHDw2UTJOMNfbbLz2dwXlulO/exec |
+| **Web App Deploy (Exec)** | `AKfycbwGnIi...` (`FRS V2.3.22` · Deployment `@28`) | https://script.google.com/macros/s/AKfycbwGnIi6IsVMMDoymjWtDmgzGbN9TrH22es0RObGT0AJrHDw2UTJOMNfbbLz2dwXlulO/exec |
 
 ---
 

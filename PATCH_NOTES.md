@@ -6,6 +6,15 @@
 
 ---
 
+## [V2.3.22 Login Branding Title Update] — 2026-11-17 🏷️✨📱 (ITSD Release Standard)
+
+### 🏷️ ปรับเปลี่ยนข้อความต้อนรับหน้าเข้าสู่ระบบ (Login Branding Enhancement)
+- **ปรับหัวเรื่องหน้า Login จาก "Welcome Back!" เป็นชื่อระบบทางการ:**
+  - เปลี่ยนเป็น **`Facility Repair System : FRS Online`** ชัดเจน สื่อถึงระบบอย่างเป็นทางการ
+  - ปรับการจัดวางฟอนต์ด้วย `clamp(1.25rem, 4.5vw, var(--frs-fs-xl))` จัดกึ่งกลางสวยงาม ไม่ล้นจอ และคมชัดในทุกขนาดหน้าจอทั้งบนมือถือและคอมพิวเตอร์
+
+---
+
 ## [V2.3.21 Streamline Settings Preferences] — 2026-11-17 🧼⚙️✨ (ITSD Release Standard)
 
 ### 🧼 ปรับแต่งหน้าตั้งค่าระบบให้กระชับและลดความซ้ำซ้อน (Settings View Refinement)
