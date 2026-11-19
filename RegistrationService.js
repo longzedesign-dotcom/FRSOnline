@@ -1,7 +1,7 @@
 /**
  * Facility Repair System (FRS)
  * RegistrationService.gs
- * Version 2.3.03
+ * Version 2.3.28
  */
 
 const RegistrationService = {
@@ -22,9 +22,18 @@ const RegistrationService = {
           };
         })
       : [];
+    let nextEmployeeId = '';
+    if (status.registrationEnabled) {
+      try {
+        nextEmployeeId = this.getNextEmployeeId_();
+      } catch (e) {
+        nextEmployeeId = '';
+      }
+    }
     return Utils.jsonSuccess({
       config: status,
-      departments: departments
+      departments: departments,
+      nextEmployeeId: nextEmployeeId
     });
   },
 
@@ -122,11 +131,12 @@ const RegistrationService = {
       }
       this.validateCommon_(input, row.PROVIDER, row.PROVIDER_SUB, row.REGISTRATION_ID);
 
+      const employeeId = this.getNextEmployeeId_();
       DataService.updateRowByKey(APP_CONFIG.SHEETS.REGISTRATION_REQUESTS, 'REGISTRATION_ID', row.REGISTRATION_ID, {
         REGISTRATION_TOKEN_HASH: '',
         TOKEN_EXPIRES_AT: '',
         USERNAME: input.username,
-        EMPLOYEE_ID: input.employeeId || '',
+        EMPLOYEE_ID: employeeId,
         FULL_NAME: input.fullName,
         PHONE: input.phone,
         EMAIL: input.email,
@@ -159,6 +169,7 @@ const RegistrationService = {
 
       const now = Utils.now();
       const registrationId = Utils.uuid('REG');
+      const employeeId = this.getNextEmployeeId_();
       DataService.appendRow(APP_CONFIG.SHEETS.REGISTRATION_REQUESTS, {
         REGISTRATION_ID: registrationId,
         REGISTRATION_TOKEN_HASH: '',
@@ -170,7 +181,7 @@ const RegistrationService = {
         DISPLAY_NAME: input.fullName,
         PROFILE_IMAGE_URL: '',
         USERNAME: input.username,
-        EMPLOYEE_ID: input.employeeId || '',
+        EMPLOYEE_ID: employeeId,
         PASSWORD_HASH: Utils.hashPassword(input.password),
         FULL_NAME: input.fullName,
         PHONE: input.phone,
@@ -403,8 +414,10 @@ const RegistrationService = {
   },
 
   getNextEmployeeId_() {
-    const users = DataService.getRows(APP_CONFIG.SHEETS.USERS);
     let maxNum = 0;
+
+    // Scan USERS sheet
+    const users = DataService.getRows(APP_CONFIG.SHEETS.USERS);
     users.forEach(function(u) {
       const match = String(u.EMPLOYEE_ID || '').trim().toUpperCase().match(/^E(\d{4})$/);
       if (match) {
@@ -412,6 +425,19 @@ const RegistrationService = {
         if (num > maxNum) maxNum = num;
       }
     });
+
+    // Scan REGISTRATION_REQUESTS sheet (excluding REJECTED and CANCELLED)
+    const requests = DataService.getRows(APP_CONFIG.SHEETS.REGISTRATION_REQUESTS);
+    requests.forEach(function(r) {
+      const status = String(r.APPROVAL_STATUS || '').trim().toUpperCase();
+      if (status === 'REJECTED' || status === 'CANCELLED') return;
+      const match = String(r.EMPLOYEE_ID || '').trim().toUpperCase().match(/^E(\d{4})$/);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxNum) maxNum = num;
+      }
+    });
+
     const nextNum = maxNum + 1;
     if (nextNum > 9999) {
       throw new Error('รหัสพนักงานเต็มจำนวนสูงสุด E9999 แล้ว');

@@ -346,8 +346,8 @@
     },
 
     bindEmployeeIdAndUsernameHelpers() {
-      // Auto-format Employee ID inputs to uppercase & enforce alphanumeric pattern
-      ['registerEmployeeId', 'socialRegisterEmployeeId', 'ep_EMPLOYEE_ID'].forEach((id) => {
+      // Auto-format editable Employee ID inputs (e.g. edit profile)
+      ['ep_EMPLOYEE_ID'].forEach((id) => {
         const el = document.getElementById(id);
         if (!el) return;
         el.addEventListener('input', () => {
@@ -588,6 +588,22 @@
 
       this.fillDepartmentSelect('registerDepartment');
       this.fillDepartmentSelect('socialRegisterDepartment');
+      this.syncAutoEmployeeId();
+    },
+
+    syncAutoEmployeeId() {
+      const nextId = (this.publicRegistrationData && this.publicRegistrationData.nextEmployeeId) || '';
+      ['registerEmployeeId', 'socialRegisterEmployeeId'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) {
+          if (nextId) {
+            el.value = nextId;
+          } else {
+            el.value = '';
+            el.placeholder = 'กำลังสร้างรหัสอัตโนมัติ...';
+          }
+        }
+      });
     },
 
     fillDepartmentSelect(elementId) {
@@ -621,6 +637,12 @@
         const el = document.getElementById(map[key]);
         if (el) el.classList.toggle('hidden', key !== name);
       });
+      if (name === 'manualRegister' || name === 'registerSocial') {
+        this.syncAutoEmployeeId();
+        if (!this.publicRegistrationData || !this.publicRegistrationData.nextEmployeeId) {
+          this.loadPublicRegistrationData().catch(() => {});
+        }
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
 
@@ -836,6 +858,7 @@
         }
         document.getElementById('manualRegisterForm').reset();
         this.clearThaiPhoneError('registerPhone');
+        this.publicRegistrationData = null;
         this.showAuthPanel('login');
         await this.notify(res.message, 'success', 'ส่งคำขอแล้ว');
       } catch (err) {
@@ -894,6 +917,7 @@
         }
         sessionStorage.removeItem('FRS_REGISTRATION_CONTEXT');
         this.socialRegistrationContext = null;
+        this.publicRegistrationData = null;
         document.getElementById('socialRegisterForm').reset();
         this.clearThaiPhoneError('socialRegisterPhone');
         this.showAuthPanel('login');

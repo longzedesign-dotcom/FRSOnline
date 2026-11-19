@@ -216,13 +216,13 @@
               </div>
             </div>
             <div class="form-group">
-              <label for="registerEmployeeId">รหัสพนักงาน (Employee ID)</label>
+              <label for="registerEmployeeId">รหัสพนักงาน (Employee ID) <span class="badge" style="font-size:11px; background:rgba(37,99,235,0.1); color:var(--frs-primary); padding:2px 8px; border-radius:6px; margin-left:6px; font-weight:600;">รันเลขอัตโนมัติ</span></label>
               <div class="input-icon-wrap">
-                <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-user"></use></svg></span>
-                <input id="registerEmployeeId" type="text" maxlength="5" placeholder="เช่น E0001, E0002 (รูปแบบ E0001 - E9999)">
+                <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-lock"></use></svg></span>
+                <input id="registerEmployeeId" type="text" maxlength="5" placeholder="กำลังโหลดรหัส..." readonly tabindex="-1" style="background-color:var(--frs-surface-2, #f1f5f9); cursor:not-allowed; opacity:0.92; font-weight:700; color:var(--frs-text); letter-spacing:0.5px;">
               </div>
               <div class="field-help" style="margin-top:3px; font-size:11.5px; color:var(--frs-muted);">
-                มาตรฐานองค์กร: รหัสพนักงานใช้รูปแบบ <code>E0001</code> ถึง <code>E9999</code> (หากยังไม่มี ระบบจะกำหนดให้อัตโนมัติเมื่ออนุมัติ)
+                🔒 ระบบรันรหัสพนักงานให้อัตโนมัติตามลำดับล่าสุดในระบบ (ไม่อนุญาตให้แก้ไข)
               </div>
             </div>
             <div class="form-group">
@@ -300,10 +300,13 @@
               </div>
             </div>
             <div class="form-group">
-              <label for="socialRegisterEmployeeId">รหัสพนักงาน (Employee ID)</label>
-              <input id="socialRegisterEmployeeId" type="text" maxlength="5" placeholder="เช่น E0001, E0002 (รูปแบบ E0001 - E9999)">
+              <label for="socialRegisterEmployeeId">รหัสพนักงาน (Employee ID) <span class="badge" style="font-size:11px; background:rgba(37,99,235,0.1); color:var(--frs-primary); padding:2px 8px; border-radius:6px; margin-left:6px; font-weight:600;">รันเลขอัตโนมัติ</span></label>
+              <div class="input-icon-wrap">
+                <span class="input-icon-prefix" aria-hidden="true"><svg class="frs-ui-icon"><use href="#frs-icon-lock"></use></svg></span>
+                <input id="socialRegisterEmployeeId" type="text" maxlength="5" placeholder="กำลังโหลดรหัส..." readonly tabindex="-1" style="background-color:var(--frs-surface-2, #f1f5f9); cursor:not-allowed; opacity:0.92; font-weight:700; color:var(--frs-text); letter-spacing:0.5px;">
+              </div>
               <div class="field-help" style="margin-top:3px; font-size:11.5px; color:var(--frs-muted);">
-                มาตรฐานองค์กร: รูปแบบ <code>E0001</code> ถึง <code>E9999</code> (หากยังไม่มี ระบบจะกำหนดให้อัตโนมัติเมื่ออนุมัติ)
+                🔒 ระบบรันรหัสพนักงานให้อัตโนมัติตามลำดับล่าสุดในระบบ (ไม่อนุญาตให้แก้ไข)
               </div>
             </div>
             <div class="form-group">
