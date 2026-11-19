@@ -1027,11 +1027,86 @@
             <span class="frs-mobile-nav-icon" aria-hidden="true"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-chart"></use></svg></span>
             <span>รายงาน</span>
           </button>
-          <button id="mobileNavMore" class="frs-mobile-nav-item" type="button" data-mobile-more="true" onclick="App.toggleSidebar(true)" aria-label="เพิ่มเติม">
+          <button id="mobileNavMore" class="frs-mobile-nav-item" type="button" data-mobile-more="true" onclick="App.toggleMobileMoreSheet(true)" aria-label="เพิ่มเติม">
             <span class="frs-mobile-nav-icon frs-mobile-nav-dots" aria-hidden="true"><svg class="frs-ui-icon" aria-hidden="true"><use href="#frs-icon-more"></use></svg></span>
             <span>เพิ่มเติม</span>
           </button>
         </nav>
+
+        <!-- Mobile Bottom Action Sheet for 'เพิ่มเติม' (Thumb-friendly on 6"-7" screens) -->
+        <div id="mobileMoreSheet" class="mobile-action-sheet-wrap hidden" role="dialog" aria-modal="true" aria-label="เมนูระบบ">
+          <div class="mobile-action-sheet-backdrop" onclick="App.toggleMobileMoreSheet(false)"></div>
+          <div class="mobile-action-sheet-panel">
+            <div class="mobile-action-sheet-handle" onclick="App.toggleMobileMoreSheet(false)"></div>
+            <div class="mobile-action-sheet-header">
+              <div class="mobile-action-sheet-user">
+                <span id="moreSheetAvatar" class="frs-avatar">ฉ</span>
+                <div>
+                  <strong id="moreSheetUserName">ผู้ใช้งาน</strong>
+                  <small id="moreSheetUserRole">USER</small>
+                </div>
+              </div>
+              <button type="button" class="btn-close-sheet" onclick="App.toggleMobileMoreSheet(false)" aria-label="ปิดเมนู">
+                <svg class="frs-ui-icon" style="width:18px; height:18px;"><use href="#frs-icon-x"></use></svg>
+              </button>
+            </div>
+            <div class="mobile-action-sheet-body">
+              <!-- Admin Only Links -->
+              <div id="moreSheetAdminGroup" class="sheet-menu-group" style="display:none;">
+                <div class="sheet-group-label">การจัดการระบบ (Administrator)</div>
+                <button type="button" class="sheet-menu-item" onclick="App.navFromSheet('registrations')">
+                  <div class="sheet-item-icon blue"><svg class="frs-ui-icon"><use href="#frs-icon-users"></use></svg></div>
+                  <div class="sheet-item-text">
+                    <strong>คำขอสมัครสมาชิก</strong>
+                    <small>ตรวจสอบและอนุมัติผู้ใช้งานใหม่</small>
+                  </div>
+                  <svg class="frs-ui-icon sheet-chevron"><use href="#frs-icon-chevron-right"></use></svg>
+                </button>
+                <button type="button" class="sheet-menu-item" onclick="App.navFromSheet('data')">
+                  <div class="sheet-item-icon amber"><svg class="frs-ui-icon"><use href="#frs-icon-database"></use></svg></div>
+                  <div class="sheet-item-text">
+                    <strong>จัดการข้อมูล</strong>
+                    <small>ข้อมูลหมวดหมู่ สถานที่ และผู้รับผิดชอบ</small>
+                  </div>
+                  <svg class="frs-ui-icon sheet-chevron"><use href="#frs-icon-chevron-right"></use></svg>
+                </button>
+              </div>
+
+              <!-- General Settings & Profile -->
+              <div class="sheet-menu-group">
+                <div class="sheet-group-label">การตั้งค่าและบัญชี (Preferences)</div>
+                <button type="button" class="sheet-menu-item" onclick="App.navFromSheet('settings')">
+                  <div class="sheet-item-icon green"><svg class="frs-ui-icon"><use href="#frs-icon-settings"></use></svg></div>
+                  <div class="sheet-item-text">
+                    <strong>ตั้งค่าระบบ</strong>
+                    <small>ธีมหน้าจอ และศูนย์ควบคุมระบบ</small>
+                  </div>
+                  <svg class="frs-ui-icon sheet-chevron"><use href="#frs-icon-chevron-right"></use></svg>
+                </button>
+                <button type="button" class="sheet-menu-item" onclick="App.navFromSheet('profile')">
+                  <div class="sheet-item-icon purple"><svg class="frs-ui-icon"><use href="#frs-icon-user"></use></svg></div>
+                  <div class="sheet-item-text">
+                    <strong>บัญชีของฉัน</strong>
+                    <small>ข้อมูลส่วนตัว และการเชื่อมต่อ LINE / Google</small>
+                  </div>
+                  <svg class="frs-ui-icon sheet-chevron"><use href="#frs-icon-chevron-right"></use></svg>
+                </button>
+              </div>
+
+              <!-- Quick Theme & Logout -->
+              <div class="sheet-menu-footer">
+                <button type="button" class="btn btn-outline btn-full frs-button-with-icon" onclick="App.toggleTheme(); App.toggleMobileMoreSheet(false);">
+                  <svg class="frs-ui-icon" style="width:18px; height:18px;"><use href="#frs-icon-sun"></use></svg>
+                  <span>สลับโหมดสว่าง / โหมดมืด</span>
+                </button>
+                <button type="button" class="btn btn-danger btn-full frs-button-with-icon" onclick="App.toggleMobileMoreSheet(false); App.logout();" style="margin-top:8px;">
+                  <svg class="frs-ui-icon frs-button-icon" style="width:18px; height:18px;"><use href="#frs-icon-log-out"></use></svg>
+                  <span>ออกจากระบบ</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 

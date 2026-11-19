@@ -85,6 +85,11 @@
           this.toggleSidebar(false);
           return;
         }
+        const sheet = document.getElementById('mobileMoreSheet');
+        if (sheet && sheet.classList.contains('is-open')) {
+          this.toggleMobileMoreSheet(false);
+          return;
+        }
       });
 
       if (!this.token) {
@@ -242,6 +247,27 @@
       sidebar.classList.toggle('is-open', shouldOpen);
       if (backdrop) backdrop.classList.toggle('is-open', shouldOpen);
       document.body.classList.toggle('sidebar-open', shouldOpen);
+    },
+
+    toggleMobileMoreSheet(forceOpen) {
+      const sheet = document.getElementById('mobileMoreSheet');
+      if (!sheet) return;
+      const isOpen = sheet.classList.contains('is-open');
+      const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : !isOpen;
+      if (shouldOpen) {
+        this.updateUserDisplay();
+        sheet.classList.remove('hidden');
+        setTimeout(() => sheet.classList.add('is-open'), 10);
+        this.haptic(15);
+      } else {
+        sheet.classList.remove('is-open');
+        setTimeout(() => sheet.classList.add('hidden'), 280);
+      }
+    },
+
+    navFromSheet(tab) {
+      this.toggleMobileMoreSheet(false);
+      this.showTab(tab);
     },
 
     async quickSearch(event) {
@@ -2066,6 +2092,7 @@
         this.restoreNewRequestDraft();
       }
       this.toggleSidebar(false);
+      this.toggleMobileMoreSheet(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
 
@@ -2129,6 +2156,18 @@
       if (sidebarUserRole) sidebarUserRole.textContent = role;
       if (sidebarAvatar) sidebarAvatar.textContent = firstName.charAt(0).toUpperCase();
       if (greeting) greeting.textContent = 'สวัสดีครับ, ' + firstName;
+
+      const moreSheetUserName = document.getElementById('moreSheetUserName');
+      const moreSheetUserRole = document.getElementById('moreSheetUserRole');
+      const moreSheetAvatar = document.getElementById('moreSheetAvatar');
+      const moreSheetAdminGroup = document.getElementById('moreSheetAdminGroup');
+      if (moreSheetUserName) moreSheetUserName.textContent = fullName;
+      if (moreSheetUserRole) moreSheetUserRole.textContent = role;
+      if (moreSheetAvatar) moreSheetAvatar.textContent = firstName.charAt(0).toUpperCase();
+      if (moreSheetAdminGroup) {
+        const isAdmin = ['ADMIN', 'SUPERADMIN', 'MANAGER'].indexOf(String(role).toUpperCase()) !== -1;
+        moreSheetAdminGroup.style.display = isAdmin ? 'block' : 'none';
+      }
     },
 
     renderProfile() {
@@ -3431,6 +3470,8 @@
         const dateText = this.formatDateText(row.REQUEST_DATE || row.CREATED_AT);
         const statusCode = row.STATUS_CODE || '';
         const assignee = row.ASSIGNED_TO_NAME || '';
+        const phone = String(row.PHONE || '').trim();
+        const phoneDisplay = phone ? (typeof this.formatThaiPhoneDisplay === 'function' ? this.formatThaiPhoneDisplay(phone) : phone) : '';
         return '<article class="request-card clickable" role="button" tabindex="0" data-request-id="' + this.escapeAttr(row.REQUEST_ID || '') + '">' +
           '<div class="request-card-header">' +
             '<div class="request-id frs-request-id-with-icon">' + this.iconSvg('file-text') + '<span>' + this.escapeHtml(row.REQUEST_ID || '') + '</span></div>' +
@@ -3444,6 +3485,13 @@
           '</div>' +
           (assignee ? '<div class="request-assignee">ผู้รับผิดชอบ: ' + this.escapeHtml(assignee) + '</div>' : '') +
           this.renderCompactProgress(row) +
+          (phone ? '<div class="request-card-actions" onclick="event.stopPropagation()">' +
+            '<a href="tel:' + this.escapeAttr(phone) + '" class="frs-mobile-call-btn" title="โทรหาผู้แจ้ง">' +
+              '<svg class="frs-ui-icon" style="width:14px; height:14px;"><use href="#frs-icon-phone"></use></svg>' +
+              '<span>โทรหาผู้แจ้ง: ' + this.escapeHtml(phoneDisplay) + '</span>' +
+            '</a>' +
+          '</div>' : '') +
+        '</article>';
         '</article>';
       }).join('');
 
